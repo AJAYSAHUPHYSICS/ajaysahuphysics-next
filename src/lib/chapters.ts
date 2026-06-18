@@ -3,48 +3,55 @@ export type ChapterExam = "jee-main" | "jee-advanced" | "neet";
 export type Chapter = {
   name: string;
   cls: "11" | "12";
+  slug: string;
+  number: number;
 };
 
 export const class11Chapters: Chapter[] = [
-  { name: "Physical World & Measurement", cls: "11" },
-  { name: "Kinematics", cls: "11" },
-  { name: "Laws of Motion", cls: "11" },
-  { name: "Work, Energy & Power", cls: "11" },
-  { name: "System of Particles & Rotational Motion", cls: "11" },
-  { name: "Gravitation", cls: "11" },
-  { name: "Mechanical Properties of Solids", cls: "11" },
-  { name: "Mechanical Properties of Fluids", cls: "11" },
-  { name: "Thermal Properties of Matter", cls: "11" },
-  { name: "Thermodynamics", cls: "11" },
-  { name: "Kinetic Theory of Gases", cls: "11" },
-  { name: "Oscillations", cls: "11" },
-  { name: "Waves", cls: "11" },
+  { name: "Physical World & Measurement", cls: "11", slug: "physical-world-and-measurement", number: 1 },
+  { name: "Kinematics", cls: "11", slug: "kinematics", number: 2 },
+  { name: "Laws of Motion", cls: "11", slug: "laws-of-motion", number: 3 },
+  { name: "Work, Energy & Power", cls: "11", slug: "work-energy-and-power", number: 4 },
+  { name: "System of Particles & Rotational Motion", cls: "11", slug: "system-of-particles-and-rotational-motion", number: 5 },
+  { name: "Gravitation", cls: "11", slug: "gravitation", number: 6 },
+  { name: "Mechanical Properties of Solids", cls: "11", slug: "mechanical-properties-of-solids", number: 7 },
+  { name: "Mechanical Properties of Fluids", cls: "11", slug: "mechanical-properties-of-fluids", number: 8 },
+  { name: "Thermal Properties of Matter", cls: "11", slug: "thermal-properties-of-matter", number: 9 },
+  { name: "Thermodynamics", cls: "11", slug: "thermodynamics", number: 10 },
+  { name: "Kinetic Theory of Gases", cls: "11", slug: "kinetic-theory-of-gases", number: 11 },
+  { name: "Oscillations", cls: "11", slug: "oscillations", number: 12 },
+  { name: "Waves", cls: "11", slug: "waves", number: 13 },
 ];
 
 export const class12Chapters: Chapter[] = [
-  { name: "Electric Charges & Fields", cls: "12" },
-  { name: "Electrostatic Potential & Capacitance", cls: "12" },
-  { name: "Current Electricity", cls: "12" },
-  { name: "Moving Charges & Magnetism", cls: "12" },
-  { name: "Magnetism & Matter", cls: "12" },
-  { name: "Electromagnetic Induction", cls: "12" },
-  { name: "Alternating Current", cls: "12" },
-  { name: "Electromagnetic Waves", cls: "12" },
-  { name: "Ray Optics & Optical Instruments", cls: "12" },
-  { name: "Wave Optics", cls: "12" },
-  { name: "Dual Nature of Radiation & Matter", cls: "12" },
-  { name: "Atoms", cls: "12" },
-  { name: "Nuclei", cls: "12" },
-  { name: "Semiconductor Electronics", cls: "12" },
+  { name: "Electric Charges & Fields", cls: "12", slug: "electric-charges-and-fields", number: 1 },
+  { name: "Electrostatic Potential & Capacitance", cls: "12", slug: "electrostatic-potential-and-capacitance", number: 2 },
+  { name: "Current Electricity", cls: "12", slug: "current-electricity", number: 3 },
+  { name: "Moving Charges & Magnetism", cls: "12", slug: "moving-charges-and-magnetism", number: 4 },
+  { name: "Magnetism & Matter", cls: "12", slug: "magnetism-and-matter", number: 5 },
+  { name: "Electromagnetic Induction", cls: "12", slug: "electromagnetic-induction", number: 6 },
+  { name: "Alternating Current", cls: "12", slug: "alternating-current", number: 7 },
+  { name: "Electromagnetic Waves", cls: "12", slug: "electromagnetic-waves", number: 8 },
+  { name: "Ray Optics & Optical Instruments", cls: "12", slug: "ray-optics-and-optical-instruments", number: 9 },
+  { name: "Wave Optics", cls: "12", slug: "wave-optics", number: 10 },
+  { name: "Dual Nature of Radiation & Matter", cls: "12", slug: "dual-nature-of-radiation-and-matter", number: 11 },
+  { name: "Atoms", cls: "12", slug: "atoms", number: 12 },
+  { name: "Nuclei", cls: "12", slug: "nuclei", number: 13 },
+  { name: "Semiconductor Electronics", cls: "12", slug: "semiconductor-electronics", number: 14 },
 ];
 
 export const allChapters: Chapter[] = [...class11Chapters, ...class12Chapters];
 
 export const jeeAdvancedTopics: Chapter[] = [
-  { name: "Rotational Dynamics (Advanced)", cls: "11" },
-  { name: "Fluid Mechanics (Advanced)", cls: "11" },
-  { name: "Electromagnetic Induction (Advanced)", cls: "12" },
-  { name: "Geometrical & Wave Optics (Advanced)", cls: "12" },
-  { name: "Modern Physics (Advanced)", cls: "12" },
-  { name: "Heat & Thermodynamics (Advanced)", cls: "11" },
+  { name: "Rotational Dynamics (Advanced)", cls: "11", slug: "rotational-dynamics-advanced", number: 1 },
+  { name: "Fluid Mechanics (Advanced)", cls: "11", slug: "fluid-mechanics-advanced", number: 2 },
+  { name: "Electromagnetic Induction (Advanced)", cls: "12", slug: "electromagnetic-induction-advanced", number: 3 },
+  { name: "Geometrical & Wave Optics (Advanced)", cls: "12", slug: "geometrical-and-wave-optics-advanced", number: 4 },
+  { name: "Modern Physics (Advanced)", cls: "12", slug: "modern-physics-advanced", number: 5 },
+  { name: "Heat & Thermodynamics (Advanced)", cls: "11", slug: "heat-and-thermodynamics-advanced", number: 6 },
 ];
+
+export function getChapterBySlug(cls: "11" | "12", slug: string): Chapter | undefined {
+  const list = cls === "11" ? class11Chapters : class12Chapters;
+  return list.find((c) => c.slug === slug);
+}

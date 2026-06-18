@@ -48,7 +48,11 @@ export default function Class11Page() {
           <h2 className="font-display text-2xl sm:text-3xl text-navy mb-10">
             Chapters
           </h2>
-          <ChapterGrid chapters={class11Chapters} resourceLabel="Resources" />
+          <ChapterGrid
+            chapters={class11Chapters}
+            resourceLabel="Resources"
+            linkToChapterPage
+          />
         </div>
       </section>
     </div>

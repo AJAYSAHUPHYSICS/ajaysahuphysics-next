@@ -1,40 +1,65 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Chapter } from "@/lib/chapters";
 import WhatsAppButton from "./WhatsAppButton";
 
 type Props = {
   chapters: Chapter[];
   resourceLabel: string;
+  linkToChapterPage?: boolean;
 };
 
-export default function ChapterGrid({ chapters, resourceLabel }: Props) {
+export default function ChapterGrid({
+  chapters,
+  resourceLabel,
+  linkToChapterPage = false,
+}: Props) {
   const [selected, setSelected] = useState<Chapter | null>(null);
 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {chapters.map((ch, i) => (
-          <button
-            key={ch.name}
-            type="button"
-            onClick={() => setSelected(ch)}
-            className="group text-left rounded-lg border border-navy/10 bg-white p-5 hover:border-gold hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-gold"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="font-display text-2xl text-gold/70 group-hover:text-gold transition-colors">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-navy/40 border border-navy/15 rounded-full px-2 py-0.5 shrink-0">
-                Class {ch.cls}
-              </span>
-            </div>
-            <h3 className="mt-3 font-semibold text-navy leading-snug group-hover:text-gold-deep transition-colors">
-              {ch.name}
-            </h3>
-          </button>
-        ))}
+        {chapters.map((ch) => {
+          const cardInner = (
+            <>
+              <div className="flex items-start justify-between gap-3">
+                <span className="font-display text-2xl text-gold/70 group-hover:text-gold transition-colors">
+                  {String(ch.number).padStart(2, "0")}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-navy/40 border border-navy/15 rounded-full px-2 py-0.5 shrink-0">
+                  Class {ch.cls}
+                </span>
+              </div>
+              <h3 className="mt-3 font-semibold text-navy leading-snug group-hover:text-gold-deep transition-colors">
+                {ch.name}
+              </h3>
+            </>
+          );
+
+          const cardClass =
+            "group text-left rounded-lg border border-navy/10 bg-white p-5 hover:border-gold hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-gold block";
+
+          return linkToChapterPage ? (
+            <Link
+              key={`${ch.cls}-${ch.slug}`}
+              href={`/class-${ch.cls}/${ch.slug}`}
+              className={cardClass}
+            >
+              {cardInner}
+            </Link>
+          ) : (
+            <button
+              key={`${ch.cls}-${ch.slug}`}
+              type="button"
+              onClick={() => setSelected(ch)}
+              className={cardClass}
+            >
+              {cardInner}
+            </button>
+          );
+        })}
       </div>
 
       {selected && (
