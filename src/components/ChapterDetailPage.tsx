@@ -1,35 +1,33 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import type { Chapter } from "@/lib/chapters";
 
-type ResourceLink = {
+type ResourceCard = {
   label: string;
   desc: string;
-  href: string;
 };
 
-function resourcesFor(chapter: Chapter): ResourceLink[] {
+function resourcesFor(chapter: Chapter): ResourceCard[] {
   return [
     {
       label: "Notes",
       desc: `Typed, chapter-wise notes for ${chapter.name}.`,
-      href: "/notes",
     },
     {
       label: "Formula Sheet",
       desc: `Every derived result for ${chapter.name} in one place.`,
-      href: "/formula-sheet",
     },
     {
       label: "DPP",
       desc: `Daily Practice Problems to build speed on ${chapter.name}.`,
-      href: "/dpp",
     },
     {
       label: "PYQ",
       desc: `Previous Year Questions asked from ${chapter.name}.`,
-      href: "/pyq",
     },
   ];
 }
@@ -43,6 +41,7 @@ export default function ChapterDetailPage({
 }) {
   const resources = resourcesFor(chapter);
   const classHref = className === "11" ? "/class-11" : "/class-12";
+  const [selected, setSelected] = useState<ResourceCard | null>(null);
 
   return (
     <div>
@@ -76,10 +75,11 @@ export default function ChapterDetailPage({
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {resources.map((r) => (
-              <Link
+              <button
                 key={r.label}
-                href={r.href}
-                className="group bg-white rounded-lg border border-navy/10 p-6 hover:border-gold hover:shadow-lg transition-all"
+                type="button"
+                onClick={() => setSelected(r)}
+                className="group text-left bg-white rounded-lg border border-navy/10 p-6 hover:border-gold hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-gold"
               >
                 <h3 className="font-display text-xl text-navy group-hover:text-gold-deep transition-colors">
                   {r.label}
@@ -90,7 +90,7 @@ export default function ChapterDetailPage({
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-deep">
                   Open <span aria-hidden="true">&rarr;</span>
                 </span>
-              </Link>
+              </button>
             ))}
           </div>
 
@@ -122,6 +122,45 @@ export default function ChapterDetailPage({
           </div>
         </div>
       </section>
+
+      {selected && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-navy-deep/60 px-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="bg-white rounded-lg max-w-sm w-full p-7 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/15 text-gold-deep font-display text-xl mb-4">
+              !
+            </span>
+            <h3 className="font-display text-xl text-navy">Coming soon</h3>
+            <p className="mt-2 text-sm text-slate leading-relaxed">
+              {selected.label} for <strong>{chapter.name}</strong> is being
+              prepared. Message Ajay Sir on WhatsApp to get notified the
+              moment it&apos;s ready.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <WhatsAppButton
+                message={`Hi Ajay Sir, please notify me when ${selected.label} for "${chapter.name}" (Class ${className}) is ready.`}
+                className="w-full"
+              >
+                Notify me on WhatsApp
+              </WhatsAppButton>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="text-sm text-slate hover:text-navy py-2"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
