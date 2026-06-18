@@ -55,3 +55,16 @@ export function getChapterBySlug(cls: "11" | "12", slug: string): Chapter | unde
   const list = cls === "11" ? class11Chapters : class12Chapters;
   return list.find((c) => c.slug === slug);
 }
+
+export function getAdjacentChapters(
+  cls: "11" | "12",
+  slug: string
+): { prev: Chapter | null; next: Chapter | null } {
+  const list = cls === "11" ? class11Chapters : class12Chapters;
+  const index = list.findIndex((c) => c.slug === slug);
+  if (index === -1) return { prev: null, next: null };
+  return {
+    prev: index > 0 ? list[index - 1] : null,
+    next: index < list.length - 1 ? list[index + 1] : null,
+  };
+}

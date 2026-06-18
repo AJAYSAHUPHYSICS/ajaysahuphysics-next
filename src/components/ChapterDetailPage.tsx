@@ -5,6 +5,7 @@ import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import type { Chapter } from "@/lib/chapters";
+import { getAdjacentChapters } from "@/lib/chapters";
 
 type ResourceCard = {
   label: string;
@@ -42,6 +43,7 @@ export default function ChapterDetailPage({
   const resources = resourcesFor(chapter);
   const classHref = className === "11" ? "/class-11" : "/class-12";
   const [selected, setSelected] = useState<ResourceCard | null>(null);
+  const { prev, next } = getAdjacentChapters(className, chapter.slug);
 
   return (
     <div>
@@ -109,6 +111,48 @@ export default function ChapterDetailPage({
                 Ask a doubt
               </WhatsAppButton>
             </div>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {prev ? (
+              <Link
+                href={`/class-${className}/${prev.slug}`}
+                className="group flex flex-col rounded-lg border border-navy/10 bg-white p-5 hover:border-gold hover:shadow-lg transition-all"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate/60 flex items-center gap-1">
+                  <span aria-hidden="true">&larr;</span> Previous chapter
+                </span>
+                <span className="mt-2 font-display text-lg text-navy group-hover:text-gold-deep transition-colors">
+                  {prev.number}. {prev.name}
+                </span>
+              </Link>
+            ) : (
+              <div className="rounded-lg border border-dashed border-navy/10 p-5 flex flex-col justify-center">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate/40">
+                  This is the first chapter
+                </span>
+              </div>
+            )}
+
+            {next ? (
+              <Link
+                href={`/class-${className}/${next.slug}`}
+                className="group flex flex-col rounded-lg border border-navy/10 bg-white p-5 text-right hover:border-gold hover:shadow-lg transition-all"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate/60 flex items-center justify-end gap-1">
+                  Next chapter <span aria-hidden="true">&rarr;</span>
+                </span>
+                <span className="mt-2 font-display text-lg text-navy group-hover:text-gold-deep transition-colors">
+                  {next.number}. {next.name}
+                </span>
+              </Link>
+            ) : (
+              <div className="rounded-lg border border-dashed border-navy/10 p-5 flex flex-col justify-center text-right">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate/40">
+                  This is the last chapter
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="mt-8">
