@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #0b1f45;
+  --navy-light: #16315f;
+  --navy-deep: #071530;
+  --gold: #c9a84c;
+  --gold-light: #ddc480;
+  --gold-deep: #a8862f;
+  --ivory: #faf8f3;
+  --white: #ffffff;
+  --ink: #1a2333;
+  --slate: #5b6678;
+
+  --background: var(--white);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-navy-deep: var(--navy-deep);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-deep: var(--gold-deep);
+  --color-ivory: var(--ivory);
+  --color-ink: var(--ink);
+  --color-slate: var(--slate);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-display: "Playfair Display";
+  --font-body: "Inter";
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* Signature: faint coordinate-grid texture for hero/section backgrounds */
+.physics-grid {
+  background-image:
+    linear-gradient(rgba(201, 168, 76, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 168, 76, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.gold-rule {
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--gold-light);
+  color: var(--navy-deep);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
