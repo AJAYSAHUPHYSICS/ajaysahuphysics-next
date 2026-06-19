@@ -3,9 +3,11 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Tabs, { type TabDef } from "@/components/Tabs";
 import ComingSoonTab from "@/components/ComingSoonTab";
+import NotesDisplay from "@/components/NotesDisplay";
 import type { Chapter } from "@/lib/chapters";
 import { getAdjacentChapters } from "@/lib/chapters";
 import { getChapterOverview } from "@/lib/chapter-overviews";
+import { getChapterNotes } from "@/lib/notes";
 
 export default function ChapterDetailPage({
   chapter,
@@ -28,6 +30,8 @@ export default function ChapterDetailPage({
     { key: "videos", label: "Videos" },
   ];
 
+  const chapterNotes = getChapterNotes(chapter.slug);
+
   const tabs: TabDef[] = [
     {
       key: "overview",
@@ -41,17 +45,45 @@ export default function ChapterDetailPage({
         </div>
       ),
     },
-    ...resourceTabs.map((t) => ({
-      key: t.key,
-      label: t.label,
-      content: (
-        <ComingSoonTab
-          resourceLabel={t.label}
-          chapterName={chapter.name}
-          classLabel={classLabel}
-        />
-      ),
-    })),
+    ...resourceTabs.map((t) => {
+      if (t.key === "notes" && chapterNotes) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: (
+            <div>
+              <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+                <p className="text-sm text-slate">
+                  Typed notes for {chapter.name}.
+                </p>
+                <a
+                  href={`/notes-pdf/class-${className}/${chapter.slug}.pdf`}
+                  download
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+                  </svg>
+                  Download PDF
+                </a>
+              </div>
+              <NotesDisplay notes={chapterNotes} />
+            </div>
+          ),
+        };
+      }
+      return {
+        key: t.key,
+        label: t.label,
+        content: (
+          <ComingSoonTab
+            resourceLabel={t.label}
+            chapterName={chapter.name}
+            classLabel={classLabel}
+          />
+        ),
+      };
+    }),
   ];
 
   return (
