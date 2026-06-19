@@ -6,12 +6,19 @@ import {
   footerSiteLinks,
   whatsappLink,
 } from "@/lib/site-config";
+import NewsletterSignup from "./NewsletterSignup";
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
     <footer className="bg-navy-deep text-white mt-auto">
+      <div className="border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+          <NewsletterSignup />
+        </div>
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">

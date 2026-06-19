@@ -1,5 +1,6 @@
 import Link from "next/link";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import LeadCaptureForm from "@/components/LeadCaptureForm";
 
 const resourceCards = [
   {
@@ -299,18 +300,20 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-navy text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">
-          <h2 className="font-display text-2xl sm:text-3xl">
-            Ready to start scoring better in physics?
-          </h2>
-          <p className="mt-3 text-white/70 max-w-xl mx-auto">
-            Message Ajay Sir directly on WhatsApp for a free demo class.
-          </p>
-          <div className="mt-8">
-            <WhatsAppButton message="Hi Ajay Sir, I'd like to book a demo class.">
-              Book a demo class
-            </WhatsAppButton>
+      <section className="bg-navy text-white physics-grid">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl leading-tight">
+                Ready to start scoring better in physics?
+              </h2>
+              <p className="mt-4 text-white/70 max-w-md leading-relaxed">
+                Tell us a bit about where you are, and Ajay Sir will reach
+                out with the right next step — whether that&apos;s a demo
+                class or just answering your questions.
+              </p>
+            </div>
+            <LeadCaptureForm />
           </div>
         </div>
       </section>
