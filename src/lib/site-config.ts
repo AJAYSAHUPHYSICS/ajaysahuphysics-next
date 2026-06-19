@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Ajay Sahu Physics",
   tagline: "Physics that makes you score",
   url: "https://ajaysahuphysics.com",
-  email: "ajaysirphysics01@gmail.com",
+  email: "ajaysahuphysics.team@gmail.com",
   phone: "+91 8081005662",
   whatsappNumber: "918081005662",
   instagram: "https://instagram.com/ajaysahu_36",
