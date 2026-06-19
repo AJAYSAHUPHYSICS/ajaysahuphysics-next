@@ -42,15 +42,6 @@ export const class12Chapters: Chapter[] = [
 
 export const allChapters: Chapter[] = [...class11Chapters, ...class12Chapters];
 
-export const jeeAdvancedTopics: Chapter[] = [
-  { name: "Rotational Dynamics (Advanced)", cls: "11", slug: "rotational-dynamics-advanced", number: 1 },
-  { name: "Fluid Mechanics (Advanced)", cls: "11", slug: "fluid-mechanics-advanced", number: 2 },
-  { name: "Electromagnetic Induction (Advanced)", cls: "12", slug: "electromagnetic-induction-advanced", number: 3 },
-  { name: "Geometrical & Wave Optics (Advanced)", cls: "12", slug: "geometrical-and-wave-optics-advanced", number: 4 },
-  { name: "Modern Physics (Advanced)", cls: "12", slug: "modern-physics-advanced", number: 5 },
-  { name: "Heat & Thermodynamics (Advanced)", cls: "11", slug: "heat-and-thermodynamics-advanced", number: 6 },
-];
-
 export function getChapterBySlug(cls: "11" | "12", slug: string): Chapter | undefined {
   const list = cls === "11" ? class11Chapters : class12Chapters;
   return list.find((c) => c.slug === slug);

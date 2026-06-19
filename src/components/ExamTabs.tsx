@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
-import { allChapters, jeeAdvancedTopics } from "@/lib/chapters";
+import { allChapters } from "@/lib/chapters";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
 type ClassFilter = "all" | "11" | "12";
@@ -24,21 +24,22 @@ export default function ExamTabs({ resourceLabel }: { resourceLabel: string }) {
   const [classFilter, setClassFilter] = useState<ClassFilter>("all");
   const [query, setQuery] = useState("");
 
-  const baseChapters = active === "jee-advanced" ? jeeAdvancedTopics : allChapters;
-
+  // JEE Main, JEE Advanced, and NEET all draw from the same NCERT Class 11 + 12
+  // physics syllabus — JEE Advanced has no separate chapter list, only harder
+  // questions on the same chapters. So all three tabs show allChapters.
   const visibleChapters = useMemo(() => {
-    return baseChapters
+    return allChapters
       .filter((ch) => classFilter === "all" || ch.cls === classFilter)
       .filter((ch) =>
         query.trim() === ""
           ? true
           : ch.name.toLowerCase().includes(query.trim().toLowerCase())
       );
-  }, [baseChapters, classFilter, query]);
+  }, [classFilter, query]);
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-5">
+      <div className="flex flex-wrap gap-2 mb-3">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -54,6 +55,14 @@ export default function ExamTabs({ resourceLabel }: { resourceLabel: string }) {
           </button>
         ))}
       </div>
+
+      {active === "jee-advanced" && (
+        <p className="text-sm text-slate/70 mb-5 max-w-xl">
+          JEE Advanced draws from the same Class 11 &amp; 12 syllabus as JEE
+          Main — it tests these chapters with harder, multi-concept
+          questions rather than a separate topic list.
+        </p>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <div className="relative flex-1 max-w-sm">
