@@ -1,9 +1,6 @@
 import Script from "next/script";
 
-// TODO: Once Ajay creates a Google Analytics 4 property, replace this with
-// the real Measurement ID (format: G-XXXXXXXXXX) and it will activate
-// automatically. Until then, no tracking script loads at all.
-const GA_MEASUREMENT_ID = "";
+const GA_MEASUREMENT_ID = "G-3R7SSPSTKT";
 
 export default function Analytics() {
   if (!GA_MEASUREMENT_ID) return null;
