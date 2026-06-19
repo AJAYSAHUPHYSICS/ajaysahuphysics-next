@@ -101,6 +101,27 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="bg-navy text-white physics-grid">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="max-w-2xl">
+            <p className="text-gold text-xs font-semibold uppercase tracking-[0.2em]">
+              Our Mission
+            </p>
+            <h2 className="mt-4 font-display text-2xl sm:text-3xl lg:text-4xl leading-tight">
+              Make physics a subject students choose to study, not one they
+              fear.
+            </h2>
+            <p className="mt-5 text-white/70 text-base sm:text-lg leading-relaxed">
+              Coaching institutes are built to move large batches through a
+              syllabus. Ajay Sahu Physics is built around one student at a
+              time — clear concepts first, then practice that mirrors exactly
+              what JEE and NEET ask, so every hour of preparation actually
+              moves your score.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-ivory">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
@@ -187,6 +208,71 @@ export default function Home() {
       </section>
 
       <section className="bg-ivory">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
+            <div className="lg:col-span-2">
+              <div className="gold-rule mb-4" />
+              <h2 className="font-display text-2xl sm:text-3xl text-navy">
+                Taught by someone who has stood in front of thousands of
+                aspirants
+              </h2>
+              <p className="mt-4 text-slate leading-relaxed">
+                Ajay Sahu is a physics educator with experience across Aakash
+                Institute, Narayana Institute, and Physics Wallah — three of
+                India&apos;s well-known coaching ecosystems. After years of
+                teaching inside large batches, he&apos;s now building an
+                independent platform focused entirely on one thing: helping
+                each student understand physics deeply enough to trust it
+                under exam pressure.
+              </p>
+              <blockquote className="mt-6 border-l-2 border-gold pl-5 text-navy font-display text-lg sm:text-xl italic">
+                &ldquo;Tricks fail under exam pressure. A clear concept never
+                does.&rdquo;
+              </blockquote>
+              <div className="mt-7">
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
+                >
+                  Read the full teaching journey{" "}
+                  <span aria-hidden="true">&rarr;</span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg border border-navy/10 p-7">
+              <h3 className="font-display text-lg text-navy mb-4">
+                Where he&apos;s taught
+              </h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />
+                  <span className="text-slate">
+                    <strong className="text-navy">Physics Wallah</strong>,
+                    Kalyan — current
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />
+                  <span className="text-slate">
+                    <strong className="text-navy">Narayana Institute</strong>,
+                    Mumbai
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />
+                  <span className="text-slate">
+                    <strong className="text-navy">Aakash Institute</strong>,
+                    Delhi
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="gold-rule mb-4" />
           <h2 className="font-display text-2xl sm:text-3xl text-navy mb-10">

@@ -4,6 +4,7 @@ import {
   footerResourceLinks,
   footerExamLinks,
   footerSiteLinks,
+  whatsappLink,
 } from "@/lib/site-config";
 
 export default function Footer() {
@@ -23,11 +24,31 @@ export default function Footer() {
               for JEE Main, JEE Advanced, and NEET aspirants.
             </p>
             <div className="mt-5 gold-rule" />
+            <a
+              href={whatsappLink(
+                "Hi Ajay Sir, I'd like to know more about your classes."
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-gold hover:text-gold-light transition-colors"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M17.6 6.32A8.86 8.86 0 0 0 12.05 4C7.5 4 3.78 7.7 3.78 12.25c0 1.5.4 2.9 1.1 4.12L4 20l3.73-.98a8.8 8.8 0 0 0 4.32 1.1h.01c4.55 0 8.27-3.7 8.27-8.25 0-2.2-.86-4.27-2.43-5.85l-.3.3z" />
+              </svg>
+              Message on WhatsApp
+            </a>
             <div className="mt-5 flex items-center gap-4 text-sm">
               <a
                 href={siteConfig.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Instagram"
                 className="text-white/70 hover:text-gold transition-colors"
               >
                 Instagram
@@ -36,6 +57,7 @@ export default function Footer() {
                 href={siteConfig.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="LinkedIn"
                 className="text-white/70 hover:text-gold transition-colors"
               >
                 LinkedIn
