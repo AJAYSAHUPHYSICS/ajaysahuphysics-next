@@ -28,12 +28,21 @@ export const metadata: Metadata = {
     siteName: "Ajay Sahu Physics",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Ajay Sahu Physics — Physics that makes you score",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Ajay Sahu Physics | Physics That Makes You Score",
     description:
       "Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants.",
+    images: ["/og-image.png"],
   },
 };
 
