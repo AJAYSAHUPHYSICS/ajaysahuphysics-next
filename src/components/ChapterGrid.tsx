@@ -35,6 +35,22 @@ export default function ChapterGrid({
               <h3 className="mt-3 font-semibold text-navy leading-snug group-hover:text-gold-deep transition-colors">
                 {ch.name}
               </h3>
+              {!linkToChapterPage && (
+                <div className="mt-3 flex items-center gap-1.5 text-xs text-navy/40">
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+                  </svg>
+                  PDF coming soon
+                </div>
+              )}
             </>
           );
 
