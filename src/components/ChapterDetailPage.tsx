@@ -4,10 +4,16 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import Tabs, { type TabDef } from "@/components/Tabs";
 import ComingSoonTab from "@/components/ComingSoonTab";
 import NotesDisplay from "@/components/NotesDisplay";
+import ShortNotesDisplay from "@/components/ShortNotesDisplay";
+import DppDisplay from "@/components/DppDisplay";
+import PyqDisplay from "@/components/PyqDisplay";
 import type { Chapter } from "@/lib/chapters";
 import { getAdjacentChapters } from "@/lib/chapters";
 import { getChapterOverview } from "@/lib/chapter-overviews";
 import { getChapterNotes } from "@/lib/notes";
+import { getChapterShortNotes } from "@/lib/notes/short-index";
+import { getChapterDpp } from "@/lib/dpp";
+import { getChapterPyq } from "@/lib/pyq";
 
 export default function ChapterDetailPage({
   chapter,
@@ -31,6 +37,9 @@ export default function ChapterDetailPage({
   ];
 
   const chapterNotes = getChapterNotes(chapter.slug);
+  const chapterShortNotes = getChapterShortNotes(chapter.slug);
+  const chapterDpp = getChapterDpp(chapter.slug);
+  const chapterPyq = getChapterPyq(chapter.slug);
 
   const tabs: TabDef[] = [
     {
@@ -70,6 +79,27 @@ export default function ChapterDetailPage({
               <NotesDisplay notes={chapterNotes} />
             </div>
           ),
+        };
+      }
+      if (t.key === "short-notes" && chapterShortNotes) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <ShortNotesDisplay notes={chapterShortNotes} />,
+        };
+      }
+      if (t.key === "dpp" && chapterDpp) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <DppDisplay dpp={chapterDpp} />,
+        };
+      }
+      if (t.key === "pyq" && chapterPyq) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <PyqDisplay pyq={chapterPyq} />,
         };
       }
       return {
