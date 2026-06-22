@@ -5,6 +5,7 @@ import { workEnergyAndPowerPyq } from "./work-energy-and-power";
 import { rotationalMotionPyq } from "./rotational-motion";
 import { gravitationPyq } from "./gravitation";
 import { mechanicalPropertiesOfSolidsPyq } from "./mechanical-properties-of-solids";
+import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-fluids";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   kinematics: kinematicsPyq,
@@ -13,6 +14,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "system-of-particles-and-rotational-motion": rotationalMotionPyq,
   gravitation: gravitationPyq,
   "mechanical-properties-of-solids": mechanicalPropertiesOfSolidsPyq,
+  "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsPyq,
 };
 
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
