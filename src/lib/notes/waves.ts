@@ -90,17 +90,15 @@ export const wavesNotes: ChapterNotes = {
         "The two descriptions are 90° out of phase — displacement is maximum exactly where the pressure change is zero, and vice versa.",
         "A detector that senses pressure (ear, microphone) is best described with the pressure wave; a detector that senses displacement is best described with the displacement wave.",
         "On reflection, the pressure wave keeps its phase at a rigid boundary and flips by π at a free boundary — the displacement wave behaves the opposite way round.",
+        "Newton assumed sound travels isothermally through air and got only 279 m/s — far below the measured 332 m/s.",
+        "Laplace corrected this: sound compresses and rarefies air too quickly for heat to escape, so the process is adiabatic (uses γ = Cp/Cv, not just P). This raises the predicted speed to 331.3 m/s — matching experiment almost exactly.",
+        "This mismatch and its correction is historically how we know sound propagates adiabatically, not isothermally, through gases.",
       ],
       formula: [
         { label: "General (Newton's formula)", expression: "V = √(E/ρ)" },
         { label: "Solids", expression: "V = √(Y/ρ)" },
         { label: "Liquids", expression: "V = √(B/ρ)" },
         { label: "Gases — Laplace's formula (adiabatic)", expression: "V = √(γP/ρ) = √(γRT/M)" },
-      ],
-      bullets: [
-        "Newton assumed sound travels isothermally through air and got only 279 m/s — far below the measured 332 m/s.",
-        "Laplace corrected this: sound compresses and rarefies air too quickly for heat to escape, so the process is adiabatic (uses γ = Cp/Cv, not just P). This raises the predicted speed to 331.3 m/s — matching experiment almost exactly.",
-        "This mismatch and its correction is historically how we know sound propagates adiabatically, not isothermally, through gases.",
       ],
     },
     {
@@ -158,18 +156,16 @@ export const wavesNotes: ChapterNotes = {
       bullets: [
         "Rigid boundary: the wave reflects with a phase change of π (inverted) — the fixed end can't move, so by Newton's third law it pushes back with an equal and opposite force.",
         "Free boundary: the wave reflects in phase (not inverted) — the free end overshoots and a restoring tension pulls it back.",
-      ],
-      formula: [
-        { label: "Reflection at a rigid end", expression: "y = −2a sin(kx) cos(ωt) — node at the boundary" },
-        { label: "Reflection at a free end", expression: "y = 2a cos(kx) sin(ωt) — antinode at the boundary" },
-      ],
-      bullets: [
         "Nodes: permanently at rest — zero displacement, zero velocity, maximum strain (slope).",
         "Antinodes: maximum displacement and velocity, zero strain.",
         "Distance between two consecutive nodes (or two consecutive antinodes) is always λ/2.",
         "All particles between two adjacent nodes vibrate in phase; particles just on either side of a node vibrate in opposite phase.",
         "A stationary wave carries no net energy across any point — its wave velocity is zero even though individual particle velocities are non-zero.",
         "For longitudinal stationary waves specifically: pressure and density variation is maximum at a node and minimum (constant) at an antinode — exactly opposite to displacement.",
+      ],
+      formula: [
+        { label: "Reflection at a rigid end", expression: "y = −2a sin(kx) cos(ωt) — node at the boundary" },
+        { label: "Reflection at a free end", expression: "y = 2a cos(kx) sin(ωt) — antinode at the boundary" },
       ],
     },
     {
