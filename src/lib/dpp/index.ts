@@ -8,6 +8,7 @@ import { mechanicalPropertiesOfSolidsDpp } from "./mechanical-properties-of-soli
 import { mechanicalPropertiesOfFluidsDpp } from "./mechanical-properties-of-fluids";
 import { thermalPropertiesOfMatterDpp } from "./thermal-properties-of-matter";
 import { thermodynamicsDpp } from "./thermodynamics";
+import { kineticTheoryOfGasesDpp } from "./kinetic-theory-of-gases";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   kinematics: kinematicsDpp,
@@ -19,6 +20,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsDpp,
   "thermal-properties-of-matter": thermalPropertiesOfMatterDpp,
   thermodynamics: thermodynamicsDpp,
+  "kinetic-theory-of-gases": kineticTheoryOfGasesDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
