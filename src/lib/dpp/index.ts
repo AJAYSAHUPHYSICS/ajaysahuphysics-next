@@ -1,5 +1,6 @@
 import type { ChapterDpp } from "./kinematics";
 import { basicMathematicsAndVectorsDpp } from "./basic-mathematics-and-vectors";
+import { centreOfMassAndCollisionsDpp } from "./centre-of-mass-and-collisions";
 import { kinematicsDpp } from "./kinematics";
 import { lawsOfMotionDpp } from "./laws-of-motion";
 import { workEnergyAndPowerDpp } from "./work-energy-and-power";
@@ -15,6 +16,7 @@ import { oscillationsDpp } from "./oscillations";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
+  "centre-of-mass-and-collisions": centreOfMassAndCollisionsDpp,
   kinematics: kinematicsDpp,
   "laws-of-motion": lawsOfMotionDpp,
   "work-energy-and-power": workEnergyAndPowerDpp,
