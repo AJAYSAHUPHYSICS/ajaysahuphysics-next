@@ -9,6 +9,7 @@ import { mechanicalPropertiesOfFluidsNotes } from "./mechanical-properties-of-fl
 import { thermalPropertiesOfMatterNotes } from "./thermal-properties-of-matter";
 import { thermodynamicsNotes } from "./thermodynamics";
 import { kineticTheoryOfGasesNotes } from "./kinetic-theory-of-gases";
+import { wavesNotes } from "./waves";
 
 // Add one line per chapter as real notes content is written.
 // Any chapter slug NOT in this registry automatically shows "Coming Soon".
@@ -23,6 +24,7 @@ export const notesRegistry: Record<string, ChapterNotes> = {
   "thermal-properties-of-matter": thermalPropertiesOfMatterNotes,
   thermodynamics: thermodynamicsNotes,
   "kinetic-theory-of-gases": kineticTheoryOfGasesNotes,
+  waves: wavesNotes,
 };
 
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
