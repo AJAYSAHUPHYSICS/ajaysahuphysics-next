@@ -5,6 +5,7 @@ import { workEnergyAndPowerNotes } from "./work-energy-and-power";
 import { rotationalMotionNotes } from "./rotational-motion";
 import { gravitationNotes } from "./gravitation";
 import { mechanicalPropertiesOfSolidsNotes } from "./mechanical-properties-of-solids";
+import { mechanicalPropertiesOfFluidsNotes } from "./mechanical-properties-of-fluids";
 
 // Add one line per chapter as real notes content is written.
 // Any chapter slug NOT in this registry automatically shows "Coming Soon".
@@ -15,6 +16,7 @@ export const notesRegistry: Record<string, ChapterNotes> = {
   "system-of-particles-and-rotational-motion": rotationalMotionNotes,
   gravitation: gravitationNotes,
   "mechanical-properties-of-solids": mechanicalPropertiesOfSolidsNotes,
+  "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsNotes,
 };
 
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
