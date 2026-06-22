@@ -1,4 +1,5 @@
 import type { ChapterPyq } from "./kinematics";
+import { basicMathematicsAndVectorsPyq } from "./basic-mathematics-and-vectors";
 import { kinematicsPyq } from "./kinematics";
 import { lawsOfMotionPyq } from "./laws-of-motion";
 import { workEnergyAndPowerPyq } from "./work-energy-and-power";
@@ -8,6 +9,7 @@ import { mechanicalPropertiesOfSolidsPyq } from "./mechanical-properties-of-soli
 import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-fluids";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
+  "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
   kinematics: kinematicsPyq,
   "laws-of-motion": lawsOfMotionPyq,
   "work-energy-and-power": workEnergyAndPowerPyq,
