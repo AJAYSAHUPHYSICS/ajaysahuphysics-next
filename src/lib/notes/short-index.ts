@@ -1,4 +1,5 @@
 import type { ChapterShortNotes } from "./kinematics-short";
+import { basicMathematicsAndVectorsShortNotes } from "./basic-mathematics-and-vectors-short";
 import { kinematicsShortNotes } from "./kinematics-short";
 import { lawsOfMotionShortNotes } from "./laws-of-motion-short";
 import { workEnergyAndPowerShortNotes } from "./work-energy-and-power-short";
@@ -13,6 +14,7 @@ import { wavesShortNotes } from "./waves-short";
 import { oscillationsShortNotes } from "./oscillations-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
+  "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
   kinematics: kinematicsShortNotes,
   "laws-of-motion": lawsOfMotionShortNotes,
   "work-energy-and-power": workEnergyAndPowerShortNotes,
