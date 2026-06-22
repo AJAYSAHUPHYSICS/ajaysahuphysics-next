@@ -7,6 +7,7 @@ import { gravitationShortNotes } from "./gravitation-short";
 import { mechanicalPropertiesOfSolidsShortNotes } from "./mechanical-properties-of-solids-short";
 import { mechanicalPropertiesOfFluidsShortNotes } from "./mechanical-properties-of-fluids-short";
 import { thermalPropertiesOfMatterShortNotes } from "./thermal-properties-of-matter-short";
+import { thermodynamicsShortNotes } from "./thermodynamics-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   kinematics: kinematicsShortNotes,
@@ -17,6 +18,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "mechanical-properties-of-solids": mechanicalPropertiesOfSolidsShortNotes,
   "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsShortNotes,
   "thermal-properties-of-matter": thermalPropertiesOfMatterShortNotes,
+  thermodynamics: thermodynamicsShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
