@@ -8,19 +8,20 @@ export type Chapter = {
 };
 
 export const class11Chapters: Chapter[] = [
-  { name: "Physical World & Measurement", cls: "11", slug: "physical-world-and-measurement", number: 1 },
-  { name: "Kinematics", cls: "11", slug: "kinematics", number: 2 },
-  { name: "Laws of Motion", cls: "11", slug: "laws-of-motion", number: 3 },
-  { name: "Work, Energy & Power", cls: "11", slug: "work-energy-and-power", number: 4 },
-  { name: "System of Particles & Rotational Motion", cls: "11", slug: "system-of-particles-and-rotational-motion", number: 5 },
-  { name: "Gravitation", cls: "11", slug: "gravitation", number: 6 },
-  { name: "Mechanical Properties of Solids", cls: "11", slug: "mechanical-properties-of-solids", number: 7 },
-  { name: "Mechanical Properties of Fluids", cls: "11", slug: "mechanical-properties-of-fluids", number: 8 },
-  { name: "Thermal Properties of Matter", cls: "11", slug: "thermal-properties-of-matter", number: 9 },
-  { name: "Thermodynamics", cls: "11", slug: "thermodynamics", number: 10 },
-  { name: "Kinetic Theory of Gases", cls: "11", slug: "kinetic-theory-of-gases", number: 11 },
-  { name: "Oscillations", cls: "11", slug: "oscillations", number: 12 },
-  { name: "Waves", cls: "11", slug: "waves", number: 13 },
+  { name: "Basic Mathematics & Vectors", cls: "11", slug: "basic-mathematics-and-vectors", number: 1 },
+  { name: "Physical World & Measurement", cls: "11", slug: "physical-world-and-measurement", number: 2 },
+  { name: "Kinematics", cls: "11", slug: "kinematics", number: 3 },
+  { name: "Laws of Motion", cls: "11", slug: "laws-of-motion", number: 4 },
+  { name: "Work, Energy & Power", cls: "11", slug: "work-energy-and-power", number: 5 },
+  { name: "System of Particles & Rotational Motion", cls: "11", slug: "system-of-particles-and-rotational-motion", number: 6 },
+  { name: "Gravitation", cls: "11", slug: "gravitation", number: 7 },
+  { name: "Mechanical Properties of Solids", cls: "11", slug: "mechanical-properties-of-solids", number: 8 },
+  { name: "Mechanical Properties of Fluids", cls: "11", slug: "mechanical-properties-of-fluids", number: 9 },
+  { name: "Thermal Properties of Matter", cls: "11", slug: "thermal-properties-of-matter", number: 10 },
+  { name: "Thermodynamics", cls: "11", slug: "thermodynamics", number: 11 },
+  { name: "Kinetic Theory of Gases", cls: "11", slug: "kinetic-theory-of-gases", number: 12 },
+  { name: "Oscillations", cls: "11", slug: "oscillations", number: 13 },
+  { name: "Waves", cls: "11", slug: "waves", number: 14 },
 ];
 
 export const class12Chapters: Chapter[] = [
