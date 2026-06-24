@@ -14,6 +14,7 @@ import { kineticTheoryOfGasesShortNotes } from "./kinetic-theory-of-gases-short"
 import { wavesShortNotes } from "./waves-short";
 import { oscillationsShortNotes } from "./oscillations-short";
 import { alternatingCurrentShortNotes } from "./alternating-current-short";
+import { atomsShortNotes } from "./atoms-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
@@ -31,6 +32,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   waves: wavesShortNotes,
   oscillations: oscillationsShortNotes,
   "alternating-current": alternatingCurrentShortNotes,
+  atoms: atomsShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
