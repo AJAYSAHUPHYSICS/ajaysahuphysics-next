@@ -14,6 +14,7 @@ import { kineticTheoryOfGasesDpp } from "./kinetic-theory-of-gases";
 import { wavesDpp } from "./waves";
 import { oscillationsDpp } from "./oscillations";
 import { alternatingCurrentDpp } from "./alternating-current";
+import { atomsDpp } from "./atoms";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
@@ -31,6 +32,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   waves: wavesDpp,
   oscillations: oscillationsDpp,
   "alternating-current": alternatingCurrentDpp,
+  atoms: atomsDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
