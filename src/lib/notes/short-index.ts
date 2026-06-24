@@ -15,6 +15,7 @@ import { wavesShortNotes } from "./waves-short";
 import { oscillationsShortNotes } from "./oscillations-short";
 import { alternatingCurrentShortNotes } from "./alternating-current-short";
 import { atomsShortNotes } from "./atoms-short";
+import { currentElectricityShortNotes } from "./current-electricity-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
@@ -33,6 +34,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   oscillations: oscillationsShortNotes,
   "alternating-current": alternatingCurrentShortNotes,
   atoms: atomsShortNotes,
+  "current-electricity": currentElectricityShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
