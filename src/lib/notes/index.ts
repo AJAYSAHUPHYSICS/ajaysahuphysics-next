@@ -16,6 +16,7 @@ import { oscillationsNotes } from "./oscillations";
 import { alternatingCurrentNotes } from "./alternating-current";
 import { atomsNotes } from "./atoms";
 import { currentElectricityNotes } from "./current-electricity";
+import { electricChargesAndFieldsNotes } from "./electric-charges-and-fields";
 
 // Add one line per chapter as real notes content is written.
 // Any chapter slug NOT in this registry automatically shows "Coming Soon".
@@ -37,6 +38,7 @@ export const notesRegistry: Record<string, ChapterNotes> = {
   "alternating-current": alternatingCurrentNotes,
   atoms: atomsNotes,
   "current-electricity": currentElectricityNotes,
+  "electric-charges-and-fields": electricChargesAndFieldsNotes,
 };
 
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
