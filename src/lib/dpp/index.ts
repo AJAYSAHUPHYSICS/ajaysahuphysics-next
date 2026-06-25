@@ -16,6 +16,7 @@ import { oscillationsDpp } from "./oscillations";
 import { alternatingCurrentDpp } from "./alternating-current";
 import { atomsDpp } from "./atoms";
 import { currentElectricityDpp } from "./current-electricity";
+import { electricChargesAndFieldsDpp } from "./electric-charges-and-fields";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
@@ -35,6 +36,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "alternating-current": alternatingCurrentDpp,
   atoms: atomsDpp,
   "current-electricity": currentElectricityDpp,
+  "electric-charges-and-fields": electricChargesAndFieldsDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
