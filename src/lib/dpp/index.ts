@@ -21,6 +21,7 @@ import { electrostaticPotentialAndCapacitanceDpp } from "./electrostatic-potenti
 import { movingChargesAndMagnetismDpp } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterDpp } from "./magnetism-and-matter";
 import { electromagneticWavesDpp } from "./electromagnetic-waves";
+import { rayOpticsAndOpticalInstrumentsDpp } from "./ray-optics-and-optical-instruments";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
@@ -45,6 +46,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "moving-charges-and-magnetism": movingChargesAndMagnetismDpp,
   "magnetism-and-matter": magnetismAndMatterDpp,
   "electromagnetic-waves": electromagneticWavesDpp,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
