@@ -19,6 +19,7 @@ import { currentElectricityDpp } from "./current-electricity";
 import { electricChargesAndFieldsDpp } from "./electric-charges-and-fields";
 import { electrostaticPotentialAndCapacitanceDpp } from "./electrostatic-potential-and-capacitance";
 import { movingChargesAndMagnetismDpp } from "./moving-charges-and-magnetism";
+import { magnetismAndMatterDpp } from "./magnetism-and-matter";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
@@ -41,6 +42,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "electric-charges-and-fields": electricChargesAndFieldsDpp,
   "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitanceDpp,
   "moving-charges-and-magnetism": movingChargesAndMagnetismDpp,
+  "magnetism-and-matter": magnetismAndMatterDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
