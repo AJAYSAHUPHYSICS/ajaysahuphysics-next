@@ -19,6 +19,7 @@ import { currentElectricityShortNotes } from "./current-electricity-short";
 import { electricChargesAndFieldsShortNotes } from "./electric-charges-and-fields-short";
 import { electrostaticPotentialAndCapacitanceShortNotes } from "./electrostatic-potential-and-capacitance-short";
 import { movingChargesAndMagnetismShortNotes } from "./moving-charges-and-magnetism-short";
+import { magnetismAndMatterShortNotes } from "./magnetism-and-matter-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
@@ -41,6 +42,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "electric-charges-and-fields": electricChargesAndFieldsShortNotes,
   "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitanceShortNotes,
   "moving-charges-and-magnetism": movingChargesAndMagnetismShortNotes,
+  "magnetism-and-matter": magnetismAndMatterShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
