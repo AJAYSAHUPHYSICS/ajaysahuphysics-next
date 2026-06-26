@@ -21,6 +21,7 @@ import { electrostaticPotentialAndCapacitanceShortNotes } from "./electrostatic-
 import { movingChargesAndMagnetismShortNotes } from "./moving-charges-and-magnetism-short";
 import { magnetismAndMatterShortNotes } from "./magnetism-and-matter-short";
 import { electromagneticWavesShortNotes } from "./electromagnetic-waves-short";
+import { rayOpticsAndOpticalInstrumentsShortNotes } from "./ray-optics-and-optical-instruments-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
@@ -45,6 +46,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "moving-charges-and-magnetism": movingChargesAndMagnetismShortNotes,
   "magnetism-and-matter": magnetismAndMatterShortNotes,
   "electromagnetic-waves": electromagneticWavesShortNotes,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
