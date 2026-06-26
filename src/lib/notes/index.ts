@@ -21,6 +21,7 @@ import { electrostaticPotentialAndCapacitanceNotes } from "./electrostatic-poten
 import { movingChargesAndMagnetismNotes } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterNotes } from "./magnetism-and-matter";
 import { electromagneticWavesNotes } from "./electromagnetic-waves";
+import { rayOpticsAndOpticalInstrumentsNotes } from "./ray-optics-and-optical-instruments";
 
 // Add one line per chapter as real notes content is written.
 // Any chapter slug NOT in this registry automatically shows "Coming Soon".
@@ -47,6 +48,7 @@ export const notesRegistry: Record<string, ChapterNotes> = {
   "moving-charges-and-magnetism": movingChargesAndMagnetismNotes,
   "magnetism-and-matter": magnetismAndMatterNotes,
   "electromagnetic-waves": electromagneticWavesNotes,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsNotes,
 };
 
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
