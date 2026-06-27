@@ -19,9 +19,11 @@ export default function Tabs({
 
   // If the page was opened with a hash like #pyq (e.g. from a "View PYQ"
   // link on the NEET/JEE hub pages), jump straight to that tab instead of
-  // always landing on the default tab.
+  // always landing on the default tab. Hashes can also carry an exam filter
+  // after a colon, e.g. #pyq:neet — only the part before the colon is the
+  // tab key; PyqDisplay reads the filter part itself.
   useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
+    const hash = window.location.hash.replace("#", "").split(":")[0];
     if (hash && tabs.some((t) => t.key === hash)) {
       setActive(hash);
     }
