@@ -12,9 +12,9 @@ type ClassFilter = "all" | "11" | "12";
 
 const resourceTabs: { key: ResourceKey; label: string }[] = [
   { key: "notes", label: "Notes" },
+  { key: "dpp", label: "Practice Questions" },
   { key: "formula-sheet", label: "Formula Sheet" },
-  { key: "dpp", label: "DPP" },
-  { key: "pyq", label: "PYQ" },
+  { key: "pyq", label: "NEET PYQ" },
 ];
 
 const classFilters: { key: ClassFilter; label: string }[] = [
@@ -128,7 +128,7 @@ export default function NeetResourceTabs() {
           chapters={visibleChapters}
           resourceLabel={activeLabel}
           isAvailable={(ch) => isAvailable(active, ch)}
-          tabKey={active}
+          tabKey={active === "pyq" ? "pyq:neet" : active}
         />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
