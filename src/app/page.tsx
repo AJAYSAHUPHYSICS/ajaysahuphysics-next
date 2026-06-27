@@ -14,9 +14,9 @@ const resourceCards = [
     desc: "Every derived result in one place, organized by chapter, for fast revision before tests.",
   },
   {
-    title: "DPP",
+    title: "Practice Questions",
     href: "/dpp",
-    desc: "Daily Practice Problems to keep your problem-solving sharp, one chapter at a time.",
+    desc: "Practice questions to keep your problem-solving sharp, one chapter at a time.",
   },
   {
     title: "PYQ",
@@ -166,8 +166,8 @@ export default function Home() {
               <p className="mt-4 text-slate leading-relaxed">
                 Whether you&apos;re preparing for engineering entrance or
                 medical entrance, the physics fundamentals are the same — the
-                application is not. Notes, DPPs, and PYQs are organized
-                separately for each exam and class.
+                application is not. Notes, Practice Questions, and PYQs are
+                organized separately for each exam and class.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
