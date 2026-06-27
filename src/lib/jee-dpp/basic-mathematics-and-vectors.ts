@@ -1,0 +1,92 @@
+import type { ChapterDpp } from "../dpp/kinematics";
+
+export const basicMathematicsAndVectorsJeeDpp: ChapterDpp = {
+  chapterName: "Basic Mathematics & Vectors",
+  className: "11",
+  questions: [
+    {
+      number: 1,
+      question: "Three forces of magnitude 6 N, 8 N, and 10 N keep a particle in equilibrium. Find the angle between the 6 N and 8 N forces.",
+      options: ["60°", "90°", "120°", "150°"],
+      correctIndex: 1,
+      solution: "6² + 8² = 10², so these magnitudes form a right-angled force triangle, with the right angle opposite the 10 N force. The angle between the 6 N and 8 N forces is therefore 90°.",
+    },
+    {
+      number: 2,
+      question: "Vectors A = 5î − 2ĵ, B = −3î + 4ĵ, and C satisfy A + B + C = 0. Find C.",
+      options: ["−2î − 2ĵ", "2î + 2ĵ", "−2î + 2ĵ", "2î − 2ĵ"],
+      correctIndex: 0,
+      solution: "C = −(A+B) = −[(5−3)î + (−2+4)ĵ] = −[2î + 2ĵ] = −2î − 2ĵ.",
+    },
+    {
+      number: 3,
+      question: "Find dy/dx at x = 1 for y = x²/(x+1).",
+      options: ["1/4", "1/2", "3/4", "1"],
+      correctIndex: 2,
+      solution: "Using the quotient rule: dy/dx = [2x(x+1) − x²(1)]/(x+1)². At x=1: [2(2) − 1]/4 = 3/4.",
+    },
+    {
+      number: 4,
+      question: "Evaluate ∫(2x + 3) dx from x = 1 to x = 4.",
+      options: ["18", "21", "24", "27"],
+      correctIndex: 2,
+      solution: "Antiderivative: x² + 3x. Evaluate: [(16+12) − (1+3)] = 28 − 4 = 24.",
+    },
+    {
+      number: 5,
+      question: "Find the angle between vectors A = î and B = î + ĵ.",
+      options: ["30°", "37°", "45°", "60°"],
+      correctIndex: 2,
+      solution: "cosθ = (A·B)/(|A||B|) = 1/(1×√2) = 1/√2, so θ = 45°.",
+    },
+    {
+      number: 6,
+      question: "Find the area of the parallelogram formed by vectors A = 3î and B = 4ĵ.",
+      options: ["7 sq. units", "12 sq. units", "14 sq. units", "24 sq. units"],
+      correctIndex: 1,
+      solution: "Area = |A×B| = |(3)(4) − (0)(0)| = 12 sq. units.",
+    },
+    {
+      number: 7,
+      question: "Find the magnitude of the resultant of three vectors A = 2î+3ĵ, B = −î+4ĵ, C = 3î−5ĵ.",
+      options: ["2√5", "3√5", "4√5", "5√5"],
+      correctIndex: 0,
+      solution: "Resultant R = A+B+C = (2−1+3)î + (3+4−5)ĵ = 4î + 2ĵ. |R| = √(16+4) = √20 = 2√5.",
+    },
+    {
+      number: 8,
+      question: "Vectors a = î, b = î+ĵ, c = î+ĵ+k̂. Find the scalar triple product a·(b×c).",
+      options: ["0", "1", "−1", "2"],
+      correctIndex: 1,
+      solution: "b×c = (î+ĵ)×(î+ĵ+k̂) = î(1×1−0×1) − ĵ(1×1−0×1) + k̂(1×1−1×1) = î − ĵ + 0k̂. Then a·(b×c) = (1)(1) + (0)(−1) + (0)(0) = 1.",
+    },
+    {
+      number: 9,
+      question: "Find the maximum value of y = −x² + 4x + 1.",
+      options: ["1", "3", "5", "7"],
+      correctIndex: 2,
+      solution: "dy/dx = −2x+4 = 0 ⇒ x = 2 (maximum since the coefficient of x² is negative). y(2) = −4+8+1 = 5.",
+    },
+    {
+      number: 10,
+      question: "Find the projection (component) of vector A = 5î along the direction of B = 3î + 4ĵ.",
+      options: ["2 units", "3 units", "4 units", "5 units"],
+      correctIndex: 1,
+      solution: "Projection of A on B = (A·B)/|B| = (5×3 + 0×4)/√(3²+4²) = 15/5 = 3 units.",
+    },
+    {
+      number: 11,
+      question: "Find the area under the curve y = x² between x = 0 and x = 3.",
+      options: ["3", "6", "9", "27"],
+      correctIndex: 2,
+      solution: "Area = ∫x² dx from 0 to 3 = [x³/3] from 0 to 3 = 27/3 − 0 = 9.",
+    },
+    {
+      number: 12,
+      question: "A force of 10 N acts at 60° to a given direction. Find its component along that direction.",
+      options: ["2.5 N", "5 N", "5√3 N", "10 N"],
+      correctIndex: 1,
+      solution: "Component = F cosθ = 10 × cos60° = 10 × 0.5 = 5 N.",
+    },
+  ],
+};
