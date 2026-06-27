@@ -404,5 +404,110 @@ export const kinematicsPyq: ChapterPyq = {
       solution:
         "aₓ = d²x/dt² = −4 m/s² (constant), and a_y = d²y/dt² = 0 (since y is linear in t). So the net acceleration is simply −4 m/s² along the x-direction.",
     },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question:
+        "A car moving at 20 m/s decelerates uniformly at 2 m/s². Find its speed after 5 seconds.",
+      options: ["5 m/s", "10 m/s", "15 m/s", "20 m/s"],
+      correctIndex: 1,
+      solution: "v = u + at = 20 + (−2)(5) = 20 − 10 = 10 m/s.",
+    },
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question:
+        "A particle starts with initial velocity 5 m/s and uniform acceleration 2 m/s². Find the distance covered in the 3rd second.",
+      options: ["7 m", "8 m", "9 m", "10 m"],
+      correctIndex: 3,
+      solution: "Distance in nth second: sₙ = u + (a/2)(2n−1) = 5 + 1(2×3−1) = 5 + 5 = 10 m.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question:
+        "Car A moves at 20 m/s and car B moves at 15 m/s in the same direction on a straight road. Find the velocity of A relative to B.",
+      options: ["5 m/s", "15 m/s", "20 m/s", "35 m/s"],
+      correctIndex: 0,
+      solution: "Relative velocity of A with respect to B = vA − vB = 20 − 15 = 5 m/s, in the direction both are moving.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question:
+        "A ball is projected with speed 20 m/s at an angle of 30° above the horizontal. Find the maximum height reached. (g = 10 m/s²)",
+      options: ["2.5 m", "5 m", "7.5 m", "10 m"],
+      correctIndex: 1,
+      solution: "H = u²sin²θ/(2g) = (20² × sin²30°)/(2×10) = (400 × 0.25)/20 = 100/20 = 5 m.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question:
+        "For the same projectile as above (u = 20 m/s, θ = 30°), find the total time of flight. (g = 10 m/s²)",
+      options: ["1 s", "2 s", "3 s", "4 s"],
+      correctIndex: 1,
+      solution: "T = 2u sinθ/g = (2 × 20 × sin30°)/10 = (2 × 20 × 0.5)/10 = 20/10 = 2 s.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question:
+        "A particle starts from rest and accelerates uniformly at 4 m/s². Find the distance covered when its speed becomes 8 m/s.",
+      options: ["4 m", "6 m", "8 m", "16 m"],
+      correctIndex: 2,
+      solution: "v² = u² + 2as ⇒ 8² = 0 + 2(4)(s) ⇒ 64 = 8s ⇒ s = 8 m.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2012",
+      examType: "jee-advanced",
+      question:
+        "A boat can row at 5 km/h in still water. It needs to cross a river that flows at 3 km/h and is 1 km wide, taking the shortest possible path (straight across). Find the time taken to cross.",
+      options: ["10 minutes", "12 minutes", "15 minutes", "20 minutes"],
+      correctIndex: 2,
+      solution:
+        "For the shortest path, the boat must head upstream so its resultant velocity is exactly perpendicular to the bank: v_across = √(v_boat² − v_river²) = √(5² − 3²) = √16 = 4 km/h. Time = width/v_across = 1/4 h = 15 minutes.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A stone is dropped from rest at height h above the ground at the same instant a ball is thrown straight up from the ground with speed u. If h = 45 m and u = 15 m/s, find the time at which they meet. (g = 10 m/s²)",
+      options: ["2 s", "3 s", "4 s", "4.5 s"],
+      correctIndex: 1,
+      solution:
+        "Since both objects fall with the same downward acceleration g, the separation between them closes purely due to their initial velocities: they meet when the ball's straight-line (no-gravity) distance ut equals h, i.e., t = h/u = 45/15 = 3 s.",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "A balloon is rising vertically with a constant speed of 10 m/s. When it is 75 m above the ground, a stone is released from it. Find the time taken by the stone to reach the ground. (g = 10 m/s²)",
+      options: ["3 s", "4 s", "5 s", "6 s"],
+      correctIndex: 2,
+      solution:
+        "Taking upward as positive, the stone's initial velocity is +10 m/s and its net displacement is −75 m: −75 = 10t − 5t² ⇒ 5t² − 10t − 75 = 0 ⇒ t² − 2t − 15 = 0 ⇒ (t−5)(t+3) = 0 ⇒ t = 5 s.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "Two cars move with velocities 10 m/s (east) and 10 m/s (north) respectively. Find the magnitude of the velocity of the first car relative to the second.",
+      options: ["10 m/s", "10√2 m/s", "20 m/s", "0 m/s"],
+      correctIndex: 1,
+      solution:
+        "Relative velocity vector = (10,0) − (0,10) = (10,−10). Magnitude = √(10² + 10²) = √200 = 10√2 m/s.",
+    },
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "A particle starts from rest, and its acceleration varies with time as a = 2t (in m/s², t in seconds). Find its velocity at t = 3 s.",
+      options: ["6 m/s", "9 m/s", "12 m/s", "18 m/s"],
+      correctIndex: 1,
+      solution: "v = ∫a dt = ∫2t dt = t² (since v(0) = 0). At t = 3 s: v = 3² = 9 m/s.",
+    },
   ],
 };
