@@ -148,7 +148,7 @@ export default function ExamTabs({
           chapters={visibleChapters}
           resourceLabel={resourceLabel}
           isAvailable={(ch) => isAvailableFor(resourceType, active, ch)}
-          tabKey={resourceType}
+          tabKey={resourceType === "pyq" ? `pyq:${active}` : resourceType}
         />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
