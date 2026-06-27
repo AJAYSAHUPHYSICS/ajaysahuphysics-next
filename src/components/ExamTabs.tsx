@@ -2,10 +2,14 @@
 
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
-import { allChapters } from "@/lib/chapters";
+import { allChapters, type Chapter } from "@/lib/chapters";
+import { notesRegistry } from "@/lib/notes";
+import { dppRegistry } from "@/lib/dpp";
+import { pyqRegistry } from "@/lib/pyq";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
 type ClassFilter = "all" | "11" | "12";
+type ResourceType = "notes" | "dpp" | "pyq";
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "jee-main", label: "JEE Main" },
@@ -19,14 +23,45 @@ const classFilters: { key: ClassFilter; label: string }[] = [
   { key: "12", label: "Class 12" },
 ];
 
-export default function ExamTabs({ resourceLabel }: { resourceLabel: string }) {
+function isAvailableFor(
+  resourceType: ResourceType,
+  activeTab: TabKey,
+  chapter: Chapter
+): boolean {
+  const slug = chapter.slug;
+  if (resourceType === "notes") return !!notesRegistry[slug];
+  if (resourceType === "dpp") return !!dppRegistry[slug];
+
+  // resourceType === "pyq" — availability depends on which exam tab is active,
+  // since PYQ is the one resource genuinely split by exam type.
+  const pyq = pyqRegistry[slug];
+  if (!pyq) return false;
+  if (activeTab === "jee-main") {
+    return pyq.questions.some((q) => q.examType === "jee-main");
+  }
+  if (activeTab === "jee-advanced") {
+    return pyq.questions.some((q) => q.examType === "jee-advanced");
+  }
+  // NEET tab: available if there's at least one legacy (untagged) question —
+  // every existing NEET/AIPMT/AIIMS question predates the examType field.
+  return pyq.questions.some((q) => !q.examType);
+}
+
+export default function ExamTabs({
+  resourceLabel,
+  resourceType = "notes",
+}: {
+  resourceLabel: string;
+  resourceType?: ResourceType;
+}) {
   const [active, setActive] = useState<TabKey>("jee-main");
   const [classFilter, setClassFilter] = useState<ClassFilter>("all");
   const [query, setQuery] = useState("");
 
   // JEE Main, JEE Advanced, and NEET all draw from the same NCERT Class 11 + 12
   // physics syllabus — JEE Advanced has no separate chapter list, only harder
-  // questions on the same chapters. So all three tabs show allChapters.
+  // questions on the same chapters. So all three tabs show allChapters; only
+  // which chapters are AVAILABLE (linkable) for the selected resource differs.
   const visibleChapters = useMemo(() => {
     return allChapters
       .filter((ch) => classFilter === "all" || ch.cls === classFilter)
@@ -108,7 +143,11 @@ export default function ExamTabs({ resourceLabel }: { resourceLabel: string }) {
       </div>
 
       {visibleChapters.length > 0 ? (
-        <ChapterGrid chapters={visibleChapters} resourceLabel={resourceLabel} />
+        <ChapterGrid
+          chapters={visibleChapters}
+          resourceLabel={resourceLabel}
+          isAvailable={(ch) => isAvailableFor(resourceType, active, ch)}
+        />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
           <p className="text-slate">
