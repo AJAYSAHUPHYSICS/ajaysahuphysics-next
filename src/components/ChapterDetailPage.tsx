@@ -35,8 +35,8 @@ export default function ChapterDetailPage({
     { key: "jee-notes", label: "JEE Notes" },
     { key: "short-notes", label: "Short Notes" },
     { key: "formula-sheet", label: "Formula Sheet" },
-    { key: "dpp", label: "DPP" },
-    { key: "jee-dpp", label: "JEE DPP" },
+    { key: "dpp", label: "Practice Questions" },
+    { key: "jee-dpp", label: "JEE Practice Questions" },
     { key: "pyq", label: "PYQ" },
     { key: "videos", label: "Videos" },
   ];
