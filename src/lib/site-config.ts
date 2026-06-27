@@ -23,7 +23,7 @@ export const primaryNav: NavLink[] = [
   { label: "About", href: "/about" },
   { label: "Notes", href: "/notes" },
   { label: "Formula Sheet", href: "/formula-sheet" },
-  { label: "DPP", href: "/dpp" },
+  { label: "Practice Questions", href: "/dpp" },
   { label: "PYQ", href: "/pyq" },
   { label: "Video Lectures", href: "/videos" },
   { label: "Blog", href: "/blog" },
