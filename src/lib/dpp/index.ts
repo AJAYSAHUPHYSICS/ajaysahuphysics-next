@@ -24,6 +24,8 @@ import { electromagneticWavesDpp } from "./electromagnetic-waves";
 import { rayOpticsAndOpticalInstrumentsDpp } from "./ray-optics-and-optical-instruments";
 import { dualNatureOfRadiationAndMatterDpp } from "./dual-nature-of-radiation-and-matter";
 import { nucleiDpp } from "./nuclei";
+import { physicalWorldAndMeasurementDpp } from "./physical-world-and-measurement";
+import { circularMotionDpp } from "./circular-motion";
 
 export const dppRegistry: Record<string, ChapterDpp> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsDpp,
@@ -51,6 +53,8 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsDpp,
   "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterDpp,
   "nuclei": nucleiDpp,
+  "physical-world-and-measurement": physicalWorldAndMeasurementDpp,
+  "circular-motion": circularMotionDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
