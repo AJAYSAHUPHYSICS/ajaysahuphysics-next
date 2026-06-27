@@ -6,7 +6,7 @@ import NeetResourceTabs from "@/components/NeetResourceTabs";
 export const metadata: Metadata = {
   title: "NEET Physics",
   description:
-    "Complete NEET physics preparation — notes, formula sheets, DPPs, and PYQs by Ajay Sahu, focused on NEET's exam pattern.",
+    "Complete NEET physics preparation — notes, formula sheets, Practice Questions, and PYQs by Ajay Sahu, focused on NEET's exam pattern.",
 };
 
 const focusAreas = [
