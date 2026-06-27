@@ -26,6 +26,8 @@ export const chapterOverviews: Record<string, string> = {
     "Oscillations covers periodic motion, with simple harmonic motion (SHM) as the central idea — springs, pendulums, and energy in SHM. It's foundational for the Waves chapter that follows, and SHM-based questions appear consistently across JEE and NEET.",
   waves:
     "This chapter covers wave motion, sound, the Doppler effect, and standing waves in strings and pipes. It builds directly on Oscillations and is a steady contributor to both JEE Main and NEET question papers, often in combination with sound-related real-world scenarios.",
+  "circular-motion":
+    "Circular motion applies everything from kinematics and Newton's laws to a curved path — centripetal force, banking of roads, conical pendulums, and the three possible outcomes of motion in a vertical circle. It's a high-weightage, formula-rich topic in both JEE Main and JEE Advanced, and vertical circular motion in particular is a favourite source of tricky, multi-step Advanced-level questions.",
 
   // Class 12
   "electric-charges-and-fields":
