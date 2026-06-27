@@ -226,5 +226,111 @@ export const workEnergyAndPowerPyq: ChapterPyq = {
       solution:
         "v(0) = 25 m/s, v(1) = 25 − 2 + 1 = 24 m/s. KE(0) = ½(1)(25²) = 312.5 J, KE(1) = ½(1)(24²) = 288 J. Average power = ΔKE/Δt = (288 − 312.5)/1 = −24.5 W.",
     },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question: "A force of 10 N acts on a body at an angle of 60° to its displacement of 5 m. Find the work done.",
+      options: ["15 J", "20 J", "25 J", "50 J"],
+      correctIndex: 2,
+      solution: "W = Fd cosθ = 10 × 5 × cos60° = 50 × 0.5 = 25 J.",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question:
+        "A 2 kg body, initially at rest, has 16 J of work done on it. Find the final speed of the body (no friction).",
+      options: ["2 m/s", "4 m/s", "6 m/s", "8 m/s"],
+      correctIndex: 1,
+      solution: "By the work-energy theorem: W = ΔKE = ½mv² ⇒ 16 = ½(2)v² ⇒ v² = 16 ⇒ v = 4 m/s.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question: "A spring with force constant k = 200 N/m is compressed by 0.1 m. Find the elastic potential energy stored in it.",
+      options: ["0.5 J", "1.0 J", "2.0 J", "4.0 J"],
+      correctIndex: 1,
+      solution: "U = ½kx² = ½(200)(0.1)² = ½(200)(0.01) = 1.0 J.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question: "A pump exerts a force of 50 N on water, ejecting it at a speed of 4 m/s. Find the power delivered.",
+      options: ["100 W", "150 W", "200 W", "250 W"],
+      correctIndex: 2,
+      solution: "P = Fv = 50 × 4 = 200 W.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question:
+        "A 2 kg block moving at 4 m/s on a frictionless surface compresses a spring of force constant 800 N/m. Find the maximum compression of the spring.",
+      options: ["0.1 m", "0.2 m", "0.4 m", "0.8 m"],
+      correctIndex: 1,
+      solution:
+        "By energy conservation, KE converts entirely to spring PE: ½mv² = ½kx² ⇒ ½(2)(4²) = ½(800)x² ⇒ 16 = 400x² ⇒ x² = 0.04 ⇒ x = 0.2 m.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question:
+        "A machine has an input power of 1000 W and delivers a useful output power of 750 W. Find its efficiency.",
+      options: ["50%", "65%", "75%", "90%"],
+      correctIndex: 2,
+      solution: "Efficiency = (Output power/Input power) × 100 = (750/1000) × 100 = 75%.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question: "A variable force F = 10x² (in N, x in metres) acts on a body. Find the work done as it moves from x = 0 to x = 2 m.",
+      options: ["20/3 J", "40/3 J", "80/3 J", "160/3 J"],
+      correctIndex: 2,
+      solution: "W = ∫F dx = ∫10x² dx from 0 to 2 = [10x³/3] from 0 to 2 = 10(8)/3 − 0 = 80/3 J.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "The potential energy of a particle in a conservative field is given by U = 5x² − 10x (in joules, x in metres). Find the equilibrium position and the force on the particle at x = 3 m.",
+      options: [
+        "x = 1 m (equilibrium); F = −20 N at x = 3 m",
+        "x = 2 m (equilibrium); F = −10 N at x = 3 m",
+        "x = 1 m (equilibrium); F = 20 N at x = 3 m",
+        "x = 0.5 m (equilibrium); F = −15 N at x = 3 m",
+      ],
+      correctIndex: 0,
+      solution:
+        "F = −dU/dx = −(10x − 10) = 10 − 10x. Equilibrium occurs where F = 0: 10 − 10x = 0 ⇒ x = 1 m. At x = 3 m: F = 10 − 10(3) = −20 N (directed back toward decreasing x).",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "The work done on a particle varies with time as W = 4t² (in joules, t in seconds). Find the instantaneous power delivered at t = 2 s.",
+      options: ["8 W", "12 W", "16 W", "32 W"],
+      correctIndex: 2,
+      solution: "Instantaneous power P = dW/dt = 8t. At t = 2 s: P = 8 × 2 = 16 W.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A 2 kg block compresses a spring (k = 250 N/m) by 0.2 m against a rough surface (μ = 0.25) and is then released. Find the speed of the block when the spring returns to its natural length. (g = 10 m/s²)",
+      options: ["1 m/s", "1.5 m/s", "2 m/s", "2.5 m/s"],
+      correctIndex: 2,
+      solution:
+        "Spring PE = ½kx² = ½(250)(0.2²) = 5 J. Energy lost to friction = μmgx = 0.25(2)(10)(0.2) = 1 J. Remaining KE = 5 − 1 = 4 J = ½mv² ⇒ v² = 2(4)/2 = 4 ⇒ v = 2 m/s.",
+    },
+    {
+      exam: "JEE Advanced 2011",
+      examType: "jee-advanced",
+      question:
+        "A 5 kg block is pushed up a rough incline of angle 37° at constant velocity through a distance of 4 m, with μ = 0.2. Find the total work done by the applied force. (Use sin37° ≈ 0.6, cos37° ≈ 0.8, g = 10 m/s²)",
+      options: ["120 J", "132 J", "152 J", "160 J"],
+      correctIndex: 2,
+      solution:
+        "At constant velocity, applied force does work against both gravity and friction: W_gravity = mgd sinθ = 5(10)(4)(0.6) = 120 J. W_friction = μmgd cosθ = 0.2(5)(10)(4)(0.8) = 32 J. Total = 120 + 32 = 152 J.",
+    },
   ],
 };
