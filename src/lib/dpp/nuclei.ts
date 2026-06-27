@@ -1,0 +1,142 @@
+import type { ChapterDpp } from "./kinematics";
+
+export const nucleiDpp: ChapterDpp = {
+  chapterName: "Nuclei",
+  className: "12",
+  questions: [
+    {
+      number: 1,
+      question: "Using R = R₀A^(1/3) with R₀ = 1.2 fm, find the radius of a nucleus with mass number 64.",
+      options: ["2.4 fm", "3.6 fm", "4.8 fm", "9.6 fm"],
+      correctIndex: 2,
+      solution: "R = R₀A^(1/3) = 1.2 × 64^(1/3) = 1.2 × 4 = 4.8 fm.",
+    },
+    {
+      number: 2,
+      question: "Two nuclei have mass numbers in the ratio 1 : 3. What is the ratio of their nuclear densities?",
+      options: ["1 : 1", "1 : 3", "1 : 3^(1/3)", "1 : 27"],
+      correctIndex: 0,
+      solution: "Nuclear density is independent of mass number A — every nucleus has essentially the same density, so the ratio is 1 : 1 regardless of the mass numbers.",
+    },
+    {
+      number: 3,
+      question: "A nucleus has a radius exactly half that of a nucleus with mass number 216. What is the mass number of this smaller nucleus?",
+      options: ["9", "18", "27", "54"],
+      correctIndex: 2,
+      solution: "R ∝ A^(1/3), so A₂/A₁ = (R₂/R₁)³ = (1/2)³ = 1/8. A₂ = 216/8 = 27.",
+    },
+    {
+      number: 4,
+      question: "Using m_p = 1.00728 u, m_n = 1.00867 u, and the actual mass of a helium-4 nucleus M = 4.00260 u, find its binding energy.",
+      options: ["7.28 MeV", "14.2 MeV", "27.3 MeV", "93.1 MeV"],
+      correctIndex: 2,
+      solution: "Δm = 2m_p + 2m_n − M = 2(1.00728) + 2(1.00867) − 4.00260 = 0.0293 u. E_b = Δm × 931 = 0.0293 × 931 ≈ 27.3 MeV.",
+    },
+    {
+      number: 5,
+      question: "How much energy (in kWh) is released by the complete fission of 2 g of U-235, given 200 MeV is released per fission? (Nₐ = 6.022×10²³, 1 MeV = 1.6×10⁻¹³ J)",
+      options: ["455.6 kWh", "4556 kWh", "45,560 kWh", "455,600 kWh"],
+      correctIndex: 2,
+      solution: "Number of atoms N = (Nₐ×2)/235 ≈ 5.125×10²¹. Energy = N×200 MeV ≈ 1.025×10²⁴ MeV = 1.64×10¹¹ J. Converting: 1.64×10¹¹/3.6×10⁶ ≈ 45,560 kWh.",
+    },
+    {
+      number: 6,
+      question: "A power plant needs to generate 16 kW from nuclear fission, where each fission releases 3.2×10⁻¹¹ J. How many fissions are needed per second?",
+      options: ["5 × 10¹²", "5 × 10¹³", "5 × 10¹⁴", "5 × 10¹⁵"],
+      correctIndex: 2,
+      solution: "n = P/E_per-fission = 16000/(3.2×10⁻¹¹) = 5×10¹⁴ fissions per second.",
+    },
+    {
+      number: 7,
+      question: "In a fusion reaction involving 2 kg of fuel, the mass defect is 0.5% of the total mass. How much energy is released? (c² = 9×10¹⁶ m²/s²)",
+      options: ["9 × 10¹² J", "9 × 10¹³ J", "9 × 10¹⁴ J", "9 × 10¹⁶ J"],
+      correctIndex: 2,
+      solution: "Δm = 0.5% of 2 kg = 0.01 kg. E = Δm·c² = 0.01 × 9×10¹⁶ = 9×10¹⁴ J.",
+    },
+    {
+      number: 8,
+      question: "A γ-photon of energy 2.02 MeV undergoes pair production near a nucleus. What is the kinetic energy of each particle produced (assuming the extra energy splits equally)?",
+      options: ["0.25 MeV", "0.5 MeV", "1.0 MeV", "1.01 MeV"],
+      correctIndex: 1,
+      solution: "Energy available as KE = E_photon − 1.02 MeV = 2.02 − 1.02 = 1.00 MeV, split equally between the electron and positron: 0.5 MeV each.",
+    },
+    {
+      number: 9,
+      question: "²²⁶Ra (mass 226.02540 u) undergoes α-decay to ²²²Rn (mass 222.01757 u), emitting an α-particle (mass 4.00260 u). Find the Q-value of this decay.",
+      options: ["0.523 MeV", "4.87 MeV", "9.31 MeV", "52.3 MeV"],
+      correctIndex: 1,
+      solution: "Δm = 226.02540 − 222.01757 − 4.00260 = 0.00523 u. Q = Δm × 931 ≈ 4.87 MeV — positive, confirming the decay is indeed spontaneous.",
+    },
+    {
+      number: 10,
+      question:
+        "A nuclide undergoes β⁺ decay. The atomic mass of the parent exceeds that of the daughter (both already include all their electrons) by 0.00165 u. Find the Q-value. (mₑ = 0.00055 u, 1 u = 931 MeV)",
+      options: ["0.255 MeV", "0.512 MeV", "1.024 MeV", "1.536 MeV"],
+      correctIndex: 1,
+      solution: "For β⁺ decay using atomic masses, two extra electron masses must be subtracted (one positron created, one orbital electron 'lost' in going from Z to Z−1 electrons): Q = [Δm_atomic − 2mₑ] × 931 = [0.00165 − 0.0011] × 931 ≈ 0.512 MeV.",
+    },
+    {
+      number: 11,
+      question: "A radioactive substance has decay constant λ = 0.0231 per year. Find its half-life.",
+      options: ["3 years", "15 years", "30 years", "60 years"],
+      correctIndex: 2,
+      solution: "T_half = 0.693/λ = 0.693/0.0231 = 30 years.",
+    },
+    {
+      number: 12,
+      question: "What fraction of a radioactive sample remains undecayed after 3 half-lives have elapsed?",
+      options: ["1/3", "1/4", "1/6", "1/8"],
+      correctIndex: 3,
+      solution: "After n half-lives, the fraction remaining is (1/2)ⁿ. For n = 3: (1/2)³ = 1/8.",
+    },
+    {
+      number: 13,
+      question: "A radioactive sample has decayed until only 25% of the original number of nuclei remain. How many half-lives have elapsed?",
+      options: ["1", "2", "3", "4"],
+      correctIndex: 1,
+      solution: "(1/2)ⁿ = 0.25 = 1/4 ⟹ n = 2 half-lives.",
+    },
+    {
+      number: 14,
+      question: "A radioactive sample has a half-life of 10 days. What is its decay constant?",
+      options: ["0.0693 per day", "0.231 per day", "0.693 per day", "6.93 per day"],
+      correctIndex: 0,
+      solution: "λ = 0.693/T_half = 0.693/10 = 0.0693 per day.",
+    },
+    {
+      number: 15,
+      question: "A radioactive sample has decay constant λ = 0.1 per second. What fraction of the original nuclei remain after 10 seconds?",
+      options: ["1/e² ≈ 0.135", "1/e ≈ 0.368", "1/2 = 0.5", "1/10 = 0.1"],
+      correctIndex: 1,
+      solution: "N/N₀ = e^(−λt) = e^(−0.1×10) = e⁻¹ ≈ 0.368.",
+    },
+    {
+      number: 16,
+      question: "A nucleus ²³⁴₉₀Th decays through a series of α and β⁻ emissions and ultimately becomes ²¹⁰₈₂Pb. How many α-particles and β⁻-particles are emitted in total?",
+      options: ["4 α, 6 β⁻", "6 α, 2 β⁻", "6 α, 4 β⁻", "8 α, 4 β⁻"],
+      correctIndex: 2,
+      solution: "Number of α emitted = (A_initial − A_final)/4 = (234−210)/4 = 6. Number of β⁻ emitted = Z_final − (Z_initial − 2×n_α) = 82 − (90 − 12) = 4.",
+    },
+    {
+      number: 17,
+      question:
+        "A nuclear reactor briefly operates with a reproduction factor K slightly greater than 1 during startup. What happens to the rate of the chain reaction?",
+      options: [
+        "It stays exactly steady",
+        "It accelerates (supercritical behaviour)",
+        "It gradually dies out",
+        "It immediately reaches K = 0",
+      ],
+      correctIndex: 1,
+      solution: "K > 1 means neutron production outpaces neutron loss, so the chain reaction accelerates — this is supercritical behaviour, the same condition (taken to an extreme) that drives an atomic bomb explosion. A reactor must be brought back to K = 1 (using control rods) to hold a steady rate.",
+    },
+    {
+      number: 18,
+      question:
+        "Fission of U-235 releases about 200 MeV per event; fusion of four hydrogen nuclei into helium releases about 26 MeV per event. Roughly how many times more energy does fusion release per nucleon compared to fission?",
+      options: ["About 2 times more", "About 4 times more", "About 7–8 times more", "About 15 times more"],
+      correctIndex: 2,
+      solution: "Fission: 200 MeV/235 nucleons ≈ 0.85 MeV/nucleon. Fusion: 26 MeV/4 nucleons = 6.5 MeV/nucleon. Ratio = 6.5/0.85 ≈ 7.6 — fusion releases roughly 7–8 times more energy per nucleon, even though a single fission event releases far more total energy than a single fusion event.",
+    },
+  ],
+};
