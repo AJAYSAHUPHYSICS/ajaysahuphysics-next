@@ -19,7 +19,7 @@ export async function generateMetadata({
   if (!chapter) return {};
   return {
     title: `${chapter.name} — Class 12 Physics`,
-    description: `Notes, formula sheet, DPP, and PYQ for ${chapter.name}, a Class 12 Physics chapter for JEE and NEET.`,
+    description: `Notes, formula sheet, Practice Questions, and PYQ for ${chapter.name}, a Class 12 Physics chapter for JEE and NEET.`,
   };
 }
 
