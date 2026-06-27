@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NeetResourceTabs from "./NeetResourceTabs";
-import JeeResourceTabs from "./JeeResourceTabs";
+import JeeMainAdvancedPicker from "./JeeMainAdvancedPicker";
 
 type ExamChoice = "neet" | "jee" | null;
 
@@ -81,7 +81,7 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
           <h2 className="font-display text-2xl text-navy mb-8">
             JEE Resources — Class {cls}
           </h2>
-          <JeeResourceTabs lockedClass={cls} />
+          <JeeMainAdvancedPicker lockedClass={cls} />
         </div>
       )}
     </div>
