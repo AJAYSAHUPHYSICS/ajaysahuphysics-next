@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export type TabDef = {
   key: string;
@@ -16,6 +16,18 @@ export default function Tabs({
   defaultKey?: string;
 }) {
   const [active, setActive] = useState(defaultKey ?? tabs[0]?.key);
+
+  // If the page was opened with a hash like #pyq (e.g. from a "View PYQ"
+  // link on the NEET/JEE hub pages), jump straight to that tab instead of
+  // always landing on the default tab.
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    if (hash && tabs.some((t) => t.key === hash)) {
+      setActive(hash);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const activeTab = tabs.find((t) => t.key === active) ?? tabs[0];
 
   return (
