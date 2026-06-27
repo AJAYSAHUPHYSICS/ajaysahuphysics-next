@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import JeeResourceTabs from "@/components/JeeResourceTabs";
 
 export const metadata: Metadata = {
   title: "JEE Physics",
@@ -49,6 +50,16 @@ export default function JeePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="bg-ivory">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="gold-rule mb-4" />
+          <h2 className="font-display text-2xl sm:text-3xl text-navy mb-8">
+            Resources for JEE
+          </h2>
+          <JeeResourceTabs />
         </div>
       </section>
     </div>
