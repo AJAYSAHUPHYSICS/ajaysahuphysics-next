@@ -1,5 +1,9 @@
 export type PyqQuestion = {
   exam: string;
+  // Optional: set this to group questions into separate "JEE Main" / "JEE Advanced"
+  // sections in the UI. Leave unset for existing NEET/AIPMT-only chapters — those
+  // continue to render as a single flat list, exactly as before.
+  examType?: "jee-main" | "jee-advanced";
   question: string;
   options: string[];
   correctIndex: number;
