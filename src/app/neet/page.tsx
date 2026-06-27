@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import NeetResourceTabs from "@/components/NeetResourceTabs";
 
 export const metadata: Metadata = {
   title: "NEET Physics",
@@ -22,13 +22,6 @@ const focusAreas = [
     title: "High-yield chapter focus",
     desc: "Optics, Modern Physics, and Electrodynamics carry outsized weight — these get extra attention.",
   },
-];
-
-const resources = [
-  { label: "Notes", href: "/notes" },
-  { label: "Formula Sheet", href: "/formula-sheet" },
-  { label: "DPP", href: "/dpp" },
-  { label: "PYQ", href: "/pyq" },
 ];
 
 export default function NeetPage() {
@@ -72,17 +65,7 @@ export default function NeetPage() {
           <h2 className="font-display text-2xl sm:text-3xl text-navy mb-8">
             Resources for NEET
           </h2>
-          <div className="flex flex-wrap gap-3">
-            {resources.map((r) => (
-              <Link
-                key={r.href}
-                href={r.href}
-                className="px-5 py-2.5 rounded-md bg-white border border-navy/10 text-navy text-sm font-semibold hover:border-gold hover:text-gold-deep transition-colors"
-              >
-                {r.label}
-              </Link>
-            ))}
-          </div>
+          <NeetResourceTabs />
         </div>
       </section>
     </div>
