@@ -6,7 +6,7 @@ import JeeMainAdvancedPicker from "@/components/JeeMainAdvancedPicker";
 export const metadata: Metadata = {
   title: "JEE Physics",
   description:
-    "Complete JEE Main and JEE Advanced physics preparation — notes, formula sheets, DPPs, and PYQs by Ajay Sahu.",
+    "Complete JEE Main and JEE Advanced physics preparation — notes, formula sheets, Practice Questions, and PYQs by Ajay Sahu.",
 };
 
 export default function JeePage() {
