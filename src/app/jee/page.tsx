@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
 
@@ -13,14 +12,10 @@ const pillars = [
   {
     title: "JEE Main",
     desc: "Build speed and accuracy across all 27 chapters with focused practice and previous year patterns.",
-    href: "/pyq",
-    cta: "View JEE Main PYQs",
   },
   {
     title: "JEE Advanced",
     desc: "Sharpen multi-concept problem solving for the trickier, higher-weightage Advanced topics.",
-    href: "/pyq",
-    cta: "View JEE Advanced PYQs",
   },
 ];
 
@@ -41,21 +36,17 @@ export default function JeePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {pillars.map((p) => (
-              <Link
+              <div
                 key={p.title}
-                href={p.href}
-                className="group rounded-lg border border-navy/10 p-7 hover:border-gold hover:shadow-lg transition-all"
+                className="rounded-lg border border-navy/10 p-7"
               >
-                <h3 className="font-display text-2xl text-navy group-hover:text-gold-deep transition-colors">
+                <h3 className="font-display text-2xl text-navy">
                   {p.title}
                 </h3>
                 <p className="mt-3 text-sm text-slate leading-relaxed">
                   {p.desc}
                 </p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-gold-deep">
-                  {p.cta} <span aria-hidden="true">&rarr;</span>
-                </span>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
