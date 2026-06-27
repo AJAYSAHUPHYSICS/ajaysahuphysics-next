@@ -24,13 +24,6 @@ const pillars = [
   },
 ];
 
-const resources = [
-  { label: "Notes", href: "/notes" },
-  { label: "Formula Sheet", href: "/formula-sheet" },
-  { label: "DPP", href: "/dpp" },
-  { label: "PYQ", href: "/pyq" },
-];
-
 export default function JeePage() {
   return (
     <div>
@@ -62,26 +55,6 @@ export default function JeePage() {
                 <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-gold-deep">
                   {p.cta} <span aria-hidden="true">&rarr;</span>
                 </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-ivory">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <div className="gold-rule mb-4" />
-          <h2 className="font-display text-2xl sm:text-3xl text-navy mb-8">
-            Resources for JEE
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            {resources.map((r) => (
-              <Link
-                key={r.href}
-                href={r.href}
-                className="px-5 py-2.5 rounded-md bg-white border border-navy/10 text-navy text-sm font-semibold hover:border-gold hover:text-gold-deep transition-colors"
-              >
-                {r.label}
               </Link>
             ))}
           </div>
