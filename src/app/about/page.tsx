@@ -33,7 +33,7 @@ const principles = [
   },
   {
     title: "Practice that mirrors the exam",
-    desc: "DPPs and PYQs are chosen to match how JEE and NEET actually test a topic, not just to fill a worksheet.",
+    desc: "Practice Questions and PYQs are chosen to match how JEE and NEET actually test a topic, not just to fill a worksheet.",
   },
   {
     title: "Notes you can revise from",
