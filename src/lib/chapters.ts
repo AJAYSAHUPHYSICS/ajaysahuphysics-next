@@ -23,6 +23,7 @@ export const class11Chapters: Chapter[] = [
   { name: "Kinetic Theory of Gases", cls: "11", slug: "kinetic-theory-of-gases", number: 13 },
   { name: "Oscillations", cls: "11", slug: "oscillations", number: 14 },
   { name: "Waves", cls: "11", slug: "waves", number: 15 },
+  { name: "Circular Motion", cls: "11", slug: "circular-motion", number: 16 },
 ];
 
 export const class12Chapters: Chapter[] = [
