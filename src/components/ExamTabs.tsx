@@ -9,7 +9,7 @@ import { pyqRegistry } from "@/lib/pyq";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
 type ClassFilter = "all" | "11" | "12";
-type ResourceType = "notes" | "dpp" | "pyq";
+type ResourceType = "notes" | "dpp" | "pyq" | "formula-sheet";
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: "jee-main", label: "JEE Main" },
@@ -31,6 +31,7 @@ function isAvailableFor(
   const slug = chapter.slug;
   if (resourceType === "notes") return !!notesRegistry[slug];
   if (resourceType === "dpp") return !!dppRegistry[slug];
+  if (resourceType === "formula-sheet") return false; // not built yet for any chapter
 
   // resourceType === "pyq" — availability depends on which exam tab is active,
   // since PYQ is the one resource genuinely split by exam type.
@@ -49,10 +50,10 @@ function isAvailableFor(
 
 export default function ExamTabs({
   resourceLabel,
-  resourceType = "notes",
+  resourceType,
 }: {
   resourceLabel: string;
-  resourceType?: ResourceType;
+  resourceType: ResourceType;
 }) {
   const [active, setActive] = useState<TabKey>("jee-main");
   const [classFilter, setClassFilter] = useState<ClassFilter>("all");
@@ -147,6 +148,7 @@ export default function ExamTabs({
           chapters={visibleChapters}
           resourceLabel={resourceLabel}
           isAvailable={(ch) => isAvailableFor(resourceType, active, ch)}
+          tabKey={resourceType}
         />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
