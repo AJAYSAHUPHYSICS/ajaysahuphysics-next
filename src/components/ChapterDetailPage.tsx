@@ -7,6 +7,7 @@ import NotesDisplay from "@/components/NotesDisplay";
 import ShortNotesDisplay from "@/components/ShortNotesDisplay";
 import DppDisplay from "@/components/DppDisplay";
 import PyqDisplay from "@/components/PyqDisplay";
+import JeeNotesDisplay from "@/components/JeeNotesDisplay";
 import type { Chapter } from "@/lib/chapters";
 import { getAdjacentChapters } from "@/lib/chapters";
 import { getChapterOverview } from "@/lib/chapter-overviews";
@@ -14,6 +15,8 @@ import { getChapterNotes } from "@/lib/notes";
 import { getChapterShortNotes } from "@/lib/notes/short-index";
 import { getChapterDpp } from "@/lib/dpp";
 import { getChapterPyq } from "@/lib/pyq";
+import { getChapterJeeNotes } from "@/lib/jee-notes";
+import { getChapterJeeDpp } from "@/lib/jee-dpp";
 
 export default function ChapterDetailPage({
   chapter,
@@ -29,9 +32,11 @@ export default function ChapterDetailPage({
 
   const resourceTabs: { key: string; label: string }[] = [
     { key: "notes", label: "Notes" },
+    { key: "jee-notes", label: "JEE Notes" },
     { key: "short-notes", label: "Short Notes" },
     { key: "formula-sheet", label: "Formula Sheet" },
     { key: "dpp", label: "DPP" },
+    { key: "jee-dpp", label: "JEE DPP" },
     { key: "pyq", label: "PYQ" },
     { key: "videos", label: "Videos" },
   ];
@@ -40,6 +45,8 @@ export default function ChapterDetailPage({
   const chapterShortNotes = getChapterShortNotes(chapter.slug);
   const chapterDpp = getChapterDpp(chapter.slug);
   const chapterPyq = getChapterPyq(chapter.slug);
+  const chapterJeeNotes = getChapterJeeNotes(chapter.slug);
+  const chapterJeeDpp = getChapterJeeDpp(chapter.slug);
 
   const tabs: TabDef[] = [
     {
@@ -93,6 +100,20 @@ export default function ChapterDetailPage({
           key: t.key,
           label: t.label,
           content: <DppDisplay dpp={chapterDpp} />,
+        };
+      }
+      if (t.key === "jee-notes" && chapterJeeNotes) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <JeeNotesDisplay notes={chapterJeeNotes} />,
+        };
+      }
+      if (t.key === "jee-dpp" && chapterJeeDpp) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <DppDisplay dpp={chapterJeeDpp} />,
         };
       }
       if (t.key === "pyq" && chapterPyq) {
