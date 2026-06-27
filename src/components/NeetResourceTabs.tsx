@@ -128,6 +128,7 @@ export default function NeetResourceTabs() {
           chapters={visibleChapters}
           resourceLabel={activeLabel}
           isAvailable={(ch) => isAvailable(active, ch)}
+          tabKey={active}
         />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
