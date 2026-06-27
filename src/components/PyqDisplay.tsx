@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChapterPyq, PyqQuestion } from "@/lib/pyq/kinematics";
+
+type ExamFilter = "jee-main" | "jee-advanced" | "neet" | null;
+
+const FILTER_LABEL: Record<Exclude<ExamFilter, null>, string> = {
+  "jee-main": "JEE Main",
+  "jee-advanced": "JEE Advanced",
+  neet: "NEET",
+};
 
 function QuestionCard({
   q,
@@ -77,9 +85,66 @@ function QuestionCard({
   );
 }
 
+function matchesFilter(q: PyqQuestion, filter: Exclude<ExamFilter, null>) {
+  if (filter === "neet") return !q.examType;
+  return q.examType === filter;
+}
+
 export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
+  const [examFilter, setExamFilter] = useState<ExamFilter>(null);
+
+  // A link like /class-11/kinematics#pyq:neet (from the NEET hub) or
+  // #pyq:jee-main / #pyq:jee-advanced (from the PYQ hub's exam tabs) should
+  // show ONLY that exam's questions here — not every section mixed together.
+  // Landing on this tab any other way (e.g. browsing the chapter directly)
+  // keeps showing the full grouped view.
+  useEffect(() => {
+    const hash = window.location.hash.replace("#", "");
+    const [, filterPart] = hash.split(":");
+    if (filterPart === "jee-main" || filterPart === "jee-advanced" || filterPart === "neet") {
+      setExamFilter(filterPart);
+    }
+  }, []);
+
+  if (examFilter) {
+    const filtered = pyq.questions
+      .map((q, idx) => ({ q, idx }))
+      .filter(({ q }) => matchesFilter(q, examFilter));
+
+    return (
+      <div>
+        <p className="text-sm text-slate mb-6">
+          {filtered.length} {FILTER_LABEL[examFilter]} PYQ
+          {filtered.length === 1 ? "" : "s"} on {pyq.chapterName}, rewritten
+          here in original wording with the same tested concept.
+        </p>
+        {filtered.length > 0 ? (
+          <div className="space-y-5">
+            {filtered.map(({ q, idx }) => (
+              <QuestionCard
+                key={`${q.exam}-${idx}`}
+                q={q}
+                idx={idx}
+                revealed={revealed}
+                selected={selected}
+                setRevealed={setRevealed}
+                setSelected={setSelected}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-navy/15 bg-white p-8 text-center">
+            <p className="text-slate text-sm">
+              {FILTER_LABEL[examFilter]} PYQs for {pyq.chapterName} are being
+              prepared.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const hasExamTypeSplit = pyq.questions.some((q) => q.examType);
 
