@@ -5,7 +5,7 @@ import ClassExamPicker from "@/components/ClassExamPicker";
 export const metadata: Metadata = {
   title: "Class 12 Physics",
   description:
-    "Class 12 Physics chapters, notes, formula sheets, DPPs, and PYQs — covering electrostatics, current electricity, optics, and modern physics.",
+    "Class 12 Physics chapters, notes, formula sheets, Practice Questions, and PYQs — covering electrostatics, current electricity, optics, and modern physics.",
 };
 
 export default function Class12Page() {
@@ -14,7 +14,7 @@ export default function Class12Page() {
       <PageHero
         eyebrow="Class 12 Physics"
         title="The chapters that carry the most weight in JEE and NEET."
-        description="Electrostatics, current electricity, optics, and modern physics — covered chapter by chapter with notes, formula sheets, DPPs, and PYQs."
+        description="Electrostatics, current electricity, optics, and modern physics — covered chapter by chapter with notes, formula sheets, Practice Questions, and PYQs."
       />
 
       <section className="bg-ivory">
