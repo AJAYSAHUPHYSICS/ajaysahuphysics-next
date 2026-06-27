@@ -315,5 +315,108 @@ export const lawsOfMotionPyq: ChapterPyq = {
       solution:
         "By symmetry, each string carries equal tension T, and together their vertical components support the weight: 2T sin45° = mg. So T = mg/(2 sin45°) = (20 × 10)/(2 × 0.707) ≈ 141 N. Note: the original figure included a third labelled string; this version reconstructs the tension in the two load-bearing strings, since the exact role of the third string could not be confirmed from the source figure alone.",
     },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question: "A force of 24 N acts on a body of mass 4 kg. Find its acceleration.",
+      options: ["3 m/s²", "4 m/s²", "6 m/s²", "8 m/s²"],
+      correctIndex: 2,
+      solution: "a = F/m = 24/4 = 6 m/s².",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question:
+        "A block slides down a rough incline of angle 37° with coefficient of kinetic friction 0.25. Find its acceleration. (Use sin37° ≈ 0.6, cos37° ≈ 0.8, g = 10 m/s²)",
+      options: ["2 m/s²", "4 m/s²", "6 m/s²", "8 m/s²"],
+      correctIndex: 1,
+      solution: "a = g(sinθ − μcosθ) = 10(0.6 − 0.25×0.8) = 10(0.6 − 0.2) = 10 × 0.4 = 4 m/s².",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question:
+        "Masses of 3 kg and 2 kg hang on either side of a frictionless, massless pulley (Atwood machine). Find the acceleration of the system. (g = 10 m/s²)",
+      options: ["1 m/s²", "2 m/s²", "4 m/s²", "5 m/s²"],
+      correctIndex: 1,
+      solution: "a = (m₁ − m₂)g/(m₁ + m₂) = (3 − 2)(10)/(3 + 2) = 10/5 = 2 m/s².",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question:
+        "A 0.15 kg ball hits a wall at 12 m/s and rebounds elastically at the same speed. Find the magnitude of the impulse delivered to the ball by the wall.",
+      options: ["1.8 N·s", "2.4 N·s", "3.0 N·s", "3.6 N·s"],
+      correctIndex: 3,
+      solution: "Impulse = m(v_f − v_i) = 0.15(12 − (−12)) = 0.15 × 24 = 3.6 N·s.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question:
+        "A 50 kg person stands on a weighing scale inside a lift accelerating downward at 2 m/s². What does the scale read? (g = 10 m/s²)",
+      options: ["300 N", "400 N", "500 N", "600 N"],
+      correctIndex: 1,
+      solution: "Apparent weight N = m(g − a) = 50(10 − 2) = 50 × 8 = 400 N.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question:
+        "A horizontal force of 20 N is applied to a 3 kg block on a frictionless surface, which pushes a 2 kg block in front of it. Find the contact force (normal reaction) between the two blocks.",
+      options: ["4 N", "6 N", "8 N", "12 N"],
+      correctIndex: 2,
+      solution:
+        "Common acceleration a = F/(m₁+m₂) = 20/5 = 4 m/s². Contact force on the 2 kg block (the one without the applied force) = m₂a = 2 × 4 = 8 N.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2012",
+      examType: "jee-advanced",
+      question:
+        "A 2 kg block rests on top of an 8 kg block, which lies on a frictionless floor. The coefficient of friction between the two blocks is 0.3. A horizontal force F is applied to the BOTTOM (8 kg) block. Find the maximum value of F for which both blocks move together. (g = 10 m/s²)",
+      options: ["20 N", "24 N", "30 N", "36 N"],
+      correctIndex: 2,
+      solution:
+        "Maximum friction available on the top block: f_L = μ(m_top)g = 0.3 × 2 × 10 = 6 N. The maximum common acceleration this can sustain on the top block is a_max = f_L/m_top = μg = 3 m/s². For the whole system: F_max = (m_top + m_bottom) × a_max = 10 × 3 = 30 N.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A pendulum hangs from the ceiling of a train accelerating horizontally at 5 m/s². Find the angle the string makes with the vertical, as seen by a passenger inside the train. (g = 10 m/s²)",
+      options: ["tan⁻¹(0.2)", "tan⁻¹(0.5)", "tan⁻¹(1)", "tan⁻¹(2)"],
+      correctIndex: 1,
+      solution: "Inside the non-inertial train frame, tanθ = a/g = 5/10 = 0.5, so θ = tan⁻¹(0.5).",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "Two springs of force constants 200 N/m and 300 N/m are connected in SERIES. Find the effective force constant of the combination.",
+      options: ["100 N/m", "120 N/m", "250 N/m", "500 N/m"],
+      correctIndex: 1,
+      solution: "For springs in series: 1/k_eff = 1/k₁ + 1/k₂ ⇒ k_eff = k₁k₂/(k₁+k₂) = (200×300)/(200+300) = 60000/500 = 120 N/m.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A 5 kg block on a smooth horizontal table is connected via a string over a frictionless pulley at the edge of the table to a 5 kg block hanging vertically. Find the tension in the string. (g = 10 m/s²)",
+      options: ["15 N", "20 N", "25 N", "50 N"],
+      correctIndex: 2,
+      solution:
+        "Common acceleration a = m_hanging × g/(m_table + m_hanging) = 5(10)/10 = 5 m/s². Tension (from the table block's equation, which has no other horizontal force): T = m_table × a = 5 × 5 = 25 N.",
+    },
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "A time-varying force F = 6t (in N, t in seconds) acts on a body. Find the impulse delivered by this force between t = 0 s and t = 2 s.",
+      options: ["6 N·s", "8 N·s", "10 N·s", "12 N·s"],
+      correctIndex: 3,
+      solution: "Impulse = ∫F dt = ∫6t dt from 0 to 2 = [3t²] from 0 to 2 = 3(4) − 0 = 12 N·s.",
+    },
   ],
 };
