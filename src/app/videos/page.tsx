@@ -29,7 +29,7 @@ export default function VideosPage() {
       <PageHero
         eyebrow="Video Lectures"
         title="Video lectures are on the way."
-        description="Ajay Sir is building out a structured video library to go alongside the notes, DPPs, and PYQs. Here's what's planned."
+        description="Ajay Sir is building out a structured video library to go alongside the notes, Practice Questions, and PYQs. Here's what's planned."
       >
         <WhatsAppButton message="Hi Ajay Sir, please notify me when video lectures are available.">
           Notify me when videos launch
