@@ -9,12 +9,14 @@ type Props = {
   chapters: Chapter[];
   resourceLabel: string;
   linkToChapterPage?: boolean;
+  isAvailable?: (chapter: Chapter) => boolean;
 };
 
 export default function ChapterGrid({
   chapters,
   resourceLabel,
   linkToChapterPage = false,
+  isAvailable,
 }: Props) {
   const [selected, setSelected] = useState<Chapter | null>(null);
 
@@ -22,6 +24,7 @@ export default function ChapterGrid({
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {chapters.map((ch) => {
+          const available = isAvailable ? isAvailable(ch) : linkToChapterPage;
           const cardInner = (
             <>
               <div className="flex items-start justify-between gap-3">
@@ -35,7 +38,22 @@ export default function ChapterGrid({
               <h3 className="mt-3 font-semibold text-navy leading-snug group-hover:text-gold-deep transition-colors">
                 {ch.name}
               </h3>
-              {!linkToChapterPage && (
+              {available ? (
+                <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-gold-deep">
+                  View {resourceLabel}
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 12h14m0 0l-5-5m5 5l-5 5" />
+                  </svg>
+                </div>
+              ) : (
                 <div className="mt-3 flex items-center gap-1.5 text-xs text-navy/40">
                   <svg
                     width="13"
@@ -48,7 +66,7 @@ export default function ChapterGrid({
                   >
                     <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
                   </svg>
-                  PDF coming soon
+                  Coming soon
                 </div>
               )}
             </>
@@ -57,7 +75,7 @@ export default function ChapterGrid({
           const cardClass =
             "group text-left rounded-lg border border-navy/10 bg-white p-5 hover:border-gold hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-gold block";
 
-          return linkToChapterPage ? (
+          return available ? (
             <Link
               key={`${ch.cls}-${ch.slug}`}
               href={`/class-${ch.cls}/${ch.slug}`}
