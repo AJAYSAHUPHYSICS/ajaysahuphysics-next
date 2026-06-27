@@ -39,20 +39,24 @@ function isAvailable(resource: ResourceKey, chapter: Chapter): boolean {
   return pyq.questions.some((q) => q.examType === "jee-advanced");
 }
 
-export default function JeeResourceTabs() {
+export default function JeeResourceTabs({
+  lockedClass,
+}: {
+  lockedClass?: "11" | "12";
+}) {
   const [active, setActive] = useState<ResourceKey>("notes");
-  const [classFilter, setClassFilter] = useState<ClassFilter>("all");
+  const [classFilter, setClassFilter] = useState<ClassFilter>(lockedClass ?? "all");
   const [query, setQuery] = useState("");
 
   const visibleChapters = useMemo(() => {
     return allChapters
-      .filter((ch) => classFilter === "all" || ch.cls === classFilter)
+      .filter((ch) => (lockedClass ? ch.cls === lockedClass : classFilter === "all" || ch.cls === classFilter))
       .filter((ch) =>
         query.trim() === ""
           ? true
           : ch.name.toLowerCase().includes(query.trim().toLowerCase())
       );
-  }, [classFilter, query]);
+  }, [classFilter, query, lockedClass]);
 
   const activeLabel = resourceTabs.find((t) => t.key === active)?.label ?? "Resources";
 
@@ -114,22 +118,24 @@ export default function JeeResourceTabs() {
           />
         </div>
 
-        <div className="flex gap-2">
-          {classFilters.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setClassFilter(f.key)}
-              className={`px-3.5 py-2 rounded-md text-sm font-semibold border transition-colors ${
-                classFilter === f.key
-                  ? "bg-navy/5 border-navy text-navy"
-                  : "border-navy/15 text-navy/60 hover:border-gold hover:text-gold-deep"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {!lockedClass && (
+          <div className="flex gap-2">
+            {classFilters.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setClassFilter(f.key)}
+                className={`px-3.5 py-2 rounded-md text-sm font-semibold border transition-colors ${
+                  classFilter === f.key
+                    ? "bg-navy/5 border-navy text-navy"
+                    : "border-navy/15 text-navy/60 hover:border-gold hover:text-gold-deep"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {visibleChapters.length > 0 ? (
