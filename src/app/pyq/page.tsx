@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
-import ExamTabs from "@/components/ExamTabs";
+import PyqExamPicker from "@/components/PyqExamPicker";
 
 export const metadata: Metadata = {
   title: "PYQ — Previous Year Questions",
@@ -18,7 +18,7 @@ export default function PyqPage() {
       />
       <section className="bg-ivory">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-          <ExamTabs resourceLabel="PYQs" resourceType="pyq" />
+          <PyqExamPicker />
         </div>
       </section>
     </div>
