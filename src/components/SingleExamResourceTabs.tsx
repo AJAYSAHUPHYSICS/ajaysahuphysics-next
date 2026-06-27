@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
 import { allChapters, type Chapter } from "@/lib/chapters";
-import { notesRegistry } from "@/lib/notes";
-import { dppRegistry } from "@/lib/dpp";
+import { jeeNotesRegistry } from "@/lib/jee-notes";
+import { jeeDppRegistry } from "@/lib/jee-dpp";
 import { pyqRegistry } from "@/lib/pyq";
 
 type ResourceKey = "notes" | "formula-sheet" | "dpp" | "pyq";
@@ -17,14 +17,19 @@ const classFilters: { key: ClassFilter; label: string }[] = [
   { key: "12", label: "Class 12" },
 ];
 
+// JEE resources are deliberately kept separate from the general/NEET-track
+// Notes and Practice Questions (which mix in older Allen-module content for
+// some chapters). The JEE section here only ever shows content that came
+// from the Cengage JEE source material — jeeNotesRegistry and
+// jeeDppRegistry — never the general notesRegistry/dppRegistry.
 function isAvailable(
   resource: ResourceKey,
   examFilter: ExamFilter,
   chapter: Chapter
 ): boolean {
   const slug = chapter.slug;
-  if (resource === "notes") return !!notesRegistry[slug];
-  if (resource === "dpp") return !!dppRegistry[slug];
+  if (resource === "notes") return !!jeeNotesRegistry[slug];
+  if (resource === "dpp") return !!jeeDppRegistry[slug];
   if (resource === "formula-sheet") return false; // not built yet for any chapter on the site
 
   const pyq = pyqRegistry[slug];
@@ -142,7 +147,15 @@ export default function SingleExamResourceTabs({
           chapters={visibleChapters}
           resourceLabel={activeLabel}
           isAvailable={(ch) => isAvailable(active, examFilter, ch)}
-          tabKey={active === "pyq" ? `pyq:${examFilter}` : active}
+          tabKey={
+            active === "pyq"
+              ? `pyq:${examFilter}`
+              : active === "notes"
+                ? "jee-notes"
+                : active === "dpp"
+                  ? "jee-dpp"
+                  : active
+          }
         />
       ) : (
         <div className="rounded-lg border border-dashed border-navy/15 bg-white p-10 text-center">
