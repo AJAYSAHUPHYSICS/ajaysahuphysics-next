@@ -23,6 +23,7 @@ import { magnetismAndMatterShortNotes } from "./magnetism-and-matter-short";
 import { electromagneticWavesShortNotes } from "./electromagnetic-waves-short";
 import { rayOpticsAndOpticalInstrumentsShortNotes } from "./ray-optics-and-optical-instruments-short";
 import { dualNatureOfRadiationAndMatterShortNotes } from "./dual-nature-of-radiation-and-matter-short";
+import { nucleiShortNotes } from "./nuclei-short";
 
 export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsShortNotes,
@@ -49,6 +50,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "electromagnetic-waves": electromagneticWavesShortNotes,
   "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsShortNotes,
   "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterShortNotes,
+  "nuclei": nucleiShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
