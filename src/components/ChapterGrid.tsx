@@ -10,6 +10,11 @@ type Props = {
   resourceLabel: string;
   linkToChapterPage?: boolean;
   isAvailable?: (chapter: Chapter) => boolean;
+  // Tab key on the chapter detail page to jump straight to (e.g. "pyq",
+  // "notes", "dpp", "formula-sheet"). When set, links go to
+  // /class-11/slug#pyq instead of just /class-11/slug, so the chapter page
+  // opens directly on that tab instead of defaulting to Overview.
+  tabKey?: string;
 };
 
 export default function ChapterGrid({
@@ -17,6 +22,7 @@ export default function ChapterGrid({
   resourceLabel,
   linkToChapterPage = false,
   isAvailable,
+  tabKey,
 }: Props) {
   const [selected, setSelected] = useState<Chapter | null>(null);
 
@@ -78,7 +84,7 @@ export default function ChapterGrid({
           return available ? (
             <Link
               key={`${ch.cls}-${ch.slug}`}
-              href={`/class-${ch.cls}/${ch.slug}`}
+              href={`/class-${ch.cls}/${ch.slug}${tabKey ? `#${tabKey}` : ""}`}
               className={cardClass}
             >
               {cardInner}
