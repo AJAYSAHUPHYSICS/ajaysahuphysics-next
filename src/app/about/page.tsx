@@ -8,6 +8,12 @@ export const metadata: Metadata = {
     "Meet Ajay Sahu — physics faculty for JEE and NEET with experience at Physics Wallah, Aakash Institute, and Narayana Institute.",
 };
 
+const stats = [
+  { value: "5000+", label: "Students mentored" },
+  { value: "7+", label: "Years of teaching experience" },
+  { value: "3", label: "Premier institutes taught at" },
+];
+
 const journey = [
   {
     place: "Aakash Institute, Delhi",
@@ -49,6 +55,21 @@ export default function AboutPage() {
         title="Physics taught by someone who has stood in front of thousands of JEE and NEET aspirants."
         description="Ajay Sahu is a physics educator with experience across three of India's well-known coaching ecosystems, now building an independent platform focused entirely on the student's score."
       />
+
+      <section className="bg-white border-b border-navy/10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center sm:text-left">
+            {stats.map((s) => (
+              <div key={s.label} className="border-l-2 border-gold pl-5">
+                <div className="font-display text-3xl sm:text-4xl text-navy">
+                  {s.value}
+                </div>
+                <div className="mt-1 text-sm text-slate">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
