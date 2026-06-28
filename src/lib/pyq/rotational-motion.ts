@@ -368,5 +368,107 @@ export const rotationalMotionPyq: ChapterPyq = {
       solution:
         "Distance travelled by the cable (= elevator) in 10 s: s = ½at² = ½(0.6)(10²) = 30 m. This equals the arc length on the pulley: n × 2πR = 30 ⇒ n = 30/(2π×0.4) = 30/2.513 ≈ 11.94 rotations.",
     },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question: "Find the ratio of the moment of inertia of a uniform rod about an axis through its end (perpendicular to its length) to that about its centre.",
+      options: ["2 : 1", "3 : 1", "4 : 1", "1 : 4"],
+      correctIndex: 2,
+      solution: "I_end = mL²/3, I_centre = mL²/12. Ratio = (mL²/3)/(mL²/12) = 12/3 = 4 : 1.",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question: "A 3 kg disc rolls without slipping at 4 m/s. Find its total kinetic energy.",
+      options: ["24 J", "30 J", "36 J", "48 J"],
+      correctIndex: 2,
+      solution: "KE_trans = ½(3)(16) = 24 J. For a disc, KE_rot = ½ KE_trans = 12 J. Total = 24+12 = 36 J.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question: "A wheel completes one full rotation every 0.5 s. Find its angular velocity.",
+      options: ["2π rad/s", "4π rad/s", "8π rad/s", "π rad/s"],
+      correctIndex: 1,
+      solution: "ω = 2π/T = 2π/0.5 = 4π rad/s.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question: "A torque produces an angular acceleration of 10 rad/s² in a body of moment of inertia 2 kg·m². Find the torque.",
+      options: ["5 N·m", "10 N·m", "20 N·m", "40 N·m"],
+      correctIndex: 2,
+      solution: "τ = Iα = 2×10 = 20 N·m.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question:
+        "A man on a frictionless rotating stool, with moment of inertia 4 kg·m² and angular speed 2 rad/s, pulls his arms in, reducing his moment of inertia to 1 kg·m². Find his new angular speed.",
+      options: ["2 rad/s", "4 rad/s", "8 rad/s", "0.5 rad/s"],
+      correctIndex: 2,
+      solution: "By conservation of angular momentum: I₁ω₁ = I₂ω₂ ⇒ ω₂ = (4×2)/1 = 8 rad/s.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question:
+        "A body has moment of inertia 2 kg·m² about an axis through its centre of mass. Find its moment of inertia about a parallel axis 0.5 m away, given its mass is 4 kg.",
+      options: ["2 kg·m²", "2.5 kg·m²", "3 kg·m²", "4 kg·m²"],
+      correctIndex: 2,
+      solution: "By the parallel axis theorem: I = I_cm + md² = 2 + 4(0.5²) = 2 + 1 = 3 kg·m².",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "A uniform rod of length 3 m, pivoted at one end, is released from rest in a horizontal position. Find the speed of its free end the instant the rod becomes vertical. (g = 10 m/s²)",
+      options: ["3√5 m/s", "3√10 m/s", "5√3 m/s", "10 m/s"],
+      correctIndex: 1,
+      solution:
+        "Using energy conservation, the rod's centre of mass falls by L/2: mg(L/2) = ½Iω² (rotational KE about the pivot), with I = mL²/3. This gives ω² = 3g/L, so the speed of the free end is v = ωL = √(3gL) = √(3×10×3) = √90 = 3√10 m/s.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A solid sphere rolls without slipping down an incline of angle 30°. Find the minimum coefficient of friction needed.",
+      options: ["1/(7√3)", "2/(7√3)", "1/(2√3)", "2/√3"],
+      correctIndex: 1,
+      solution:
+        "For a solid sphere to roll without slipping down an incline of angle θ, the minimum friction coefficient required is μ_min = (2/7)tanθ. At θ = 30°: μ_min = (2/7)(1/√3) = 2/(7√3).",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "A disc of moment of inertia 1 kg·m², spinning at 10 rad/s, is gently dropped (coaxially) onto an identical stationary disc, and they reach a common angular speed due to friction between them. Find this common angular speed.",
+      options: ["2.5 rad/s", "5 rad/s", "7.5 rad/s", "10 rad/s"],
+      correctIndex: 1,
+      solution:
+        "Angular momentum is conserved (no external torque on the pair): I₁ω₀ = (I₁+I₂)ω_common ⇒ ω_common = (1×10)/(1+1) = 5 rad/s.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "Two discs of radii 0.1 m and 0.3 m are connected by a belt (no slipping on the rims). The smaller disc rotates at 30 rad/s. Find the angular speed of the larger disc.",
+      options: ["5 rad/s", "10 rad/s", "15 rad/s", "90 rad/s"],
+      correctIndex: 1,
+      solution:
+        "The linear speed at the rim is the same for both (connected by the belt): v = ω₁r₁ = 30×0.1 = 3 m/s. So ω₂ = v/r₂ = 3/0.3 = 10 rad/s.",
+    },
+    {
+      exam: "JEE Advanced 2011",
+      examType: "jee-advanced",
+      question:
+        "A solid sphere rolling without slipping at 10 m/s moves up a rough incline and momentarily comes to rest (still rolling, not sliding, throughout). Find the height it reaches. (g = 10 m/s²)",
+      options: ["5 m", "6 m", "7 m", "10 m"],
+      correctIndex: 2,
+      solution:
+        "Since it rolls without slipping throughout (friction does no work), total KE converts entirely to PE: (7/10)mv² = mgh ⇒ h = 7v²/(10g) = 7(100)/(100) = 7 m.",
+    },
   ],
 };
