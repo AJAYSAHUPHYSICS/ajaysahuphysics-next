@@ -1,5 +1,6 @@
 export type PyqQuestion = {
   exam: string;
+  examType?: "jee-main" | "jee-advanced";
   question: string;
   options: string[];
   correctIndex: number;
@@ -279,6 +280,108 @@ export const mechanicalPropertiesOfFluidsPyq: ChapterPyq = {
       correctIndex: 1,
       solution:
         "The liquid film pulls on both the inner and outer edges of the ring: F_surface = 2 × (2πr)T = 4πrT = 4π × 0.025 × 0.06 ≈ 0.0188 N. Adding the ring's own weight, mg = 0.01 × 10 = 0.1 N: total force ≈ 0.1 + 0.0188 ≈ 0.12 N.",
+    },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question:
+        "A hydraulic lift has a small piston of area 0.01 m² and a large piston of area 0.5 m². A force of 200 N is applied to the small piston. Find the force exerted by the large piston.",
+      options: ["5000 N", "8000 N", "10000 N", "12000 N"],
+      correctIndex: 2,
+      solution: "By Pascal's law, pressure is the same throughout: F₂ = F₁(A₂/A₁) = 200×(0.5/0.01) = 200×50 = 10000 N.",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question: "An object of density 800 kg/m³ floats in a liquid of density 1000 kg/m³. Find the fraction of its volume submerged.",
+      options: ["0.6", "0.7", "0.8", "0.9"],
+      correctIndex: 2,
+      solution: "For floating, weight = buoyant force: ρ_obj·V·g = ρ_liq·V_sub·g ⇒ V_sub/V = ρ_obj/ρ_liq = 800/1000 = 0.8.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question:
+        "Water flows through a horizontal pipe, speeding up from 2 m/s to 6 m/s as it narrows. Find the pressure drop. (ρ = 1000 kg/m³)",
+      options: ["8000 Pa", "12000 Pa", "16000 Pa", "20000 Pa"],
+      correctIndex: 2,
+      solution: "By Bernoulli (horizontal, so no height term): ΔP = ½ρ(v₂²−v₁²) = ½(1000)(36−4) = ½(1000)(32) = 16000 Pa.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question:
+        "Two balls of the same material and density fall through the same fluid. Ball B has twice the radius of ball A. Find the ratio of their terminal velocities (v_B : v_A).",
+      options: ["2 : 1", "4 : 1", "8 : 1", "√2 : 1"],
+      correctIndex: 1,
+      solution: "Terminal velocity v_t ∝ r². So v_B/v_A = (r_B/r_A)² = 2² = 4, giving v_B : v_A = 4 : 1.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question: "Find the excess pressure inside a liquid drop of radius 0.5 mm, with surface tension 0.05 N/m.",
+      options: ["100 Pa", "150 Pa", "200 Pa", "250 Pa"],
+      correctIndex: 2,
+      solution: "For a drop (one surface): ΔP = 2T/R = 2(0.05)/(0.5×10⁻³) = 0.1/0.0005 = 200 Pa.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question: "Water rises to height h in a capillary tube of radius r. If a tube of radius 2r is used instead (same liquid, same conditions), find the new rise height.",
+      options: ["h/4", "h/2", "h", "2h"],
+      correctIndex: 1,
+      solution: "Capillary rise h ∝ 1/r. Doubling the radius halves the rise: new height = h/2.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "Water flows through a pipe that narrows from area 2×10⁻⁴ m² to 1×10⁻⁴ m², with the wider section's flow speed at 2 m/s. Find the pressure drop between the two sections. (ρ = 1000 kg/m³)",
+      options: ["4000 Pa", "5000 Pa", "6000 Pa", "8000 Pa"],
+      correctIndex: 2,
+      solution:
+        "By continuity: v₂ = v₁(A₁/A₂) = 2×(2×10⁻⁴/1×10⁻⁴) = 4 m/s. By Bernoulli: ΔP = ½ρ(v₂²−v₁²) = ½(1000)(16−4) = ½(1000)(12) = 6000 Pa.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A small hole is made at a depth of 6 m below the surface of water in a tank that is inside a lift accelerating upward at 2 m/s². Find the speed of efflux from the hole, as measured by an observer inside the lift. (g = 10 m/s²)",
+      options: ["10 m/s", "11 m/s", "12 m/s", "14 m/s"],
+      correctIndex: 2,
+      solution:
+        "Inside the upward-accelerating lift, effective gravity g_eff = g+a = 12 m/s². By Torricelli's theorem with g_eff: v = √(2g_eff·h) = √(2×12×6) = √144 = 12 m/s.",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "A tank contains a 2 m layer of oil (density 800 kg/m³) floating on top of a 1 m layer of brine (density 1200 kg/m³). Find the pressure at the bottom of the tank due to these two layers (ignore atmospheric pressure). (g = 10 m/s²)",
+      options: ["20000 Pa", "24000 Pa", "28000 Pa", "32000 Pa"],
+      correctIndex: 2,
+      solution:
+        "Pressure adds layer by layer: P = ρ₁gh₁ + ρ₂gh₂ = (800)(10)(2) + (1200)(10)(1) = 16000 + 12000 = 28000 Pa.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A ball of radius 3 mm (density difference from the fluid = 6000 kg/m³) reaches a terminal velocity of 1 m/s in a viscous fluid. Find the viscosity of the fluid. (g = 10 m/s²)",
+      options: ["0.08 Pa·s", "0.10 Pa·s", "0.12 Pa·s", "0.15 Pa·s"],
+      correctIndex: 2,
+      solution:
+        "From v_t = 2r²(Δρ)g/(9η), solve for η: η = 2r²(Δρ)g/(9v_t) = 2(3×10⁻³)²(6000)(10)/(9×1) = 2(9×10⁻⁶)(60000)/9 = 1.08/9 = 0.12 Pa·s.",
+    },
+    {
+      exam: "JEE Advanced 2012",
+      examType: "jee-advanced",
+      question:
+        "Water rises by 4 cm in a capillary tube of radius 0.6 mm. Find the surface tension of water. (ρ = 1000 kg/m³, g = 10 m/s², assume complete wetting)",
+      options: ["0.08 N/m", "0.10 N/m", "0.12 N/m", "0.14 N/m"],
+      correctIndex: 2,
+      solution: "From h = 2T/(ρgr), solve for T: T = hρgr/2 = (0.04)(1000)(10)(0.6×10⁻³)/2 = 0.24/2 = 0.12 N/m.",
     },
   ],
 };
