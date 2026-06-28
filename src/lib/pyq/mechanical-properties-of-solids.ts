@@ -1,5 +1,6 @@
 export type PyqQuestion = {
   exam: string;
+  examType?: "jee-main" | "jee-advanced";
   question: string;
   options: string[];
   correctIndex: number;
@@ -83,6 +84,118 @@ export const mechanicalPropertiesOfSolidsPyq: ChapterPyq = {
       correctIndex: 0,
       solution:
         "Equal volume means A·l₁ = 3A·l₂, so l₁ = 3l₂. For the first wire, Δl = Fl₁/(AY). For the second, the same Δl requires Δl = F₂l₂/(3AY) = F₂(l₁/3)/(3AY) = F₂l₁/(9AY). Equating the two expressions for Δl gives F/(AY) × l₁ = F₂l₁/(9AY), so F₂ = 9F.",
+    },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question: "A wire of length 2.5 m and area 2.5×10⁻⁶ m² stretches by 1.25 mm under a 500 N load. Find Young's modulus.",
+      options: ["2×10¹¹ Pa", "3×10¹¹ Pa", "4×10¹¹ Pa", "5×10¹¹ Pa"],
+      correctIndex: 2,
+      solution: "Y = FL/(A·ΔL) = (500×2.5)/[(2.5×10⁻⁶)(1.25×10⁻³)] = 1250/(3.125×10⁻⁹) = 4×10¹¹ Pa.",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question:
+        "A 1 kg uniform wire of length 2 m, area 0.5×10⁻⁶ m², Young's modulus 2×10¹¹ Pa, hangs vertically. Find its elongation due to its own weight. (g = 10 m/s²)",
+      options: ["0.05 mm", "0.1 mm", "0.15 mm", "0.2 mm"],
+      correctIndex: 1,
+      solution: "ΔL = MgL/(2AY) = (1×10×2)/(2×0.5×10⁻⁶×2×10¹¹) = 20/(2×10⁵) = 1×10⁻⁴ m = 0.1 mm.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question: "A material is stressed to 6×10⁸ Pa with Young's modulus 1.8×10¹¹ Pa. Find the elastic energy stored per unit volume.",
+      options: ["5×10⁵ J/m³", "1×10⁶ J/m³", "1.5×10⁶ J/m³", "2×10⁶ J/m³"],
+      correctIndex: 1,
+      solution: "Energy density = stress²/(2Y) = (6×10⁸)²/(2×1.8×10¹¹) = 3.6×10¹⁷/(3.6×10¹¹) = 1×10⁶ J/m³.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question: "A material has bulk modulus 4×10⁹ Pa. Find its compressibility.",
+      options: ["1.5×10⁻¹⁰ Pa⁻¹", "2×10⁻¹⁰ Pa⁻¹", "2.5×10⁻¹⁰ Pa⁻¹", "3×10⁻¹⁰ Pa⁻¹"],
+      correctIndex: 2,
+      solution: "Compressibility = 1/K = 1/(4×10⁹) = 2.5×10⁻¹⁰ Pa⁻¹.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question: "Which of the following correctly orders the three elastic moduli for most solids, from largest to smallest, under typical conditions?",
+      options: [
+        "Young's modulus > Bulk modulus > Modulus of rigidity",
+        "Bulk modulus > Young's modulus > Modulus of rigidity",
+        "Modulus of rigidity > Young's modulus > Bulk modulus",
+        "All three are always exactly equal",
+      ],
+      correctIndex: 1,
+      solution:
+        "For most engineering solids, the bulk modulus (resistance to uniform volume change) tends to be the largest, followed by Young's modulus, with the modulus of rigidity (shear modulus) typically the smallest of the three.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question: "Within the elastic limit, the stress-strain graph for a material is a straight line. What does the slope of this line represent?",
+      options: ["Elastic limit", "Yield point", "Young's modulus", "Breaking stress"],
+      correctIndex: 2,
+      solution: "Within the elastic (linear) region, stress = Y × strain (Hooke's law), so the slope of the stress-strain graph is exactly Young's modulus.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "Two wires of equal length 1 m and equal area 1×10⁻⁶ m², with Young's moduli 2×10¹¹ Pa and 1×10¹¹ Pa, are joined end to end and stretched by a force of 100 N. Find the total elongation.",
+      options: ["1.0 mm", "1.5 mm", "2.0 mm", "2.5 mm"],
+      correctIndex: 1,
+      solution:
+        "Each wire stretches independently under the same force F = 100 N (connected in series): ΔL₁ = FL/(AY₁) = 100/[(1×10⁻⁶)(2×10¹¹)] = 0.5×10⁻³ m. ΔL₂ = 100/[(1×10⁻⁶)(1×10¹¹)] = 1×10⁻³ m. Total = 0.5+1 = 1.5 mm.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "Two wires of Young's moduli 2×10¹¹ Pa (area 2×10⁻⁶ m²) and 1×10¹¹ Pa (area 3×10⁻⁶ m²) are fixed in parallel between two rigid supports, so both stretch by exactly the same amount. Find the ratio of tension in the first wire to the second.",
+      options: ["1 : 1", "4 : 3", "3 : 4", "2 : 3"],
+      correctIndex: 1,
+      solution:
+        "Since both wires have the same elongation and length, F = YA(ΔL)/L for each, so F₁/F₂ = (Y₁A₁)/(Y₂A₂) = (2×10¹¹×2×10⁻⁶)/(1×10¹¹×3×10⁻⁶) = 4×10⁵/3×10⁵ = 4/3.",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "A steel wire (breaking stress 4×10⁸ Pa) has a circular cross-section of diameter 2 mm. Find the maximum load it can support without breaking.",
+      options: ["800π N", "400π N", "200π N", "1600π N"],
+      correctIndex: 1,
+      solution:
+        "Area = π(d/2)² = π(1×10⁻³)² = π×10⁻⁶ m². F_max = (breaking stress)(Area) = (4×10⁸)(π×10⁻⁶) = 4×10²×π = 400π N ≈ 1257 N.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A wire is stretched by a gradually increasing force, reaching a final force of 200 N and an elongation of 2 mm (within the elastic limit). Find the elastic potential energy stored in the wire.",
+      options: ["0.1 J", "0.2 J", "0.3 J", "0.4 J"],
+      correctIndex: 1,
+      solution:
+        "Since the force increases linearly from 0 to F as the wire stretches, the work done (= energy stored) is the AVERAGE force times the elongation: W = ½F(ΔL) = ½(200)(2×10⁻³) = 0.2 J.",
+    },
+    {
+      exam: "JEE Advanced 2017",
+      examType: "jee-advanced",
+      question:
+        "A rubber cord has a much smaller Young's modulus than a steel wire of the same dimensions. For the same applied force, how does the elastic energy stored in the rubber cord compare to that in the steel wire?",
+      options: [
+        "Stored energy is the same in both, since the force is the same",
+        "Rubber stores MORE energy, since it stretches more for the same force",
+        "Steel stores more energy, since it has a higher modulus",
+        "Cannot be determined without knowing the exact lengths",
+      ],
+      correctIndex: 1,
+      solution:
+        "Energy stored = ½F(ΔL). For the same force, the cord with the SMALLER Young's modulus stretches MORE (ΔL ∝ 1/Y), so it stores more elastic energy — this is exactly why rubber, despite being 'weaker,' is so good at absorbing energy (e.g., in shock absorbers and slingshots).",
     },
   ],
 };
