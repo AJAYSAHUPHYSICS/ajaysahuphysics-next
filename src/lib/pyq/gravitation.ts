@@ -1,5 +1,6 @@
 export type PyqQuestion = {
   exam: string;
+  examType?: "jee-main" | "jee-advanced";
   question: string;
   options: string[];
   correctIndex: number;
@@ -361,6 +362,106 @@ export const gravitationPyq: ChapterPyq = {
       correctIndex: 0,
       solution:
         "Perigee radius r_p = 7200 km, apogee radius r_a = 8800 km, semi-major axis a = 8000 km. Using v_p² = GM(2/r_p − 1/a) with GM ≈ 3.986×10¹⁴: v_p² ≈ 6.1×10⁷, giving v_p ≈ 7.91×10³ m/s.",
+    },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question: "Find the gravitational force between two point masses of 10 kg and 20 kg placed 2 m apart. (G = 6.674×10⁻¹¹ N·m²/kg²)",
+      options: ["1.67×10⁻⁹ N", "3.34×10⁻⁹ N", "6.67×10⁻⁹ N", "1.34×10⁻⁸ N"],
+      correctIndex: 1,
+      solution: "F = Gm₁m₂/r² = (6.674×10⁻¹¹)(10)(20)/(2²) = (6.674×10⁻¹¹)(200)/4 ≈ 3.34×10⁻⁹ N.",
+    },
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question: "Find g at a height equal to half of Earth's radius above the surface, in terms of surface gravity g₀.",
+      options: ["g₀/2", "4g₀/9", "g₀/4", "9g₀/4"],
+      correctIndex: 1,
+      solution: "g' = g₀[R/(R+h)]² = g₀[R/(1.5R)]² = g₀(2/3)² = 4g₀/9.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question: "If the mass of a planet were quadrupled while its radius stayed the same, by what factor would the escape velocity change?",
+      options: ["No change", "×2", "×4", "×√2"],
+      correctIndex: 1,
+      solution: "v_e = √(2GM/R) ∝ √M. Quadrupling M scales v_e by √4 = 2, so it doubles.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question: "Find the orbital period of a satellite orbiting very close to Earth's surface. (R = 6400 km, g = 10 m/s²)",
+      options: ["1600π s", "800π s", "3200π s", "6400π s"],
+      correctIndex: 0,
+      solution: "For a near-surface orbit, T = 2π√(R/g) = 2π√(6.4×10⁶/10) = 2π√(6.4×10⁵) = 2π(800) = 1600π s ≈ 84 minutes — Earth's well-known minimum orbital period.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question: "Find the gravitational potential energy of a 10 kg object at Earth's surface, relative to infinity. (R = 6400 km, g = 10 m/s²)",
+      options: ["−3.2×10⁸ J", "−6.4×10⁸ J", "−1.28×10⁹ J", "−6.4×10⁷ J"],
+      correctIndex: 1,
+      solution: "PE = −GMm/R = −gRm = −(10)(6.4×10⁶)(10) = −6.4×10⁸ J.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question: "At what point is the value of g zero?",
+      options: ["At the surface of Earth", "At the centre of Earth", "At infinity only", "At the poles"],
+      correctIndex: 1,
+      solution:
+        "Inside a uniform Earth, g decreases linearly with depth (g_d = g(1−d/R)) and becomes exactly zero at the centre, where d = R. (It also approaches zero at infinity, but the centre is the more direct, finite answer expected here.)",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "Two satellites orbit Earth at radii r and 4r. Find the ratio of their orbital speeds (v at radius r : v at radius 4r).",
+      options: ["1 : 2", "2 : 1", "1 : 4", "4 : 1"],
+      correctIndex: 1,
+      solution: "v ∝ 1/√r (from v = √(GM/r)). Ratio = √(4r/r) = √4 = 2, so v(r) : v(4r) = 2 : 1.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "Find the minimum energy needed to move a 100 kg satellite from a circular orbit of radius 2R to one of radius 4R. (R = 6400 km, g = 10 m/s²)",
+      options: ["4×10⁸ J", "8×10⁸ J", "1.6×10⁹ J", "3.2×10⁹ J"],
+      correctIndex: 1,
+      solution:
+        "E(r) = −gR²m/(2r). E(2R) = −gRm/4 = −(10)(6.4×10⁶)(100)/4 = −1.6×10⁹ J. E(4R) = −gRm/8 = −8×10⁸ J. Energy needed = E(4R) − E(2R) = −8×10⁸ − (−1.6×10⁹) = 8×10⁸ J.",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "Two point masses 4×10²⁴ kg and 16×10²⁴ kg are 4×10⁶ m apart. Find the distance from the smaller mass where the net gravitational field is zero.",
+      options: ["1×10⁶ m", "(4/3)×10⁶ m", "2×10⁶ m", "3×10⁶ m"],
+      correctIndex: 1,
+      solution:
+        "At the null point, GM₁/x² = GM₂/(d−x)² ⇒ (d−x)/x = √(M₂/M₁) = √4 = 2 ⇒ d = 3x ⇒ x = d/3 = (4×10⁶)/3 ≈ 1.33×10⁶ m.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A projectile is launched from Earth's surface at half the escape velocity. Find the maximum height it reaches, in terms of Earth's radius R (ignore air resistance).",
+      options: ["R/4", "R/3", "R/2", "2R/3"],
+      correctIndex: 1,
+      solution:
+        "With v = v_e/2, energy conservation (per unit mass) gives ½v² − gR = −gR²/(R+h). Substituting v² = gR/2: gR/4 − gR = −gR²/(R+h) ⇒ −3gR/4 = −gR²/(R+h) ⇒ R+h = 4R/3 ⇒ h = R/3.",
+    },
+    {
+      exam: "JEE Advanced 2011",
+      examType: "jee-advanced",
+      question:
+        "Find the angular momentum of a 500 kg satellite orbiting at radius 4R (R = 6400 km, g = 10 m/s²) about Earth's centre.",
+      options: ["2.56×10¹³ kg·m²/s", "5.12×10¹³ kg·m²/s", "1.024×10¹⁴ kg·m²/s", "2.048×10¹⁴ kg·m²/s"],
+      correctIndex: 1,
+      solution:
+        "v = √(gR²/r) = √(gR/4) = √(10×6.4×10⁶/4) = √(1.6×10⁷) = 4000 m/s. L = mvr = 500×4000×(4×6.4×10⁶) = 500×4000×2.56×10⁷ ≈ 5.12×10¹³ kg·m²/s.",
     },
   ],
 };
