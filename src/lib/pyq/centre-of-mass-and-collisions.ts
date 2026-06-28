@@ -220,5 +220,118 @@ export const centreOfMassAndCollisionsPyq: ChapterPyq = {
       solution:
         "Mass at time t: M(t)=2000−0.5t (kg), with all sand gone at t=2000s. Since leaking sand carries away no extra momentum (it just falls out at the cart's own velocity), F=M(t)(dv/dt). Integrating: v=∫₀²⁰⁰⁰ [10/(2000−0.5t)]dt = 20 ln(2000/1000) = 20 ln2 ≈ 13.86 m/s.",
     },
+    // ---------------- JEE Main ----------------
+    {
+      exam: "JEE Main 2020",
+      examType: "jee-main",
+      question:
+        "A 2 kg mass is at x = 0 and a 3 kg mass is at x = 5 m on the x-axis. Find the x-coordinate of their centre of mass.",
+      options: ["2 m", "3 m", "3.5 m", "4 m"],
+      correctIndex: 1,
+      solution: "x_cm = (m₁x₁+m₂x₂)/(m₁+m₂) = (2×0+3×5)/5 = 15/5 = 3 m.",
+    },
+    {
+      exam: "JEE Main 2019",
+      examType: "jee-main",
+      question:
+        "A 60 kg man stands at one end of a 140 kg boat (length 3 m) floating on still water and walks to the other end. Find the displacement of the boat (no friction with water).",
+      options: ["0.6 m", "0.9 m", "1.2 m", "1.5 m"],
+      correctIndex: 1,
+      solution:
+        "Since the centre of mass of the man+boat system doesn't move (no external horizontal force), the boat's displacement = (man's mass × boat length)/(total mass) = (60×3)/200 = 0.9 m, in the direction opposite to the man's walk.",
+    },
+    {
+      exam: "JEE Main 2021",
+      examType: "jee-main",
+      question:
+        "Two balls of equal mass collide elastically, head-on, with one initially at rest. What happens to their velocities?",
+      options: [
+        "Both move together after collision",
+        "The moving ball stops, and the stationary ball moves off with the same velocity the first ball had",
+        "Both balls reverse direction",
+        "The moving ball continues unaffected",
+      ],
+      correctIndex: 1,
+      solution:
+        "For an elastic head-on collision between equal masses with one initially at rest, the velocities simply exchange: the moving ball comes to rest, and the previously stationary ball moves off with the first ball's original velocity.",
+    },
+    {
+      exam: "JEE Main 2018",
+      examType: "jee-main",
+      question:
+        "Two balls approach each other at a combined (relative) speed of 8 m/s and separate after collision at a combined speed of 2 m/s. Find the coefficient of restitution.",
+      options: ["0.2", "0.25", "0.4", "0.5"],
+      correctIndex: 1,
+      solution: "e = (separation speed)/(approach speed) = 2/8 = 0.25.",
+    },
+    {
+      exam: "JEE Main 2022",
+      examType: "jee-main",
+      question:
+        "A shell at rest explodes into three equal fragments. Two of them move at right angles to each other, each with momentum p. Find the momentum of the third fragment.",
+      options: ["p", "p√2", "2p", "p/√2"],
+      correctIndex: 1,
+      solution:
+        "By momentum conservation, the third fragment's momentum must be equal and opposite to the resultant of the other two. Since the two known momenta are perpendicular and equal (each p), their resultant has magnitude √(p²+p²) = p√2 — so the third fragment's momentum is also p√2.",
+    },
+    {
+      exam: "JEE Main 2017",
+      examType: "jee-main",
+      question: "A force of 20 N acts on a body for 0.5 s. Find the impulse delivered.",
+      options: ["5 N·s", "10 N·s", "15 N·s", "20 N·s"],
+      correctIndex: 1,
+      solution: "Impulse = F × t = 20 × 0.5 = 10 N·s.",
+    },
+    // ---------------- JEE Advanced ----------------
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "A 50 kg man stands at one end of a stationary 100 kg, 6 m long boat on frictionless water and walks to the other end. Find his displacement relative to the GROUND (not relative to the boat).",
+      options: ["2 m", "3 m", "4 m", "6 m"],
+      correctIndex: 2,
+      solution:
+        "The boat's displacement (opposite to the man) is (man's mass × length)/(total mass) = (50×6)/150 = 2 m. The man's displacement relative to the boat is the full 6 m, so his displacement relative to the ground is 6 − 2 = 4 m.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A 2 kg block moving at 10 m/s on a frictionless surface approaches a stationary 3 kg block connected to a spring of force constant 750 N/m. Find the maximum compression of the spring.",
+      options: ["0.2 m", "0.3 m", "0.4 m", "0.5 m"],
+      correctIndex: 2,
+      solution:
+        "Maximum compression occurs when both blocks move at the common (centre of mass) velocity: v_cm = (2×10)/5 = 4 m/s. Energy stored in spring = Initial KE − KE at v_cm = ½(2)(10²) − ½(5)(4²) = 100 − 40 = 60 J. Then x_max = √(2×60/750) = √0.16 = 0.4 m.",
+    },
+    {
+      exam: "JEE Advanced 2015",
+      examType: "jee-advanced",
+      question:
+        "A 3 kg ball moving at (4,0) m/s collides and sticks to a 2 kg ball moving at (0,3) m/s. Find the kinetic energy lost in the collision.",
+      options: ["10 J", "12 J", "15 J", "18 J"],
+      correctIndex: 2,
+      solution:
+        "Combined velocity (momentum conservation): v_cm = (3×4+2×0, 3×0+2×3)/5 = (12,6)/5 = (2.4, 1.2) m/s. KE_initial = ½(3)(16) + ½(2)(9) = 24+9 = 33 J. KE_final = ½(5)(2.4²+1.2²) = ½(5)(5.76+1.44) = ½(5)(7.2) = 18 J. Loss = 33 − 18 = 15 J.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "A shell of mass 9 kg, at rest, explodes into three equal fragments. Two of them fly off perpendicular to each other at 8 m/s and 6 m/s. Find the speed of the third fragment.",
+      options: ["6 m/s", "8 m/s", "10 m/s", "14 m/s"],
+      correctIndex: 2,
+      solution:
+        "Each fragment has mass 3 kg. Momentum of the two known fragments: p₁ = 3×8 = 24, p₂ = 3×6 = 18, perpendicular to each other. Resultant: √(24²+18²) = √(576+324) = √900 = 30. This must be balanced by the third fragment's momentum, so its speed = 30/3 = 10 m/s.",
+    },
+    {
+      exam: "JEE Advanced 2012",
+      examType: "jee-advanced",
+      question:
+        "Two blocks of mass 1 kg and 2 kg, connected by a compressed spring, are released from rest on a frictionless floor. The spring had 27 J of stored energy. Find the speed of the 1 kg block after release.",
+      options: ["3 m/s", "4.5 m/s", "6 m/s", "9 m/s"],
+      correctIndex: 2,
+      solution:
+        "By momentum conservation (system started at rest): m₁v₁ = m₂v₂ ⇒ v₁ = 2v₂. Energy: 27 = ½(1)v₁² + ½(2)v₂² = ½(2v₂)² + v₂² = 2v₂² + v₂² = 3v₂² ⇒ v₂ = 3 m/s, so v₁ = 2(3) = 6 m/s.",
+    },
   ],
 };
