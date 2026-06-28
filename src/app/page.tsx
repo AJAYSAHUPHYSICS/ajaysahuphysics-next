@@ -26,9 +26,9 @@ const resourceCards = [
 ];
 
 const stats = [
+  { value: "5000+", label: "Students mentored" },
+  { value: "7+", label: "Years of teaching experience" },
   { value: "3", label: "Institutes taught at" },
-  { value: "1000+", label: "Students mentored" },
-  { value: "2", label: "Exams covered: JEE & NEET" },
 ];
 
 const testimonials = [
