@@ -3,25 +3,26 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import type { Formula } from "@/lib/formula-sheet";
+import { allChapters } from "@/lib/chapters";
 import ExamTagPill from "./ExamTagPill";
 import { DifficultyBadge, FrequencyBadge } from "./DifficultyBadge";
 import FormulaVariablesTable from "./FormulaVariablesTable";
 
-function examStatsLine(f: Formula): string | null {
-  const s = f.examStats;
-  if (!s) return null;
-  const parts: string[] = [];
-  if (s.jeeMain) parts.push(`JEE Main ×${s.jeeMain}`);
-  if (s.jeeAdvanced) parts.push(`JEE Adv ×${s.jeeAdvanced}`);
-  if (s.neet) parts.push(`NEET ×${s.neet}`);
-  if (s.mhtCet) parts.push(`MHT-CET ×${s.mhtCet}`);
-  return parts.length ? parts.join(" · ") : null;
+// TODO(exam-stats): Formula.examStats is intentionally NOT rendered yet.
+// The current values are editorial estimates. Re-enable this display only
+// after the counts are generated automatically from the PYQ registry
+// (script: cross-count each formula id against pyqRegistry questions),
+// so that every number shown to students is verifiable.
+
+/** Resolve the correct class route (/class-11 or /class-12) for a chapter slug. */
+function chapterHref(slug: string): string {
+  const ch = allChapters.find((c) => c.slug === slug);
+  return ch ? `/class-${ch.cls}/${slug}` : `/class-11/${slug}`;
 }
 
 export default function FormulaCard({ formula }: { formula: Formula }) {
   const [showDerivation, setShowDerivation] = useState(false);
   const derivationId = useId();
-  const stats = examStatsLine(formula);
 
   return (
     <article
@@ -147,26 +148,17 @@ export default function FormulaCard({ formula }: { formula: Formula }) {
         </div>
       ) : null}
 
-      {/* Footer: stats + concept link */}
-      {(stats || formula.conceptLink) && (
-        <div className="mt-4 pt-3 border-t border-navy/5 flex flex-wrap items-center justify-between gap-2 print:hidden">
-          {stats ? (
-            <p className="text-xs text-slate/70">
-              Past appearances: {stats}
-            </p>
-          ) : (
-            <span />
-          )}
-          {formula.conceptLink ? (
-            <Link
-              href={`/class-11/${formula.conceptLink.chapterSlug}#notes`}
-              className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
-            >
-              Read the concept →
-            </Link>
-          ) : null}
+      {/* Footer: concept link (exam stats suppressed — see TODO above) */}
+      {formula.conceptLink ? (
+        <div className="mt-4 pt-3 border-t border-navy/5 flex justify-end print:hidden">
+          <Link
+            href={`${chapterHref(formula.conceptLink.chapterSlug)}#notes`}
+            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
+          >
+            Read the concept →
+          </Link>
         </div>
-      )}
+      ) : null}
     </article>
   );
 }
