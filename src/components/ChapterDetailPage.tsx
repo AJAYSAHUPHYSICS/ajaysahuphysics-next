@@ -17,6 +17,8 @@ import { getChapterDpp } from "@/lib/dpp";
 import { getChapterPyq } from "@/lib/pyq";
 import { getChapterJeeNotes } from "@/lib/jee-notes";
 import { getChapterJeeDpp } from "@/lib/jee-dpp";
+import { getChapterFormulaSheet } from "@/lib/formula-sheet";
+import FormulaSheetDisplay from "@/components/formula-sheet/FormulaSheetDisplay";
 
 export default function ChapterDetailPage({
   chapter,
@@ -47,6 +49,7 @@ export default function ChapterDetailPage({
   const chapterPyq = getChapterPyq(chapter.slug);
   const chapterJeeNotes = getChapterJeeNotes(chapter.slug);
   const chapterJeeDpp = getChapterJeeDpp(chapter.slug);
+  const chapterFormulaSheet = getChapterFormulaSheet(chapter.slug);
 
   const tabs: TabDef[] = [
     {
@@ -114,6 +117,13 @@ export default function ChapterDetailPage({
           key: t.key,
           label: t.label,
           content: <DppDisplay dpp={chapterJeeDpp} />,
+        };
+      }
+      if (t.key === "formula-sheet" && chapterFormulaSheet) {
+        return {
+          key: t.key,
+          label: t.label,
+          content: <FormulaSheetDisplay sheet={chapterFormulaSheet} />,
         };
       }
       if (t.key === "pyq" && chapterPyq) {
