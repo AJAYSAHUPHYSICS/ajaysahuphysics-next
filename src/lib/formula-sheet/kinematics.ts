@@ -31,11 +31,11 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
       formulas: [
         {
           id: "kin-average-velocity",
-          expression: "v_avg = Δx / Δt",
+          expression: "v̄ = Δx / Δt",
           expressionLatex: "\\vec{v}_{avg} = \\dfrac{\\Delta \\vec{x}}{\\Delta t}",
           label: "Average velocity",
           variables: [
-            { symbol: "v_avg", name: "average velocity", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "v̄", name: "average velocity", unit: "m/s", dimension: "[LT⁻¹]" },
             { symbol: "Δx", name: "displacement", unit: "m", dimension: "[L]" },
             { symbol: "Δt", name: "time interval", unit: "s", dimension: "[T]" },
           ],
@@ -58,10 +58,10 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-average-speed",
-          expression: "speed_avg = total distance / total time",
+          expression: "Average speed = Total distance / Total time",
           label: "Average speed",
           variables: [
-            { symbol: "speed_avg", name: "average speed", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "v̄", name: "average speed", unit: "m/s", dimension: "[LT⁻¹]" },
           ],
           commonMistakes: [
             "For a two-part journey at speeds v₁ and v₂ over equal distances, average speed is the harmonic mean 2v₁v₂/(v₁+v₂), NOT the arithmetic mean",
@@ -106,7 +106,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-instantaneous-acceleration",
-          expression: "a = dv/dt = v·(dv/dx)",
+          expression: "a = dv/dt = v (dv/dx)",
           expressionLatex: "a = \\dfrac{dv}{dt} = v\\dfrac{dv}{dx}",
           label: "Instantaneous acceleration (both forms)",
           derivedFrom: "Chain rule: dv/dt = (dv/dx)(dx/dt) = v·dv/dx",
@@ -362,7 +362,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
       formulas: [
         {
           id: "kin-projectile-time-of-flight",
-          expression: "T = 2u·sinθ / g",
+          expression: "T = (2u sinθ) / g",
           expressionLatex: "T = \\dfrac{2u\\sin\\theta}{g}",
           label: "Time of flight",
           derivedFrom: "Vertical motion: uᵧ = u·sinθ, returns when vertical displacement = 0",
@@ -389,7 +389,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-projectile-max-height",
-          expression: "H = u²·sin²θ / 2g",
+          expression: "H = (u² sin²θ) / 2g",
           expressionLatex: "H = \\dfrac{u^2\\sin^2\\theta}{2g}",
           label: "Maximum height",
           derivedFrom: "Third equation applied to vertical component with vᵧ = 0 at top",
@@ -414,7 +414,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-projectile-range",
-          expression: "R = u²·sin2θ / g",
+          expression: "R = (u² sin 2θ) / g",
           expressionLatex: "R = \\dfrac{u^2\\sin 2\\theta}{g}",
           label: "Horizontal range",
           derivedFrom: "R = (u·cosθ)·T with T = 2u·sinθ/g and identity 2sinθcosθ = sin2θ",
@@ -443,7 +443,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-projectile-trajectory",
-          expression: "y = x·tanθ − gx²/(2u²cos²θ)",
+          expression: "y = x tanθ − gx² / (2u² cos²θ)",
           expressionLatex: "y = x\\tan\\theta - \\dfrac{gx^2}{2u^2\\cos^2\\theta}",
           label: "Equation of trajectory",
           derivedFrom: "Eliminate t between x = u·cosθ·t and y = u·sinθ·t − ½gt²",
@@ -521,13 +521,13 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
       formulas: [
         {
           id: "kin-relative-velocity",
-          expression: "v_AB = v_A − v_B",
+          expression: "v(AB) = v(A) − v(B)",
           expressionLatex: "\\vec{v}_{AB} = \\vec{v}_A - \\vec{v}_B",
           label: "Relative velocity of A with respect to B",
           variables: [
-            { symbol: "v_AB", name: "velocity of A relative to B", unit: "m/s", dimension: "[LT⁻¹]" },
-            { symbol: "v_A", name: "velocity of A (ground frame)", unit: "m/s", dimension: "[LT⁻¹]" },
-            { symbol: "v_B", name: "velocity of B (ground frame)", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "v(AB)", name: "velocity of A relative to B", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "v(A)", name: "velocity of A (ground frame)", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "v(B)", name: "velocity of B (ground frame)", unit: "m/s", dimension: "[LT⁻¹]" },
           ],
           commonMistakes: [
             "This is a VECTOR subtraction — for opposite directions magnitudes add, for same direction they subtract",
@@ -548,15 +548,15 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
         {
           id: "kin-river-shortest-path",
-          expression: "sinα = v_r / v_b  (upstream tilt for straight crossing)",
+          expression: "sin α = vᵣ / vᵇ  (upstream tilt for straight crossing)",
           label: "River crossing — shortest path condition",
           derivedFrom: "Boat's upstream velocity component must cancel the river flow",
           variables: [
             { symbol: "α", name: "angle of boat heading upstream from the perpendicular", unit: "rad (or °)", dimension: "[M⁰L⁰T⁰]" },
-            { symbol: "v_r", name: "river flow speed", unit: "m/s", dimension: "[LT⁻¹]" },
-            { symbol: "v_b", name: "boat speed in still water", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "vᵣ", name: "river flow speed", unit: "m/s", dimension: "[LT⁻¹]" },
+            { symbol: "vᵇ", name: "boat speed in still water", unit: "m/s", dimension: "[LT⁻¹]" },
           ],
-          conditions: ["Only possible when v_b > v_r"],
+          conditions: ["Only possible when vᵇ > vᵣ"],
           commonMistakes: [
             "Shortest PATH needs the upstream tilt; shortest TIME needs heading straight across (perpendicular) — students swap these constantly",
           ],
@@ -575,7 +575,7 @@ export const kinematicsFormulaSheet: ChapterFormulaSheet = {
         },
       ],
       importantObservations: [
-        "Rain-man problems: tanθ of the tilted umbrella comes from the vector triangle of v_rain and v_man",
+        "Rain-man problems: tanθ of the tilted umbrella comes from the vector triangle of the rain velocity and the man's velocity",
       ],
     },
 
