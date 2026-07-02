@@ -197,5 +197,61 @@ export const mechanicalPropertiesOfSolidsPyq: ChapterPyq = {
       solution:
         "Energy stored = ½F(ΔL). For the same force, the cord with the SMALLER Young's modulus stretches MORE (ΔL ∝ 1/Y), so it stores more elastic energy — this is exactly why rubber, despite being 'weaker,' is so good at absorbing energy (e.g., in shock absorbers and slingshots).",
     },
+    // ---------------- JEE Advanced Archive (Cengage, verified) ----------------
+    {
+      exam: "IIT-JEE 1981",
+      examType: "jee-advanced",
+      question:
+        "Four wires of the same material are stretched by the same tension. Which one has the largest extension?\n(A) Length 50 cm, diameter 0.5 mm\n(B) Length 100 cm, diameter 1 mm\n(C) Length 200 cm, diameter 2 mm\n(D) Length 300 cm, diameter 3 mm",
+      options: [
+        "Length 50 cm, diameter 0.5 mm",
+        "Length 100 cm, diameter 1 mm",
+        "Length 200 cm, diameter 2 mm",
+        "Length 300 cm, diameter 3 mm",
+      ],
+      correctIndex: 0,
+      solution:
+        "For the same material, force, ΔL = FL/(AY) ∝ L/d² (since A ∝ d²). Compute L/d² for each: (A) 50/0.5² = 200. (B) 100/1² = 100. (C) 200/2² = 50. (D) 300/3² = 33.3. The largest value is (A), so wire (A) stretches the most.",
+    },
+    {
+      exam: "IIT-JEE 2003",
+      examType: "jee-advanced",
+      question:
+        "A wire of length 1 m and cross-sectional area 1×10⁻⁶ m² is suspended from a roof, with a load W attached to the free end. A graph of extension Δl versus W is a straight line passing through (20 N, 1×10⁻⁴ m) and (80 N, 4×10⁻⁴ m). Find the Young's modulus of the wire.",
+      options: ["2×10¹¹ N/m²", "2×10⁻¹¹ N/m²", "3×10¹² N/m²", "2×10¹³ N/m²"],
+      correctIndex: 0,
+      solution:
+        "Slope of the graph = ΔL/W = (4−1)×10⁻⁴/(80−20) = 3×10⁻⁴/60 = 5×10⁻⁶ m/N. Since ΔL = WL/(AY), this slope equals L/(AY), so Y = L/(A × slope) = 1/[(1×10⁻⁶)(5×10⁻⁶)] = 1/(5×10⁻¹²) = 2×10¹¹ N/m².",
+    },
+    {
+      exam: "IIT-JEE 2005",
+      examType: "jee-advanced",
+      question:
+        "The pressure of a medium is changed from 1.01×10⁵ Pa to 1.165×10⁵ Pa, and the volume changes by 10% keeping temperature constant. Find the bulk modulus of the medium.",
+      options: ["204.8×10⁵ Pa", "102.4×10⁵ Pa", "51.2×10⁵ Pa", "1.55×10⁵ Pa"],
+      correctIndex: 3,
+      solution:
+        "ΔP = 1.165×10⁵ − 1.01×10⁵ = 0.155×10⁵ = 1.55×10⁴ Pa. ΔV/V = 10% = 0.1. Bulk modulus K = ΔP/(ΔV/V) = 1.55×10⁴/0.1 = 1.55×10⁵ Pa.",
+    },
+    {
+      exam: "JEE Advanced 2013",
+      examType: "jee-advanced",
+      question:
+        "One end of a horizontal thick copper wire of length 2L and radius 2R is welded to one end of a horizontal thin copper wire of length L and radius R. The other ends are pulled to stretch the combination with equal and opposite forces. Find the ratio of the elongation in the thin wire to that in the thick wire.",
+      options: ["0.25", "0.50", "2.00", "4.00"],
+      correctIndex: 2,
+      solution:
+        "Since the wires are welded end to end, the same tension F acts through both. ΔL = FL/(AY), so ΔL ∝ L/A = L/(πr²). For the thick wire: L/(πr²) = 2L/(π(2R)²) = L/(2πR²). For the thin wire: L/(πR²). Ratio (thin : thick) = [L/(πR²)] / [L/(2πR²)] = 2.",
+    },
+    {
+      exam: "JEE Advanced 2019",
+      examType: "jee-advanced",
+      question:
+        "A block of weight 100 N hangs from a copper wire (length √3 m) and a steel wire (length 1 m), both of cross-sectional area 0.5×10⁻⁴ m², fixed to a ceiling. The copper wire makes 30° with the ceiling and the steel wire makes 60° with the ceiling. Given Y_copper = 1×10¹¹ Pa and Y_steel = 2×10¹¹ Pa, find the ratio of elongation in the copper wire to that in the steel wire (Δl_c/Δl_s).",
+      options: ["0.5", "1.0", "2.0", "4.0"],
+      correctIndex: 2,
+      solution:
+        "Resolving forces at the junction (copper wire direction (cos30°, sin30°), steel wire direction (−cos60°, sin60°), weight 100 N down) gives two equations. Solving: T_c = 50 N and T_s = 50√3 ≈ 86.6 N. Then Δl_c = T_cL_c/(AY_c) = 50×√3/[(0.5×10⁻⁴)(1×10¹¹)] ≈ 1.73×10⁻⁵ m, and Δl_s = T_sL_s/(AY_s) = 86.6×1/[(0.5×10⁻⁴)(2×10¹¹)] ≈ 8.66×10⁻⁶ m. Ratio Δl_c/Δl_s = 1.73×10⁻⁵/8.66×10⁻⁶ = 2.0.",
+    },
   ],
 };
