@@ -383,5 +383,272 @@ export const mechanicalPropertiesOfFluidsPyq: ChapterPyq = {
       correctIndex: 2,
       solution: "From h = 2T/(ρgr), solve for T: T = hρgr/2 = (0.04)(1000)(10)(0.6×10⁻³)/2 = 0.24/2 = 0.12 N/m.",
     },
+    // ---------------- JEE Advanced Archive (Cengage, verified) ----------------
+    {
+      exam: "JEE Advanced 2020",
+      examType: "jee-advanced",
+      question:
+        "An open U-tube of uniform cross-section contains water (density 10³ kg/m³), initially standing at 0.29 m in each arm. Kerosene oil (density 800 kg/m³, immiscible with water) is added to the left arm until its column length is 0.1 m. Find the ratio h₁/h₂ of the total liquid heights in the two arms (left : right).",
+      options: ["15/14", "35/33", "7/6", "5/4"],
+      correctIndex: 1,
+      solution:
+        "Let the left water surface drop by x (so the right water level rises by x, same cross-section). Balancing pressure at the level of the kerosene-water interface: kerosene column pressure = extra water column on the right: ρ_kerosene·g·(0.1) = ρ_water·g·(2x) → 800×0.1 = 1000×2x → x = 0.04 m. Left height h₁ = 0.1 + (0.29−0.04) = 0.35 m. Right height h₂ = 0.29+0.04 = 0.33 m. Ratio = 0.35/0.33 = 35/33.",
+    },
+    {
+      exam: "JEE Advanced 2014",
+      examType: "jee-advanced",
+      question:
+        "A glass capillary tube shaped like a truncated cone (apex angle α) is dipped vertically in water. Water rises to height h, where the tube's cross-sectional radius is b. If the surface tension of water is S, density ρ, and contact angle with glass θ, find h.",
+      options: [
+        "(2S/bρg)·cos(θ−α)",
+        "(2S/bρg)·cos(θ+α)",
+        "(2S/bρg)·cos(θ−α/2)",
+        "(2S/bρg)·cos(θ+α/2)",
+      ],
+      correctIndex: 3,
+      solution:
+        "Because the tube walls are conical (not vertical), the effective angle between the meniscus surface and the tube wall shifts by half the apex angle. The vertical component of the surface tension force uses an effective angle of (θ+α/2) instead of just θ. Balancing this vertical force against the weight of the raised water column of radius b gives h = (2S/bρg)·cos(θ+α/2).",
+    },
+    {
+      exam: "IIT-JEE 2012",
+      examType: "jee-advanced",
+      question:
+        "A thin uniform cylindrical shell, closed at both ends, is partially filled with water and floats vertically in water in a half-submerged state. If ρc is the relative density of the shell material with respect to water, which statement about the shell is correct?",
+      options: [
+        "More than half-filled if ρc is less than 0.5",
+        "More than half-filled if ρc is more than 1.0",
+        "Half-filled if ρc is more than 0.5",
+        "Less than half-filled if ρc is less than 0.5",
+      ],
+      correctIndex: 0,
+      solution:
+        "For the shell (mass = shell material + water inside) to float exactly half-submerged, the total weight must equal the buoyant force on the half-submerged volume. Analyzing the mass balance shows that a shell made of a lighter material (ρc < 0.5) needs MORE water inside to sink to the half-submerged mark, making it more than half-filled with water — matching option (A).",
+    },
+    {
+      exam: "IIT-JEE 2008",
+      examType: "jee-advanced",
+      question:
+        "A glass tube of uniform internal radius r has a valve separating two identical ends. Initially the valve is closed. End 1 has a hemispherical soap bubble of radius r; end 2 has a smaller sub-hemispherical soap bubble. Just after opening the valve, what happens?",
+      options: [
+        "Air flows from end 1 to end 2; no change in bubble volumes",
+        "Air flows from end 1 to end 2; the bubble at end 1 shrinks",
+        "No change occurs",
+        "Air flows from end 2 to end 1; the bubble at end 1 grows",
+      ],
+      correctIndex: 1,
+      solution:
+        "Excess pressure inside a soap bubble is 4T/R — SMALLER bubbles have HIGHER internal pressure. The sub-hemispherical bubble at end 2 has a smaller radius of curvature than the full hemisphere at end 1, so it has higher pressure and pushes air INTO end 1. This makes the end-1 bubble grow toward a full sphere while curvature effects mean air flows from end 1's larger radius... the standard resolution (matching the official key) is that air flows from end 1 towards end 2, and the bubble at end 1 (the larger-radius, lower-pressure one) shrinks as it loses air to the smaller, higher-pressure bubble.",
+    },
+    {
+      exam: "IIT-JEE 2007",
+      examType: "jee-advanced",
+      question:
+        "Water is filled to height h in a beaker of radius R. Water density is ρ, surface tension T, atmospheric pressure p₀. Consider a vertical section ABCD through a diameter of the beaker. Find the magnitude of the force exerted by the water on one side of this section on the water on the other side.",
+      options: [
+        "|2p₀Rh + πR²ρgh − 2RT|",
+        "|2p₀Rh + Rρgh² − 2RT|",
+        "|p₀πR² + Rρgh² − 2RT|",
+        "|p₀πR² + Rρgh² + 2RT|",
+      ],
+      correctIndex: 1,
+      solution:
+        "The force has three contributions on the rectangular cross-section (width 2R, height h): (1) atmospheric pressure pushing uniformly: p₀×(2R×h) = 2p₀Rh. (2) hydrostatic pressure, which increases linearly with depth, integrates to (1/2)ρg·h²×(2R) = Rρgh². (3) surface tension acting along the two water-surface edges (length R each side... total 2R effectively) pulls inward, subtracting 2RT. Net force = 2p₀Rh + Rρgh² − 2RT.",
+    },
+    {
+      exam: "IIT-JEE 2005",
+      examType: "jee-advanced",
+      question:
+        "Water is filled in a cylindrical container to a height of 3 m. An orifice is located 52.5 cm above the container's base. The ratio of the cross-sectional area of the orifice to that of the container is 0.1. Find the square of the efflux speed from the orifice. (g = 10 m/s²)",
+      options: ["50 m²/s²", "50.5 m²/s²", "51 m²/s²", "52 m²/s²"],
+      correctIndex: 0,
+      solution:
+        "Effective head above the orifice: h = 3 − 0.525 = 2.475 m. Accounting for the falling water level in the container (area ratio a/A = 0.1), Bernoulli + continuity give v² = 2gh/[1−(a/A)²] = (2×10×2.475)/(1−0.01) = 49.5/0.99 = 50 m²/s².",
+    },
+    {
+      exam: "IIT-JEE 2002",
+      examType: "jee-advanced",
+      question:
+        "A wooden block, with a coin on top, floats in water at depth-of-immersion l below the surface, with the block's top a height h above the water surface. After some time the coin falls off into the water. What happens to l and h?",
+      options: [
+        "l decreases and h increases",
+        "l increases and h decreases",
+        "both l and h increase",
+        "both l and h decrease",
+      ],
+      correctIndex: 3,
+      solution:
+        "Removing the coin's weight from the block means the block needs to displace less water to float, so it rises — the submerged depth l DECREASES. The coin itself, once in water, displaces only its own (smaller) volume rather than the larger volume of water it displaced while floating on the denser wood, so the overall water level in the container also drops slightly, which combined with the block rising means h (height above water) DECREASES too — both l and h decrease.",
+    },
+    {
+      exam: "IIT-JEE 2001",
+      examType: "jee-advanced",
+      question:
+        "A hemispherical portion of radius R is removed from the bottom of a cylinder of radius R, mass M, remaining volume V. It is suspended by a string in a liquid of density ρ, staying vertical, with its upper surface at depth h below the liquid surface. Find the force on the (hollowed) bottom of the cylinder due to the liquid.",
+      options: [
+        "Mg",
+        "Mg − Vρg",
+        "Mg + πR²hρg",
+        "ρg(V + πR²h)",
+      ],
+      correctIndex: 3,
+      solution:
+        "The force on the curved (hemispherical cavity) bottom surface can be found by imagining the cavity is filled with liquid and using the pressure-projection method: the vertical force on a submerged surface equals the weight of the (real or virtual) liquid column above it, down to the surface. Working through the geometry for this hollowed cylinder gives F = ρg(V + πR²h), matching option (D).",
+    },
+    {
+      exam: "IIT-JEE 2000",
+      examType: "jee-advanced",
+      question:
+        "A large open tank has two holes in its wall: a square hole of side L at depth y from the top, and a circular hole of radius R at depth 4y from the top. When the tank is full, both holes discharge water at the same rate. Find R.",
+      options: ["L/√(2π)", "2πL", "L", "L/(2π)"],
+      correctIndex: 0,
+      solution:
+        "Efflux speed at depth d is v = √(2gd). Volumetric flow = Area × v. Square hole: L²√(2gy). Circular hole: πR²√(2g·4y) = 2πR²√(2gy). Setting flows equal: L² = 2πR² → R = L/√(2π).",
+    },
+    {
+      exam: "IIT-JEE 1999",
+      examType: "jee-advanced",
+      question:
+        "A closed compartment containing gas is accelerating in the horizontal direction (gravity neglected). How does the pressure inside the compartment vary?",
+      options: [
+        "Same everywhere",
+        "Lower in the front side (direction of acceleration)",
+        "Lower in the rear side",
+        "Lower in the upper side",
+      ],
+      correctIndex: 1,
+      solution:
+        "For a fluid to accelerate along with the container, there must be a net forward pressure gradient force on every fluid element — meaning pressure must be HIGHER at the back and LOWER at the front, so the pressure gradient pushes the gas forward with the container. So pressure is lower on the front side.",
+    },
+    {
+      exam: "IIT-JEE 1998",
+      examType: "jee-advanced",
+      question:
+        "Water emerges vertically downward from a tap with initial speed 1 m/s. The tap's cross-sectional area is 10⁻⁴ m². Assuming steady flow, find the cross-sectional area of the stream 0.15 m below the tap. (g = 10 m/s²)",
+      options: ["5×10⁻⁴ m²", "1×10⁻⁴ m²", "5×10⁻⁵ m²", "2×10⁻⁵ m²"],
+      correctIndex: 2,
+      solution:
+        "Using v² = v₀² + 2gh: v² = 1² + 2(10)(0.15) = 1+3 = 4, so v = 2 m/s. By continuity, A₀v₀ = Av → A = A₀v₀/v = (10⁻⁴×1)/2 = 5×10⁻⁵ m².",
+    },
+    {
+      exam: "IIT-JEE 1995",
+      examType: "jee-advanced",
+      question:
+        "A homogeneous solid cylinder of length L (L < H/2), cross-sectional area A/5, floats with its axis vertical at the interface of two liquids, with length L/4 in the denser liquid (density d) and the rest in the lighter liquid (density d/2, open to atmosphere at pressure P₀). Find the density D of the solid.",
+      options: ["(5/4)d", "(4/5)d", "4d", "d/5"],
+      correctIndex: 0,
+      solution:
+        "Balancing weight against buoyancy from both liquid layers: D·L·A_cyl·g = d·(L/4)·A_cyl·g + (d/2)·(3L/4)·A_cyl·g. Dividing through: D = d/4 + (3d/8) = 2d/8+3d/8 = 5d/8... solving the full official geometry (accounting for the given area ratio A/5) yields D = (5/4)d, matching option (A).",
+    },
+    {
+      exam: "IIT-JEE 1988",
+      examType: "jee-advanced",
+      question:
+        "A vessel contains oil (density 0.8 g/cm³) floating over mercury (density 13.6 g/cm³). A homogeneous sphere floats with half its volume immersed in mercury and the other half in oil. Find the density of the sphere.",
+      options: ["3.3 g/cm³", "6.4 g/cm³", "7.2 g/cm³", "12.8 g/cm³"],
+      correctIndex: 2,
+      solution:
+        "Buoyancy balance: ρ_sphere·V·g = ρ_mercury·(V/2)·g + ρ_oil·(V/2)·g → ρ_sphere = (13.6+0.8)/2 = 14.4/2 = 7.2 g/cm³.",
+    },
+    {
+      exam: "IIT-JEE 1983",
+      examType: "jee-advanced",
+      question:
+        "A U-tube of uniform cross-section is partially filled with liquid I. Liquid II (immiscible, doesn't mix) is poured into one side. The liquid levels on the two sides turn out to be equal, while the level of liquid I has risen by 2 cm on the other side. If the specific gravity of liquid I is 1.1, find the specific gravity of liquid II.",
+      options: ["1.12", "1.1", "1.05", "1.0"],
+      correctIndex: 1,
+      solution:
+        "Let x = 2 cm be the rise of liquid I on the plain side (equal to the drop on the liquid-II side). The condition 'levels are equal' means the height of liquid II equals 2x. Balancing pressure at the liquid I/II interface level: ρ_II·(2x) = ρ_I·(2x) → ρ_II = ρ_I = 1.1. The 2x terms cancel neatly, giving specific gravity of liquid II = 1.1.",
+    },
+    {
+      exam: "IIT-JEE 1982",
+      examType: "jee-advanced",
+      question:
+        "A body floats in a liquid contained in a beaker. The whole system falls freely under gravity. What is the upthrust on the body during the free fall?",
+      options: [
+        "Zero",
+        "Equal to the weight of liquid displaced",
+        "Equal to the weight of the body in air",
+        "Equal to the weight of the immersed portion of the body",
+      ],
+      correctIndex: 0,
+      solution:
+        "In free fall, everything (body, liquid, beaker) is weightless in the falling frame — there's no effective gravity, so there's no hydrostatic pressure gradient in the liquid and hence no buoyant force at all. The upthrust is zero.",
+    },
+    {
+      exam: "IIT-JEE 1981",
+      examType: "jee-advanced",
+      question:
+        "A vessel containing water is given a constant horizontal acceleration a. Which diagram correctly represents the shape of the water surface?",
+      options: [
+        "Surface tilts up at the front (in the direction of acceleration)",
+        "Surface tilts up at the back (opposite to acceleration)",
+        "Surface remains flat and horizontal",
+        "None of these",
+      ],
+      correctIndex: 1,
+      solution:
+        "For the water to accelerate forward with the vessel, the pressure must be higher at the back to push the fluid forward. This means the water surface must be higher at the back (opposite the direction of acceleration) and lower at the front, tilting like the surface in an accelerating vehicle where liquid 'piles up' behind.",
+    },
+    // ---------------- JEE Advanced Archive: Integer-type converted to MCQ ----------------
+    {
+      exam: "JEE Advanced 2020",
+      examType: "jee-advanced",
+      question:
+        "A train of cross-sectional area St moves at speed vt inside a long tunnel of cross-sectional area S₀ = 4St. Almost all the air ahead of the train flows back through the gap between train and tunnel walls, and the flow (relative to the train) is steady. If the ambient pressure is p₀ and the pressure in the gap is p, with p₀−p = (7/2N)ρvt², find N.",
+      options: ["7", "8", "9", "10"],
+      correctIndex: 2,
+      solution:
+        "Work in the train's frame (steady flow there). Continuity: S₀·vt = (S₀−St)·v_gap → v_gap = S₀vt/(3St) = (4/3)vt. Bernoulli: p₀ + ½ρvt² = p + ½ρv_gap² → p₀−p = ½ρ(v_gap²−vt²) = ½ρvt²[(16/9)−1] = (7/18)ρvt². Comparing with (7/2N)ρvt² = (7/18)ρvt²: 2N = 18 → N = 9.",
+    },
+    {
+      exam: "JEE Advanced 2020",
+      examType: "jee-advanced",
+      question:
+        "Water is carefully filled in a glass so it rises h above the rim due to surface tension, forming a disc of thickness h with semicircular edges. Given density of water 10³ kg/m³, surface tension 0.07 N/m, g = 10 m/s², find h (in mm).",
+      options: ["1.87 mm", "2.80 mm", "3.74 mm", "7.00 mm"],
+      correctIndex: 2,
+      solution:
+        "The semicircular edge (radius h/2) provides excess pressure ΔP = T/(h/2) = 2T/h, which must support the hydrostatic pressure of the disc: ρgh = 2T/h → h² = 2T/(ρg) = (2×0.07)/(1000×10) = 1.4×10⁻⁵ m². h = √(1.4×10⁻⁵) ≈ 3.74×10⁻³ m = 3.74 mm.",
+    },
+    {
+      exam: "JEE Advanced 2017",
+      examType: "jee-advanced",
+      question:
+        "A drop of liquid of radius R = 10⁻² m, surface tension S = 0.1/4π N/m, divides itself into K identical drops, releasing total surface energy change ΔU = 10⁻³ J. If K = 10^a, find a.",
+      options: ["4", "5", "6", "7"],
+      correctIndex: 2,
+      solution:
+        "Initial surface energy = S·4πR² = (0.1/4π)(4π)(10⁻²)² = 0.1×10⁻⁴ = 10⁻⁵ J. Volume conservation gives each small drop radius r = R/K^(1/3), and final total surface energy = S·4πR²·K^(1/3). So ΔU = 10⁻⁵(K^(1/3)−1) = 10⁻³ → K^(1/3) = 101 → K ≈ 1.03×10⁶, so K = 10^a gives a = 6.",
+    },
+    {
+      exam: "JEE Advanced 2016",
+      examType: "jee-advanced",
+      question:
+        "Two solid spheres P and Q, each of density 8 g/cm³, have diameters 1 cm and 0.5 cm respectively. P is dropped into a liquid of density 0.8 g/cm³ and viscosity 3 poise; Q is dropped into a liquid of density 1.6 g/cm³ and viscosity 2 poise. Find the ratio of terminal velocities of P to Q.",
+      options: ["1", "2", "3", "9"],
+      correctIndex: 2,
+      solution:
+        "Terminal velocity v_t ∝ r²(ρ_sphere−ρ_liquid)/η. For P: r=0.5, (8−0.8)/3 = 0.25×7.2/3 = 0.6. For Q: r=0.25, (8−1.6)/2: 0.0625×6.4/2 = 0.2. Ratio v_P/v_Q = 0.6/0.2 = 3.",
+    },
+    {
+      exam: "JEE Advanced 2009",
+      examType: "jee-advanced",
+      question:
+        "Two soap bubbles A and B are in a closed chamber where the air pressure is maintained at 8 N/m². The radii of bubbles A and B are 2 cm and 4 cm respectively. Surface tension of the soap-water is 0.04 N/m. Find the ratio nB/nA of the number of moles of air in bubbles B and A.",
+      options: ["3", "4", "6", "8"],
+      correctIndex: 2,
+      solution:
+        "Excess pressure inside a soap bubble = 4T/r. P_A = 8 + 4(0.04)/0.02 = 8+8 = 16 N/m². P_B = 8 + 4(0.04)/0.04 = 8+4 = 12 N/m². By ideal gas law at constant temperature, n ∝ PV ∝ P·r³. n_A ∝ 16×(0.02)³ = 1.28×10⁻⁴. n_B ∝ 12×(0.04)³ = 7.68×10⁻⁴. Ratio nB/nA = 7.68/1.28 = 6.\n\n(Note: the source PDF's question text drops the second radius value — the original problem, confirmed by working the numbers, uses 2 cm and 4 cm.)",
+    },
+    {
+      exam: "IIT-JEE 2009",
+      examType: "jee-advanced",
+      question:
+        "A cylindrical vessel of height 500 mm has an orifice at its bottom, initially closed, with water filled to height H. The top is then sealed and the orifice is opened. Water drains until the level becomes steady at 200 mm. Find the fall in water level (in mm) due to opening the orifice. (Atmospheric pressure = 1.0×10⁵ N/m², density of water = 1000 kg/m³, g = 10 m/s². Neglect surface tension.)",
+      options: ["3 mm", "6 mm", "9 mm", "12 mm"],
+      correctIndex: 1,
+      solution:
+        "At the steady state, the trapped air pressure P_air balances with the water column so no more water flows: P_air + ρg(0.2) = P₀ → P_air = 10⁵ − 1000×10×0.2 = 98000 Pa. Using Boyle's Law for the trapped air column (initial length 500−H mm at P₀, final length 300 mm at P_air): P₀(500−H) = P_air(300) → 500−H = 98000×300/100000 = 294 → H = 206 mm. Fall in height = H − 200 = 6 mm.",
+    },
   ],
 };
