@@ -8,11 +8,21 @@ import type { ChapterFormulaSheet, FormulaSheetRegistry } from "./types";
 import { kinematicsFormulaSheet } from "./kinematics";
 import { lawsOfMotionFormulaSheet } from "./laws-of-motion";
 import { workEnergyAndPowerFormulaSheet } from "./work-energy-and-power";
+import { centreOfMassAndCollisionsFormulaSheet } from "./centre-of-mass-and-collisions";
+import { rotationalMotionFormulaSheet } from "./system-of-particles-and-rotational-motion";
+import { gravitationFormulaSheet } from "./gravitation";
+import { solidsFormulaSheet } from "./mechanical-properties-of-solids";
+import { fluidsFormulaSheet } from "./mechanical-properties-of-fluids";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
   "laws-of-motion": lawsOfMotionFormulaSheet,
   "work-energy-and-power": workEnergyAndPowerFormulaSheet,
+  "centre-of-mass-and-collisions": centreOfMassAndCollisionsFormulaSheet,
+  "system-of-particles-and-rotational-motion": rotationalMotionFormulaSheet,
+  gravitation: gravitationFormulaSheet,
+  "mechanical-properties-of-solids": solidsFormulaSheet,
+  "mechanical-properties-of-fluids": fluidsFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
