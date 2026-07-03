@@ -7,10 +7,12 @@
 import type { ChapterFormulaSheet, FormulaSheetRegistry } from "./types";
 import { kinematicsFormulaSheet } from "./kinematics";
 import { lawsOfMotionFormulaSheet } from "./laws-of-motion";
+import { workEnergyAndPowerFormulaSheet } from "./work-energy-and-power";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
   "laws-of-motion": lawsOfMotionFormulaSheet,
+  "work-energy-and-power": workEnergyAndPowerFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
