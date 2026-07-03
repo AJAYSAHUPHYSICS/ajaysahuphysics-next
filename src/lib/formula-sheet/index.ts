@@ -6,9 +6,11 @@
 
 import type { ChapterFormulaSheet, FormulaSheetRegistry } from "./types";
 import { kinematicsFormulaSheet } from "./kinematics";
+import { lawsOfMotionFormulaSheet } from "./laws-of-motion";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
+  "laws-of-motion": lawsOfMotionFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
