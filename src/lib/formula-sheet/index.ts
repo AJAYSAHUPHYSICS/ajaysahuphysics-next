@@ -13,6 +13,11 @@ import { rotationalMotionFormulaSheet } from "./system-of-particles-and-rotation
 import { gravitationFormulaSheet } from "./gravitation";
 import { solidsFormulaSheet } from "./mechanical-properties-of-solids";
 import { fluidsFormulaSheet } from "./mechanical-properties-of-fluids";
+import { thermalPropertiesFormulaSheet } from "./thermal-properties-of-matter";
+import { thermodynamicsFormulaSheet } from "./thermodynamics";
+import { kineticTheoryFormulaSheet } from "./kinetic-theory-of-gases";
+import { oscillationsFormulaSheet } from "./oscillations";
+import { wavesFormulaSheet } from "./waves";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -23,6 +28,11 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   gravitation: gravitationFormulaSheet,
   "mechanical-properties-of-solids": solidsFormulaSheet,
   "mechanical-properties-of-fluids": fluidsFormulaSheet,
+  "thermal-properties-of-matter": thermalPropertiesFormulaSheet,
+  thermodynamics: thermodynamicsFormulaSheet,
+  "kinetic-theory-of-gases": kineticTheoryFormulaSheet,
+  oscillations: oscillationsFormulaSheet,
+  waves: wavesFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
