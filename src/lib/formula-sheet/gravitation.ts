@@ -4,7 +4,7 @@ export const gravitationFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "gravitation",
   chapterName: "Gravitation",
   className: "11",
-  version: "1.0.0",
+  version: "1.0.1",
   lastUpdated: "2026-07-03",
   examCoverage: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
   quickRevisionIds: [
@@ -224,6 +224,7 @@ export const gravitationFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "r is measured from the planet's centre, not from the surface — forgetting to add R to the height is the classic slip",
           ],
+          usedIn: ["laws-of-motion"],
           conceptLink: {
             chapterSlug: "gravitation",
             sectionHeading: "5. Satellites",
