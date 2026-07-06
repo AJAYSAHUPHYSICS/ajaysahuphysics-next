@@ -62,3 +62,22 @@ export type {
   Difficulty,
   Frequency,
 } from "./types";
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures slugs.ts (lightweight availability) matches the real registry.
+// Runs at module load during build; a mismatch throws and fails CI,
+// so the two sources can never silently diverge.
+import { formulaSheetSlugSet } from "./slugs";
+{
+  const registryKeys = Object.keys(formulaSheetRegistry);
+  const missingInSlugs = registryKeys.filter((k) => !formulaSheetSlugSet.has(k));
+  const extraInSlugs = [...formulaSheetSlugSet].filter(
+    (k) => !(k in formulaSheetRegistry)
+  );
+  if (missingInSlugs.length || extraInSlugs.length) {
+    throw new Error(
+      `formula-sheet slugs.ts is out of sync with index.ts. ` +
+        `Missing in slugs: [${missingInSlugs}]. Extra in slugs: [${extraInSlugs}].`
+    );
+  }
+}
