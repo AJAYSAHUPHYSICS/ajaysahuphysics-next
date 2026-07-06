@@ -4,7 +4,7 @@ export const kineticTheoryFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "kinetic-theory-of-gases",
   chapterName: "Kinetic Theory of Gases",
   className: "11",
-  version: "1.0.0",
+  version: "1.0.1",
   lastUpdated: "2026-07-04",
   examCoverage: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
   quickRevisionIds: [
@@ -107,6 +107,7 @@ export const kineticTheoryFormulaSheet: ChapterFormulaSheet = {
             "Using M in g/mol with R = 8.314 gives answers off by √1000 — convert to kg/mol",
             "Speed ORDER at the same T: v(rms) > v(avg) > v(mp), in ratio √3 : √(8/π) : √2",
           ],
+          usedIn: ["waves"],
           conceptLink: {
             chapterSlug: "kinetic-theory-of-gases",
             sectionHeading: "3. Molecular Speeds",
