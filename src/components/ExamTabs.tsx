@@ -6,7 +6,7 @@ import { allChapters, type Chapter } from "@/lib/chapters";
 import { notesRegistry } from "@/lib/notes";
 import { dppRegistry } from "@/lib/dpp";
 import { pyqRegistry } from "@/lib/pyq";
-import { formulaSheetRegistry } from "@/lib/formula-sheet";
+import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
 type ClassFilter = "all" | "11" | "12";
@@ -32,7 +32,7 @@ function isAvailableFor(
   const slug = chapter.slug;
   if (resourceType === "notes") return !!notesRegistry[slug];
   if (resourceType === "dpp") return !!dppRegistry[slug];
-  if (resourceType === "formula-sheet") return !!formulaSheetRegistry[slug];
+  if (resourceType === "formula-sheet") return hasFormulaSheet(slug);
 
   // resourceType === "pyq" — availability depends on which exam tab is active,
   // since PYQ is the one resource genuinely split by exam type.
