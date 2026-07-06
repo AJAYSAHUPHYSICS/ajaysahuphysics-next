@@ -4,7 +4,7 @@ export const fluidsFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "mechanical-properties-of-fluids",
   chapterName: "Mechanical Properties of Fluids",
   className: "11",
-  version: "1.0.0",
+  version: "1.0.1",
   lastUpdated: "2026-07-03",
   examCoverage: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
   quickRevisionIds: [
@@ -102,6 +102,7 @@ export const fluidsFormulaSheet: ChapterFormulaSheet = {
             "Ice melting in a glass of water does NOT change the level — the melt exactly fills the displaced volume",
             "Buoyant force acts at the centre of the DISPLACED fluid (centre of buoyancy), not the body's COM",
           ],
+          usedIn: ["laws-of-motion"],
           conceptLink: {
             chapterSlug: "mechanical-properties-of-fluids",
             sectionHeading: "2. Buoyancy",
@@ -174,6 +175,7 @@ export const fluidsFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "Fast flow means LOW pressure — students invert this; it explains aerofoil lift, roofs blowing off, and the Venturi meter",
           ],
+          usedIn: ["work-energy-and-power"],
           conceptLink: {
             chapterSlug: "mechanical-properties-of-fluids",
             sectionHeading: "3. Fluid Dynamics",
