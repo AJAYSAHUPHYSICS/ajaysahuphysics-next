@@ -4,7 +4,7 @@ export const thermodynamicsFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "thermodynamics",
   chapterName: "Thermodynamics",
   className: "11",
-  version: "1.0.0",
+  version: "1.0.1",
   lastUpdated: "2026-07-04",
   examCoverage: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
   quickRevisionIds: [
@@ -65,6 +65,7 @@ export const thermodynamicsFormulaSheet: ChapterFormulaSheet = {
           ],
           commonMistakes: [
             "Work is PATH-dependent — two processes between the same states generally do different work",
+            "Anticlockwise P–V loops have NEGATIVE net work — the cycle is a refrigerator, not an engine",
           ],
           conceptLink: {
             chapterSlug: "thermodynamics",
@@ -274,6 +275,33 @@ export const thermodynamicsFormulaSheet: ChapterFormulaSheet = {
           isKeyFormula: false,
           pdfInclude: true,
           searchKeywords: ["engine efficiency", "1 minus Q2 by Q1"],
+        },
+        {
+          id: "td-cycle-efficiency",
+          expression: "η(cycle) = W(net)/Q(in) = (area enclosed on P–V) / (heat absorbed in the positive-Q legs)",
+          expressionLatex: "\\eta = \\dfrac{W_{net}}{Q_{in}}",
+          label: "Efficiency of a general P–V cycle",
+          derivedFrom: "Over a full cycle ΔU = 0, so W(net) = Q(net) = Q(in) − Q(out)",
+          variables: [
+            { symbol: "W(net)", name: "net work per cycle (enclosed area, clockwise positive)", unit: "J", dimension: "[ML²T⁻²]" },
+            { symbol: "Q(in)", name: "heat ABSORBED (sum over legs where Q > 0 only)", unit: "J", dimension: "[ML²T⁻²]" },
+          ],
+          conditions: ["Compute Q leg-by-leg first (nCᵥΔT, nCₚΔT, or nRT ln for isothermal), THEN sum only the positive ones for Q(in)"],
+          commonMistakes: [
+            "Dividing by total heat exchanged |Q(in)| + |Q(out)| instead of Q(in) alone — the definition uses only absorbed heat",
+          ],
+          conceptLink: {
+            chapterSlug: "thermodynamics",
+            sectionHeading: "4. Heat Engines",
+            concept: "efficiency of a cycle",
+          },
+          examTags: ["jee-main", "jee-advanced", "neet"],
+          frequency: "high",
+          examStats: { jeeMain: 7, jeeAdvanced: 5, neet: 6 },
+          difficulty: "hard",
+          isKeyFormula: false,
+          pdfInclude: true,
+          searchKeywords: ["cycle efficiency", "enclosed area", "W net by Q in"],
         },
         {
           id: "td-carnot-efficiency",
