@@ -1,4 +1,5 @@
 import type { ChapterNotes } from "@/lib/notes/kinematics";
+import { slugify } from "@/lib/slugify";
 
 export default function NotesDisplay({ notes }: { notes: ChapterNotes }) {
   return (
@@ -9,7 +10,7 @@ export default function NotesDisplay({ notes }: { notes: ChapterNotes }) {
 
       <div className="space-y-8">
         {notes.sections.map((section) => (
-          <div key={section.heading}>
+          <div key={section.heading} id={slugify(section.heading)} className="scroll-mt-24">
             <h3 className="font-display text-lg text-navy mb-2.5">
               {section.heading}
             </h3>
