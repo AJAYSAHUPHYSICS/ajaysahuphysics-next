@@ -25,6 +25,11 @@ export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
   "kinetic-theory-of-gases",
   "oscillations",
   "waves",
+  "electric-charges-and-fields",
+  "electrostatic-potential-and-capacitance",
+  "current-electricity",
+  "moving-charges-and-magnetism",
+  "magnetism-and-matter",
 ]);
 
 /** True if a formula sheet exists for this chapter slug. No content loaded. */
