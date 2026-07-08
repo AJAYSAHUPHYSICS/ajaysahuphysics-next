@@ -2,8 +2,9 @@
 
 import { useId, useState } from "react";
 import Link from "next/link";
-import type { Formula } from "@/lib/formula-sheet";
+import type { Formula, ConceptLink } from "@/lib/formula-sheet";
 import { allChapters } from "@/lib/chapters";
+import { slugify } from "@/lib/slugify";
 import ExamTagPill from "./ExamTagPill";
 import { DifficultyBadge, FrequencyBadge } from "./DifficultyBadge";
 import FormulaVariablesTable from "./FormulaVariablesTable";
@@ -14,10 +15,13 @@ import FormulaVariablesTable from "./FormulaVariablesTable";
 // (script: cross-count each formula id against pyqRegistry questions),
 // so that every number shown to students is verifiable.
 
-/** Resolve the correct class route (/class-11 or /class-12) for a chapter slug. */
-function chapterHref(slug: string): string {
-  const ch = allChapters.find((c) => c.slug === slug);
-  return ch ? `/class-${ch.cls}/${slug}` : `/class-11/${slug}`;
+/** Deep link into the chapter's Notes page, jumping straight to the
+ * matching section heading when one is recorded on the concept link. */
+function conceptHref(link: ConceptLink): string {
+  const ch = allChapters.find((c) => c.slug === link.chapterSlug);
+  const base = ch ? `/class-${ch.cls}/${link.chapterSlug}` : `/class-11/${link.chapterSlug}`;
+  const anchor = link.sectionHeading ? `#${slugify(link.sectionHeading)}` : "";
+  return `${base}/notes${anchor}`;
 }
 
 export default function FormulaCard({ formula }: { formula: Formula }) {
@@ -152,7 +156,7 @@ export default function FormulaCard({ formula }: { formula: Formula }) {
       {formula.conceptLink ? (
         <div className="mt-4 pt-3 border-t border-navy/5 flex justify-end print:hidden">
           <Link
-            href={`${chapterHref(formula.conceptLink.chapterSlug)}#notes`}
+            href={conceptHref(formula.conceptLink)}
             className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
           >
             Read the concept →
