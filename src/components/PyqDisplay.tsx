@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { ChapterPyq, PyqQuestion } from "@/lib/pyq/kinematics";
 
-type ExamFilter = "jee-main" | "jee-advanced" | "neet" | null;
+export type ExamFilter = "jee-main" | "jee-advanced" | "neet" | null;
 
 const FILTER_LABEL: Record<Exclude<ExamFilter, null>, string> = {
   "jee-main": "JEE Main",
@@ -91,22 +92,16 @@ function matchesFilter(q: PyqQuestion, filter: Exclude<ExamFilter, null>) {
 }
 
 export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
+  const searchParams = useSearchParams();
+  const examParam = searchParams.get("exam");
+  const initialExamFilter: ExamFilter =
+    examParam === "jee-main" || examParam === "jee-advanced" || examParam === "neet"
+      ? examParam
+      : null;
+
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
-  const [examFilter, setExamFilter] = useState<ExamFilter>(null);
-
-  // A link like /class-11/kinematics#pyq:neet (from the NEET hub) or
-  // #pyq:jee-main / #pyq:jee-advanced (from the PYQ hub's exam tabs) should
-  // show ONLY that exam's questions here — not every section mixed together.
-  // Landing on this tab any other way (e.g. browsing the chapter directly)
-  // keeps showing the full grouped view.
-  useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    const [, filterPart] = hash.split(":");
-    if (filterPart === "jee-main" || filterPart === "jee-advanced" || filterPart === "neet") {
-      setExamFilter(filterPart);
-    }
-  }, []);
+  const [examFilter, setExamFilter] = useState<ExamFilter>(initialExamFilter);
 
   if (examFilter) {
     const filtered = pyq.questions
@@ -115,11 +110,20 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
 
     return (
       <div>
-        <p className="text-sm text-slate mb-6">
-          {filtered.length} {FILTER_LABEL[examFilter]} PYQ
-          {filtered.length === 1 ? "" : "s"} on {pyq.chapterName}, rewritten
-          here in original wording with the same tested concept.
-        </p>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
+          <p className="text-sm text-slate">
+            {filtered.length} {FILTER_LABEL[examFilter]} PYQ
+            {filtered.length === 1 ? "" : "s"} on {pyq.chapterName}, rewritten
+            here in original wording with the same tested concept.
+          </p>
+          <button
+            type="button"
+            onClick={() => setExamFilter(null)}
+            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors shrink-0"
+          >
+            View all exams
+          </button>
+        </div>
         {filtered.length > 0 ? (
           <div className="space-y-5">
             {filtered.map(({ q, idx }) => (
