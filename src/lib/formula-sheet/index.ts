@@ -18,6 +18,11 @@ import { thermodynamicsFormulaSheet } from "./thermodynamics";
 import { kineticTheoryFormulaSheet } from "./kinetic-theory-of-gases";
 import { oscillationsFormulaSheet } from "./oscillations";
 import { wavesFormulaSheet } from "./waves";
+import { electricChargesAndFieldsFormulaSheet } from "./electric-charges-and-fields";
+import { electrostaticPotentialAndCapacitanceFormulaSheet } from "./electrostatic-potential-and-capacitance";
+import { currentElectricityFormulaSheet } from "./current-electricity";
+import { movingChargesAndMagnetismFormulaSheet } from "./moving-charges-and-magnetism";
+import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -33,6 +38,11 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "kinetic-theory-of-gases": kineticTheoryFormulaSheet,
   oscillations: oscillationsFormulaSheet,
   waves: wavesFormulaSheet,
+  "electric-charges-and-fields": electricChargesAndFieldsFormulaSheet,
+  "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitanceFormulaSheet,
+  "current-electricity": currentElectricityFormulaSheet,
+  "moving-charges-and-magnetism": movingChargesAndMagnetismFormulaSheet,
+  "magnetism-and-matter": magnetismAndMatterFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
