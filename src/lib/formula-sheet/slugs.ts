@@ -30,6 +30,9 @@ export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
   "current-electricity",
   "moving-charges-and-magnetism",
   "magnetism-and-matter",
+  "basic-mathematics-and-vectors",
+  "physical-world-and-measurement",
+  "circular-motion",
 ]);
 
 /** True if a formula sheet exists for this chapter slug. No content loaded. */
