@@ -23,6 +23,9 @@ import { electrostaticPotentialAndCapacitanceFormulaSheet } from "./electrostati
 import { currentElectricityFormulaSheet } from "./current-electricity";
 import { movingChargesAndMagnetismFormulaSheet } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
+import { basicMathematicsAndVectorsFormulaSheet } from "./basic-mathematics-and-vectors";
+import { physicalWorldAndMeasurementFormulaSheet } from "./physical-world-and-measurement";
+import { circularMotionFormulaSheet } from "./circular-motion";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -43,6 +46,9 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "current-electricity": currentElectricityFormulaSheet,
   "moving-charges-and-magnetism": movingChargesAndMagnetismFormulaSheet,
   "magnetism-and-matter": magnetismAndMatterFormulaSheet,
+  "basic-mathematics-and-vectors": basicMathematicsAndVectorsFormulaSheet,
+  "physical-world-and-measurement": physicalWorldAndMeasurementFormulaSheet,
+  "circular-motion": circularMotionFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
