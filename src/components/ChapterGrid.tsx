@@ -10,12 +10,23 @@ type Props = {
   resourceLabel: string;
   linkToChapterPage?: boolean;
   isAvailable?: (chapter: Chapter) => boolean;
-  // Tab key on the chapter detail page to jump straight to (e.g. "pyq",
-  // "notes", "dpp", "formula-sheet"). When set, links go to
-  // /class-11/slug#pyq instead of just /class-11/slug, so the chapter page
-  // opens directly on that tab instead of defaulting to Overview.
+  // Resource key on the chapter's resource sub-routes to jump straight to
+  // (e.g. "pyq", "notes", "dpp", "formula-sheet"). When set, links go to
+  // /class-11/slug/pyq instead of just /class-11/slug, landing directly on
+  // that resource's own page instead of the chapter Overview. For PYQ, an
+  // exam filter after a colon (e.g. "pyq:neet") becomes a `?exam=` query
+  // param on the /pyq route instead of a path segment, since it's a view
+  // filter on one dataset, not a distinct page.
   tabKey?: string;
 };
+
+function resourceHref(cls: "11" | "12", slug: string, tabKey?: string): string {
+  const base = `/class-${cls}/${slug}`;
+  if (!tabKey) return base;
+  const [resource, filter] = tabKey.split(":");
+  const path = `${base}/${resource}`;
+  return filter ? `${path}?exam=${filter}` : path;
+}
 
 export default function ChapterGrid({
   chapters,
@@ -84,7 +95,7 @@ export default function ChapterGrid({
           return available ? (
             <Link
               key={`${ch.cls}-${ch.slug}`}
-              href={`/class-${ch.cls}/${ch.slug}${tabKey ? `#${tabKey}` : ""}`}
+              href={resourceHref(ch.cls, ch.slug, tabKey)}
               className={cardClass}
             >
               {cardInner}
