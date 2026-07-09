@@ -26,6 +26,15 @@ import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
 import { basicMathematicsAndVectorsFormulaSheet } from "./basic-mathematics-and-vectors";
 import { physicalWorldAndMeasurementFormulaSheet } from "./physical-world-and-measurement";
 import { circularMotionFormulaSheet } from "./circular-motion";
+import { electromagneticInductionFormulaSheet } from "./electromagnetic-induction";
+import { alternatingCurrentFormulaSheet } from "./alternating-current";
+import { electromagneticWavesFormulaSheet } from "./electromagnetic-waves";
+import { rayOpticsAndOpticalInstrumentsFormulaSheet } from "./ray-optics-and-optical-instruments";
+import { waveOpticsFormulaSheet } from "./wave-optics";
+import { dualNatureOfRadiationAndMatterFormulaSheet } from "./dual-nature-of-radiation-and-matter";
+import { atomsFormulaSheet } from "./atoms";
+import { nucleiFormulaSheet } from "./nuclei";
+import { semiconductorElectronicsFormulaSheet } from "./semiconductor-electronics";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -49,6 +58,15 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsFormulaSheet,
   "physical-world-and-measurement": physicalWorldAndMeasurementFormulaSheet,
   "circular-motion": circularMotionFormulaSheet,
+  "electromagnetic-induction": electromagneticInductionFormulaSheet,
+  "alternating-current": alternatingCurrentFormulaSheet,
+  "electromagnetic-waves": electromagneticWavesFormulaSheet,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsFormulaSheet,
+  "wave-optics": waveOpticsFormulaSheet,
+  "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterFormulaSheet,
+  atoms: atomsFormulaSheet,
+  nuclei: nucleiFormulaSheet,
+  "semiconductor-electronics": semiconductorElectronicsFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
