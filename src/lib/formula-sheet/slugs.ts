@@ -33,6 +33,15 @@ export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
   "basic-mathematics-and-vectors",
   "physical-world-and-measurement",
   "circular-motion",
+  "electromagnetic-induction",
+  "alternating-current",
+  "electromagnetic-waves",
+  "ray-optics-and-optical-instruments",
+  "wave-optics",
+  "dual-nature-of-radiation-and-matter",
+  "atoms",
+  "nuclei",
+  "semiconductor-electronics",
 ]);
 
 /** True if a formula sheet exists for this chapter slug. No content loaded. */
