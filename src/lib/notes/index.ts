@@ -27,6 +27,8 @@ import { nucleiNotes } from "./nuclei";
 import { waveOpticsNotes } from "./wave-optics";
 import { physicalWorldAndMeasurementNotes } from "./physical-world-and-measurement";
 import { circularMotionNotes } from "./circular-motion";
+import { electromagneticInductionNotes } from "./electromagnetic-induction";
+import { semiconductorElectronicsNotes } from "./semiconductor-electronics";
 
 // Add one line per chapter as real notes content is written.
 // Any chapter slug NOT in this registry automatically shows "Coming Soon".
@@ -59,6 +61,8 @@ export const notesRegistry: Record<string, ChapterNotes> = {
   "wave-optics": waveOpticsNotes,
   "physical-world-and-measurement": physicalWorldAndMeasurementNotes,
   "circular-motion": circularMotionNotes,
+  "electromagnetic-induction": electromagneticInductionNotes,
+  "semiconductor-electronics": semiconductorElectronicsNotes,
 };
 
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
