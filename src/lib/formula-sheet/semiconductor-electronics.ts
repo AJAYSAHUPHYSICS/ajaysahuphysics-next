@@ -1,11 +1,5 @@
 import type { ChapterFormulaSheet } from "./types";
 
-// NOTE: Semiconductor Electronics has no Notes page yet (source content not
-// uploaded). Every formula below therefore OMITS conceptLink rather than
-// fabricating a sectionHeading that doesn't exist in a real Notes file —
-// conceptLink is optional on the Formula type precisely for this case.
-// Add conceptLink to each card once Notes are built for this chapter.
-
 export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "semiconductor-electronics",
   chapterName: "Semiconductor Electronics",
@@ -37,6 +31,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "μ(e), μ(h)", name: "mobilities of electrons and holes", unit: "m²/(V·s)", dimension: "[M⁻¹T²A]" },
           ],
           conditions: ["BOTH charge carriers (electrons AND holes) contribute to conduction in a semiconductor — unlike a metal, where only electrons carry current"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "4. Extrinsic Semiconductors — Doping, n-type and p-type",
+            concept: "semiconductor conductivity from carrier concentrations",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 6, neet: 8, mhtCet: 5 },
@@ -58,6 +57,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "Doping does NOT change n(i) itself (a material/temperature property) — it only redistributes n and p while keeping their product constant",
           ],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "5. Law of Mass Action and Charge Carrier Concentrations",
+            concept: "law of mass action",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 4, neet: 10, mhtCet: 7 },
@@ -88,6 +92,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "Reverse current does NOT go to zero — it saturates at the small but non-zero value I₀, driven by minority carriers",
           ],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "10. Diode Characteristics and the Ideal Diode Equation",
+            concept: "ideal diode equation",
+          },
           examTags: ["jee-advanced", "neet"],
           frequency: "medium",
           examStats: { jeeAdvanced: 3, neet: 4 },
@@ -114,6 +123,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "η", name: "rectification efficiency", unit: "dimensionless (%)", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["Only one half of each input cycle is used — the other half is entirely wasted, capping efficiency well below 100%"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "11. Half-Wave Rectifier",
+            concept: "half-wave rectifier efficiency",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 5, neet: 7, mhtCet: 5 },
@@ -133,6 +147,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "Full-wave efficiency (81.2%) is EXACTLY double half-wave efficiency (40.6%) — a clean 2× relationship worth memorising directly",
           ],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "12. Full-Wave Rectifier",
+            concept: "full-wave rectifier efficiency",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 5, neet: 7, mhtCet: 5 },
@@ -158,6 +177,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "I(E), I(B), I(C)", name: "emitter, base, and collector currents", unit: "A", dimension: "[A]" },
           ],
           conditions: ["A direct consequence of charge conservation at the transistor's base — always true regardless of configuration (CE, CB, CC)"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "17. Transistor Action and Current Relations",
+            concept: "transistor current relation",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, neet: 10, mhtCet: 7 },
@@ -175,6 +199,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "α", name: "common-base current gain, always slightly less than 1", unit: "dimensionless", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["α is always < 1 since I(C) < I(E) (a small fraction of emitter current is lost as base current)"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "17. Transistor Action and Current Relations",
+            concept: "common-base current gain",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 6, neet: 8, mhtCet: 5 },
@@ -192,6 +221,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "β", name: "common-emitter current gain, typically large (tens to hundreds)", unit: "dimensionless", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["The most commonly used gain figure since common-emitter is the standard amplifier configuration"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "17. Transistor Action and Current Relations",
+            concept: "common-emitter current gain",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 3, neet: 10, mhtCet: 7 },
@@ -211,6 +245,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "A tiny difference between two α values (e.g. 0.98 vs 0.99) corresponds to a huge difference in β (49 vs 99) — always convert carefully rather than eyeballing",
           ],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "17. Transistor Action and Current Relations",
+            concept: "relation between alpha and beta",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 4, neet: 10, mhtCet: 7 },
@@ -232,6 +271,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["A common-emitter amplifier inverts the signal (180° phase shift) in addition to amplifying it — a qualitative fact often paired with this formula"],
           usedIn: ["current-electricity"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "19. Transistor as an Amplifier (CE Configuration)",
+            concept: "voltage gain of a CE amplifier",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 4, neet: 7, mhtCet: 5 },
@@ -250,6 +294,11 @@ export const semiconductorElectronicsFormulaSheet: ChapterFormulaSheet = {
             { symbol: "A(i)", name: "current gain, equal to β for this configuration", unit: "dimensionless", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["Power gain is the PRODUCT of voltage gain and current gain, not their sum — a common slip under exam pressure"],
+          conceptLink: {
+            chapterSlug: "semiconductor-electronics",
+            sectionHeading: "19. Transistor as an Amplifier (CE Configuration)",
+            concept: "power gain of a CE amplifier",
+          },
           examTags: ["jee-main", "neet", "mht-cet"],
           frequency: "medium",
           examStats: { jeeMain: 5, neet: 6, mhtCet: 4 },
