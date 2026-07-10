@@ -1,11 +1,5 @@
 import type { ChapterFormulaSheet } from "./types";
 
-// NOTE: Electromagnetic Induction has no Notes page yet (source content not
-// uploaded). Every formula below therefore OMITS conceptLink rather than
-// fabricating a sectionHeading that doesn't exist in a real Notes file —
-// conceptLink is optional on the Formula type precisely for this case.
-// Add conceptLink to each card once Notes are built for this chapter.
-
 export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
   chapterSlug: "electromagnetic-induction",
   chapterName: "Electromagnetic Induction",
@@ -40,6 +34,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
             { symbol: "θ", name: "angle between B and the area normal", unit: "rad", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["Flux is maximum when B is perpendicular to the loop's plane (θ = 0°), zero when B lies in the plane (θ = 90°)"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "1. Magnetic Flux",
+            concept: "magnetic flux",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, neet: 10, mhtCet: 7 },
@@ -62,6 +61,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "The negative sign isn't optional decoration — it encodes energy conservation (Lenz's law); dropping it in a problem with a specified current direction gives the wrong direction",
           ],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "2. Faraday's Laws of Electromagnetic Induction",
+            concept: "Faraday's law",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 10, jeeAdvanced: 5, neet: 13, mhtCet: 8 },
@@ -94,6 +98,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["Requires v, B, and l all mutually perpendicular for this simple scalar form"],
           usedIn: ["moving-charges-and-magnetism"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "4. Motional EMF — the Rod on Rails",
+            concept: "motional EMF",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 9, jeeAdvanced: 4, neet: 11, mhtCet: 7 },
@@ -115,6 +124,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           commonMistakes: [
             "Every point on the rod moves at a different speed (ωr), so you cannot use ε = Bvl with a single v — integration is essential here",
           ],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "6. EMF Induced in a Rotating Rod",
+            concept: "EMF of a rotating rod",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "medium",
           examStats: { jeeMain: 5, jeeAdvanced: 4, neet: 5 },
@@ -134,6 +148,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["ω here is the coil's mechanical rotation speed, which becomes the EMF's angular frequency"],
           usedIn: ["alternating-current"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "17. AC Generator — Principle, Construction and Working",
+            concept: "AC generator EMF",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, neet: 10, mhtCet: 7 },
@@ -159,6 +178,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
             { symbol: "L", name: "self-inductance of the coil", unit: "H (henry)", dimension: "[ML²T⁻²A⁻²]" },
           ],
           conditions: ["Self-induced EMF always opposes the change in the coil's own current — this is what makes an inductor resist sudden current changes"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "8. Self-Inductance",
+            concept: "self-inductance",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 4, neet: 10, mhtCet: 7 },
@@ -179,6 +203,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["Valid for a long, tightly wound solenoid, same approximation used for its magnetic field formula"],
           usedIn: ["moving-charges-and-magnetism"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "9. Self-Inductance of a Long Solenoid",
+            concept: "self-inductance of a solenoid",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 4, neet: 10, mhtCet: 7 },
@@ -196,6 +225,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
             { symbol: "M", name: "mutual inductance between the two coils", unit: "H", dimension: "[ML²T⁻²A⁻²]" },
           ],
           conditions: ["M is the SAME in both directions (M₁₂ = M₂₁) — a symmetric property of the pair of coils, regardless of which one is driven"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "10. Mutual Inductance",
+            concept: "mutual inductance",
+          },
           examTags: ["jee-main", "neet", "mht-cet", "boards"],
           frequency: "high",
           examStats: { jeeMain: 6, neet: 8, mhtCet: 5 },
@@ -213,6 +247,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
             { symbol: "N₁, N₂", name: "total turns of the two coils", unit: "dimensionless", dimension: "[M⁰L⁰T⁰]" },
           ],
           conditions: ["Assumes the shorter coil is wound entirely inside/around the longer one, sharing the same cross-sectional area A"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "11. Mutual Inductance of Two Coaxial Solenoids",
+            concept: "mutual inductance of coaxial solenoids",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 3, neet: 6 },
@@ -232,6 +271,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["Structurally identical to ½CV² for a capacitor — inductors store energy in their magnetic field the way capacitors store it in their electric field"],
           usedIn: ["electrostatic-potential-and-capacitance"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "13. Energy Stored in an Inductor",
+            concept: "energy stored in an inductor",
+          },
           examTags: ["jee-main", "jee-advanced", "neet", "mht-cet", "boards"],
           frequency: "very-high",
           examStats: { jeeMain: 8, jeeAdvanced: 4, neet: 10, mhtCet: 7 },
@@ -251,6 +295,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["Parallel structure to u = ½ε₀E² for the electric field — both fields store energy proportional to the square of their strength"],
           usedIn: ["electrostatic-potential-and-capacitance"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "14. Energy Density of the Magnetic Field",
+            concept: "energy density of the magnetic field",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 3, neet: 7 },
@@ -278,6 +327,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           ],
           conditions: ["Larger L or smaller R means the current takes longer to reach its steady value"],
           usedIn: ["current-electricity"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "15. Growth of Current in an LR Circuit",
+            concept: "LR circuit time constant",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 3, neet: 6 },
@@ -296,6 +350,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
             { symbol: "I₀", name: "final steady-state current = ε/R", unit: "A", dimension: "[A]" },
           ],
           conditions: ["Current approaches I₀ asymptotically, never reaching it in finite time, exactly like RC charging"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "15. Growth of Current in an LR Circuit",
+            concept: "growth of current in an LR circuit",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 4, neet: 6 },
@@ -312,6 +371,11 @@ export const electromagneticInductionFormulaSheet: ChapterFormulaSheet = {
           derivedFrom: "Kirchhoff's voltage law with no source: L(dI/dt) + IR = 0",
           variables: [],
           conditions: ["At t = τ, current falls to 36.8% of its initial value — same shape as RC discharge"],
+          conceptLink: {
+            chapterSlug: "electromagnetic-induction",
+            sectionHeading: "16. Decay of Current in an LR Circuit",
+            concept: "decay of current in an LR circuit",
+          },
           examTags: ["jee-main", "jee-advanced", "neet"],
           frequency: "high",
           examStats: { jeeMain: 6, jeeAdvanced: 4, neet: 6 },
