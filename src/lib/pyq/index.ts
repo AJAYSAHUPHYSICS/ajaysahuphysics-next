@@ -10,6 +10,7 @@ import { mechanicalPropertiesOfSolidsPyq } from "./mechanical-properties-of-soli
 import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-fluids";
 import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { circularMotionPyq } from "./circular-motion";
+import { currentElectricityPyq } from "./current-electricity";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
@@ -23,6 +24,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsPyq,
   "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   "circular-motion": circularMotionPyq,
+  "current-electricity": currentElectricityPyq,
 };
 
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
