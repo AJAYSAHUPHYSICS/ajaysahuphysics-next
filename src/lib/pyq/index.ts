@@ -13,6 +13,7 @@ import { circularMotionPyq } from "./circular-motion";
 import { currentElectricityPyq } from "./current-electricity";
 import { electrostaticPotentialAndCapacitancePyq } from "./electrostatic-potential-and-capacitance";
 import { movingChargesAndMagnetismPyq } from "./moving-charges-and-magnetism";
+import { magnetismAndMatterPyq } from "./magnetism-and-matter";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
@@ -29,6 +30,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "current-electricity": currentElectricityPyq,
   "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitancePyq,
   "moving-charges-and-magnetism": movingChargesAndMagnetismPyq,
+  "magnetism-and-matter": magnetismAndMatterPyq,
 };
 
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
