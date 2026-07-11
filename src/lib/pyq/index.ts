@@ -17,6 +17,7 @@ import { magnetismAndMatterPyq } from "./magnetism-and-matter";
 import { electromagneticInductionPyq } from "./electromagnetic-induction";
 import { alternatingCurrentPyq } from "./alternating-current";
 import { electromagneticWavesPyq } from "./electromagnetic-waves";
+import { rayOpticsAndOpticalInstrumentsPyq } from "./ray-optics-and-optical-instruments";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
@@ -37,6 +38,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "electromagnetic-induction": electromagneticInductionPyq,
   "alternating-current": alternatingCurrentPyq,
   "electromagnetic-waves": electromagneticWavesPyq,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsPyq,
 };
 
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
