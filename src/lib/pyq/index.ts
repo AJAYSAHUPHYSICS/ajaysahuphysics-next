@@ -22,6 +22,7 @@ import { waveOpticsPyq } from "./wave-optics";
 import { dualNatureOfRadiationAndMatterPyq } from "./dual-nature-of-radiation-and-matter";
 import { atomsPyq } from "./atoms";
 import { nucleiPyq } from "./nuclei";
+import { semiconductorElectronicsPyq } from "./semiconductor-electronics";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
@@ -47,6 +48,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterPyq,
   atoms: atomsPyq,
   nuclei: nucleiPyq,
+  "semiconductor-electronics": semiconductorElectronicsPyq,
 };
 
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
