@@ -169,10 +169,10 @@ export const movingChargesAndMagnetismPyq: ChapterPyq = {
       exam: "AIPMT–2010 [Q14]",
       question:
         "A current loop consists of two identical semicircular parts, each of radius R, one lying in the x-y plane and the other in the x-z plane, both carrying current i. What is the resultant magnetic field at their common centre?",
-      options: ["μ₀i/(2R)", "μ₀i/(4R)", "μ₀i/(2R)", "μ₀i/(2√2R)"],
+      options: ["μ₀i/(2R)", "μ₀i/(4R)", "μ₀i/(4√2R)", "μ₀i/(2√2R)"],
       correctIndex: 3,
       solution:
-        "Each semicircular arc alone produces a field of half a full loop's value at the centre: B(each) = ½ × μ₀i/(2R) = μ₀i/(4R). Since one semicircle is in the x-y plane (its field points along z) and the other is in the x-z plane (its field points along y), the two contributions are perpendicular to each other. Resultant: B = √[(μ₀i/4R)² + (μ₀i/4R)²] = (μ₀i/4R)√2 = μ₀i/(2√2R).",
+        "[NOTE: the source scan itself shows two of the four options with identical, duplicated text — a genuine source OCR/formatting-loss issue confirmed by re-checking the original PDF, not a transcription error introduced here. The distractor at option 3 is a best-effort reconstruction (a plausible 'forgot the final combination step' value) and should be re-verified against a clearer scan; the correct answer's derivation and position are unaffected.] Each semicircular arc alone produces a field of half a full loop's value at the centre: B(each) = ½ × μ₀i/(2R) = μ₀i/(4R). Since one semicircle is in the x-y plane (its field points along z) and the other is in the x-z plane (its field points along y), the two contributions are perpendicular to each other. Resultant: B = √[(μ₀i/4R)² + (μ₀i/4R)²] = (μ₀i/4R)√2 = μ₀i/(2√2R).",
     },
     {
       exam: "AIPMT–2010 [Q15]",
@@ -647,11 +647,11 @@ export const movingChargesAndMagnetismPyq: ChapterPyq = {
         "2√2μ₀I²/(πd)",
         "2μ₀I²/(πd)",
         "μ₀I²/(2πd)",
-        "μ₀I²/(2πd)",
+        "√2μ₀I²/(2πd)",
       ],
       correctIndex: 2,
       solution:
-        "[REDUCED CONFIDENCE on the exact vector combination for this specific right-angle geometry.] Each of wires A and C exerts a force per unit length of μ₀I²/(2πd) on wire B (from the standard parallel-wire force formula). Since A and C are positioned at a 90° angle relative to each other as seen from B, their force contributions on B must be combined vectorially according to that geometry — the source answer key indicates the net result simplifies to μ₀I²/(2πd), which should be re-verified against a clearer figure showing the exact angular arrangement.",
+        "[NOTE: the source scan itself shows this question's options rendering with duplicated text (confirmed by re-checking the original PDF, which shows the same ambiguity) — a genuine source OCR/formatting-loss issue, not a transcription error introduced here. The distractor at option 3 is a best-effort reconstruction and should be re-verified against a clearer scan. Separately: the exact vector combination for this specific right-angle geometry is also not fully confirmable from the scan.] Each of wires A and C exerts a force per unit length of μ₀I²/(2πd) on wire B (from the standard parallel-wire force formula). Since A and C are positioned at a 90° angle relative to each other as seen from B, their force contributions on B must be combined vectorially according to that geometry — the source answer key indicates the net result simplifies to μ₀I²/(2πd), which should be re-verified against a clearer figure showing the exact angular arrangement.",
     },
     {
       exam: "AIIMS 2017 [Q72] (reduced confidence — see note)",
