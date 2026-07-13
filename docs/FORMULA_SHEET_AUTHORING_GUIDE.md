@@ -16,7 +16,14 @@ disagree, this guide wins.
 5. **Fill every formula** completely (all required fields; see standards below)
 6. **Select 5–8 quick-revision formulas** and order them by revision priority
 7. **Run the Quality Checklist** (Section 10) — every box must pass
-8. **Register** — one import + one entry in `index.ts` (content file pushed BEFORE registry)
+8. **Register** — one import + one entry in BOTH `index.ts` and `slugs.ts`
+
+   ⚠️ **Push order (learned the hard way, Sprint 7):** `index.ts` and `slugs.ts` are
+   validated against each other by the build-time drift guard, which throws in BOTH
+   directions. Pushing them as separate commits therefore always creates one broken
+   intermediate commit, and CI may build it. Push all content files first, then push
+   `slugs.ts` and `index.ts` **as a single commit** (Git Trees API), or push them
+   back-to-back and re-run CI on the final HEAD once both have landed.
 9. **Build locally** (`npm run build`, not just tsc) — must be green before push
 10. **Push, poll deployment, verify** on the live chapter page
 
