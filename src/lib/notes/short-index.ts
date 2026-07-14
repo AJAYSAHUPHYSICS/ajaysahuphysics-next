@@ -21,6 +21,7 @@ import { electrostaticPotentialAndCapacitanceShortNotes } from "./electrostatic-
 import { movingChargesAndMagnetismShortNotes } from "./moving-charges-and-magnetism-short";
 import { magnetismAndMatterShortNotes } from "./magnetism-and-matter-short";
 import { electromagneticInductionShortNotes } from "./electromagnetic-induction-short";
+import { semiconductorElectronicsShortNotes } from "./semiconductor-electronics-short";
 import { electromagneticWavesShortNotes } from "./electromagnetic-waves-short";
 import { rayOpticsAndOpticalInstrumentsShortNotes } from "./ray-optics-and-optical-instruments-short";
 import { dualNatureOfRadiationAndMatterShortNotes } from "./dual-nature-of-radiation-and-matter-short";
@@ -59,6 +60,7 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
   "wave-optics": waveOpticsShortNotes,
   "physical-world-and-measurement": physicalWorldAndMeasurementShortNotes,
   "circular-motion": circularMotionShortNotes,
+  "semiconductor-electronics": semiconductorElectronicsShortNotes,
 };
 
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
