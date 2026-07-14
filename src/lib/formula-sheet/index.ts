@@ -24,6 +24,7 @@ import { currentElectricityFormulaSheet } from "./current-electricity";
 import { movingChargesFormulaSheet } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
 import { electromagneticInductionFormulaSheet } from "./electromagnetic-induction";
+import { semiconductorElectronicsFormulaSheet } from "./semiconductor-electronics";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -45,6 +46,7 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "moving-charges-and-magnetism": movingChargesFormulaSheet,
   "magnetism-and-matter": magnetismAndMatterFormulaSheet,
   "electromagnetic-induction": electromagneticInductionFormulaSheet,
+  "semiconductor-electronics": semiconductorElectronicsFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
