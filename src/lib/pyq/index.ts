@@ -11,6 +11,7 @@ import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-flui
 import { thermalPropertiesOfMatterPyq } from "./thermal-properties-of-matter";
 import { thermodynamicsPyq } from "./thermodynamics";
 import { kineticTheoryOfGasesPyq } from "./kinetic-theory-of-gases";
+import { oscillationsPyq } from "./oscillations";
 import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { circularMotionPyq } from "./circular-motion";
 import { currentElectricityPyq } from "./current-electricity";
@@ -41,6 +42,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "thermal-properties-of-matter": thermalPropertiesOfMatterPyq,
   thermodynamics: thermodynamicsPyq,
   "kinetic-theory-of-gases": kineticTheoryOfGasesPyq,
+  oscillations: oscillationsPyq,
   "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   "circular-motion": circularMotionPyq,
   "current-electricity": currentElectricityPyq,
