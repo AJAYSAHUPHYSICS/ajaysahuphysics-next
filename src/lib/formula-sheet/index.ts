@@ -23,6 +23,7 @@ import { potentialCapacitanceFormulaSheet } from "./electrostatic-potential-and-
 import { currentElectricityFormulaSheet } from "./current-electricity";
 import { movingChargesFormulaSheet } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
+import { electromagneticInductionFormulaSheet } from "./electromagnetic-induction";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
   kinematics: kinematicsFormulaSheet,
@@ -43,6 +44,7 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "current-electricity": currentElectricityFormulaSheet,
   "moving-charges-and-magnetism": movingChargesFormulaSheet,
   "magnetism-and-matter": magnetismAndMatterFormulaSheet,
+  "electromagnetic-induction": electromagneticInductionFormulaSheet,
 };
 
 /** Look up a chapter's formula sheet by its chapters.ts slug. */
