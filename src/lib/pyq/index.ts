@@ -9,6 +9,7 @@ import { gravitationPyq } from "./gravitation";
 import { mechanicalPropertiesOfSolidsPyq } from "./mechanical-properties-of-solids";
 import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-fluids";
 import { thermalPropertiesOfMatterPyq } from "./thermal-properties-of-matter";
+import { thermodynamicsPyq } from "./thermodynamics";
 import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { circularMotionPyq } from "./circular-motion";
 import { currentElectricityPyq } from "./current-electricity";
@@ -37,6 +38,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "mechanical-properties-of-solids": mechanicalPropertiesOfSolidsPyq,
   "mechanical-properties-of-fluids": mechanicalPropertiesOfFluidsPyq,
   "thermal-properties-of-matter": thermalPropertiesOfMatterPyq,
+  thermodynamics: thermodynamicsPyq,
   "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   "circular-motion": circularMotionPyq,
   "current-electricity": currentElectricityPyq,
