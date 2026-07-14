@@ -21,6 +21,7 @@ import { electrostaticPotentialAndCapacitanceDpp } from "./electrostatic-potenti
 import { movingChargesAndMagnetismDpp } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterDpp } from "./magnetism-and-matter";
 import { electromagneticInductionDpp } from "./electromagnetic-induction";
+import { semiconductorElectronicsDpp } from "./semiconductor-electronics";
 import { electromagneticWavesDpp } from "./electromagnetic-waves";
 import { rayOpticsAndOpticalInstrumentsDpp } from "./ray-optics-and-optical-instruments";
 import { dualNatureOfRadiationAndMatterDpp } from "./dual-nature-of-radiation-and-matter";
@@ -57,6 +58,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "nuclei": nucleiDpp,
   "physical-world-and-measurement": physicalWorldAndMeasurementDpp,
   "circular-motion": circularMotionDpp,
+  "semiconductor-electronics": semiconductorElectronicsDpp,
 };
 
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
