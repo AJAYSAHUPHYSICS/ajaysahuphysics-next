@@ -12,6 +12,8 @@
 // ─────────────────────────────────────────────────────────────────
 
 export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
+  "basic-mathematics-and-vectors",
+  "physical-world-and-measurement",
   "kinematics",
   "laws-of-motion",
   "work-energy-and-power",
@@ -25,12 +27,20 @@ export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
   "kinetic-theory-of-gases",
   "oscillations",
   "waves",
+  "circular-motion",
   "electric-charges-and-fields",
   "electrostatic-potential-and-capacitance",
   "current-electricity",
   "moving-charges-and-magnetism",
   "magnetism-and-matter",
   "electromagnetic-induction",
+  "alternating-current",
+  "electromagnetic-waves",
+  "ray-optics-and-optical-instruments",
+  "wave-optics",
+  "dual-nature-of-radiation-and-matter",
+  "atoms",
+  "nuclei",
   "semiconductor-electronics",
 ]);
 
