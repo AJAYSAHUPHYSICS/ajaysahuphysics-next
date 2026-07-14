@@ -24,6 +24,7 @@ import { electromagneticInductionDpp } from "./electromagnetic-induction";
 import { semiconductorElectronicsDpp } from "./semiconductor-electronics";
 import { electromagneticWavesDpp } from "./electromagnetic-waves";
 import { rayOpticsAndOpticalInstrumentsDpp } from "./ray-optics-and-optical-instruments";
+import { waveOpticsDpp } from "./wave-optics";
 import { dualNatureOfRadiationAndMatterDpp } from "./dual-nature-of-radiation-and-matter";
 import { nucleiDpp } from "./nuclei";
 import { physicalWorldAndMeasurementDpp } from "./physical-world-and-measurement";
@@ -54,6 +55,7 @@ export const dppRegistry: Record<string, ChapterDpp> = {
   "electromagnetic-induction": electromagneticInductionDpp,
   "electromagnetic-waves": electromagneticWavesDpp,
   "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsDpp,
+  "wave-optics": waveOpticsDpp,
   "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterDpp,
   "nuclei": nucleiDpp,
   "physical-world-and-measurement": physicalWorldAndMeasurementDpp,
