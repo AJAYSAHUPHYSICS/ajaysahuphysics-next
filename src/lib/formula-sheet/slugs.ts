@@ -31,6 +31,7 @@ export const formulaSheetSlugSet: ReadonlySet<string> = new Set([
   "moving-charges-and-magnetism",
   "magnetism-and-matter",
   "electromagnetic-induction",
+  "semiconductor-electronics",
 ]);
 
 /** True if a formula sheet exists for this chapter slug. No content loaded. */
