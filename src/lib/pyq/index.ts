@@ -11,6 +11,7 @@ import { mechanicalPropertiesOfFluidsPyq } from "./mechanical-properties-of-flui
 import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { circularMotionPyq } from "./circular-motion";
 import { currentElectricityPyq } from "./current-electricity";
+import { electricChargesAndFieldsPyq } from "./electric-charges-and-fields";
 import { electrostaticPotentialAndCapacitancePyq } from "./electrostatic-potential-and-capacitance";
 import { movingChargesAndMagnetismPyq } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterPyq } from "./magnetism-and-matter";
@@ -37,6 +38,7 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   "circular-motion": circularMotionPyq,
   "current-electricity": currentElectricityPyq,
+  "electric-charges-and-fields": electricChargesAndFieldsPyq,
   "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitancePyq,
   "moving-charges-and-magnetism": movingChargesAndMagnetismPyq,
   "magnetism-and-matter": magnetismAndMatterPyq,
