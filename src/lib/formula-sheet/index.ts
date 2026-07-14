@@ -5,6 +5,8 @@
 // ─────────────────────────────────────────────────────────────────
 
 import type { ChapterFormulaSheet, FormulaSheetRegistry } from "./types";
+import { basicMathematicsAndVectorsFormulaSheet } from "./basic-mathematics-and-vectors";
+import { physicalWorldAndMeasurementFormulaSheet } from "./physical-world-and-measurement";
 import { kinematicsFormulaSheet } from "./kinematics";
 import { lawsOfMotionFormulaSheet } from "./laws-of-motion";
 import { workEnergyAndPowerFormulaSheet } from "./work-energy-and-power";
@@ -18,15 +20,25 @@ import { thermodynamicsFormulaSheet } from "./thermodynamics";
 import { kineticTheoryFormulaSheet } from "./kinetic-theory-of-gases";
 import { oscillationsFormulaSheet } from "./oscillations";
 import { wavesFormulaSheet } from "./waves";
+import { circularMotionFormulaSheet } from "./circular-motion";
 import { electricChargesAndFieldsFormulaSheet } from "./electric-charges-and-fields";
 import { potentialCapacitanceFormulaSheet } from "./electrostatic-potential-and-capacitance";
 import { currentElectricityFormulaSheet } from "./current-electricity";
 import { movingChargesFormulaSheet } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterFormulaSheet } from "./magnetism-and-matter";
 import { electromagneticInductionFormulaSheet } from "./electromagnetic-induction";
+import { alternatingCurrentFormulaSheet } from "./alternating-current";
+import { electromagneticWavesFormulaSheet } from "./electromagnetic-waves";
+import { rayOpticsAndOpticalInstrumentsFormulaSheet } from "./ray-optics-and-optical-instruments";
+import { waveOpticsFormulaSheet } from "./wave-optics";
+import { dualNatureOfRadiationAndMatterFormulaSheet } from "./dual-nature-of-radiation-and-matter";
+import { atomsFormulaSheet } from "./atoms";
+import { nucleiFormulaSheet } from "./nuclei";
 import { semiconductorElectronicsFormulaSheet } from "./semiconductor-electronics";
 
 export const formulaSheetRegistry: FormulaSheetRegistry = {
+  "basic-mathematics-and-vectors": basicMathematicsAndVectorsFormulaSheet,
+  "physical-world-and-measurement": physicalWorldAndMeasurementFormulaSheet,
   kinematics: kinematicsFormulaSheet,
   "laws-of-motion": lawsOfMotionFormulaSheet,
   "work-energy-and-power": workEnergyAndPowerFormulaSheet,
@@ -40,12 +52,20 @@ export const formulaSheetRegistry: FormulaSheetRegistry = {
   "kinetic-theory-of-gases": kineticTheoryFormulaSheet,
   oscillations: oscillationsFormulaSheet,
   waves: wavesFormulaSheet,
+  "circular-motion": circularMotionFormulaSheet,
   "electric-charges-and-fields": electricChargesAndFieldsFormulaSheet,
   "electrostatic-potential-and-capacitance": potentialCapacitanceFormulaSheet,
   "current-electricity": currentElectricityFormulaSheet,
   "moving-charges-and-magnetism": movingChargesFormulaSheet,
   "magnetism-and-matter": magnetismAndMatterFormulaSheet,
   "electromagnetic-induction": electromagneticInductionFormulaSheet,
+  "alternating-current": alternatingCurrentFormulaSheet,
+  "electromagnetic-waves": electromagneticWavesFormulaSheet,
+  "ray-optics-and-optical-instruments": rayOpticsAndOpticalInstrumentsFormulaSheet,
+  "wave-optics": waveOpticsFormulaSheet,
+  "dual-nature-of-radiation-and-matter": dualNatureOfRadiationAndMatterFormulaSheet,
+  atoms: atomsFormulaSheet,
+  nuclei: nucleiFormulaSheet,
   "semiconductor-electronics": semiconductorElectronicsFormulaSheet,
 };
 
