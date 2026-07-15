@@ -68,6 +68,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           chapterName: chapter.name,
         })}
       />
+      <h2 className="font-display text-2xl text-navy mb-4">
+        {chapter.name} Overview
+      </h2>
+
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-3">
           About this chapter
