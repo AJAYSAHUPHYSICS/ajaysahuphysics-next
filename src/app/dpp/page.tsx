@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Practice Questions",
   description:
     "Chapter-wise Practice Questions for Class 11, Class 12, JEE Main, JEE Advanced, and NEET physics.",
+  alternates: { canonical: "/dpp" },
 };
 
 export default function DppPage() {
