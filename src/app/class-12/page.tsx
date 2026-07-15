@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import ClassExamPicker from "@/components/ClassExamPicker";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Class 12 Physics",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function Class12Page() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Class 12", path: "/class-12" },
+        ])}
+      />
       <PageHero
         eyebrow="Class 12 Physics"
         title="The chapters that carry the most weight in JEE and NEET."
