@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "PYQ — Previous Year Questions",
   description:
     "Chapter-wise Previous Year Questions (PYQ) for JEE Main, JEE Advanced, and NEET physics.",
+  alternates: { canonical: "/pyq" },
 };
 
 export default function PyqPage() {
