@@ -1,5 +1,6 @@
 import type { ChapterContent } from "./types";
 import { mechanicsContent } from "./mechanics";
+import { propertiesOfMatterContent } from "./properties-of-matter";
 
 // ─────────────────────────────────────────────────────────────────
 // Merge order matches Project ATLAS Milestone M7's build-out order:
@@ -16,6 +17,7 @@ import { mechanicsContent } from "./mechanics";
 
 export const chapterContentRegistry: Record<string, ChapterContent> = {
   ...mechanicsContent,
+  ...propertiesOfMatterContent,
 };
 
 export function getChapterContent(slug: string): ChapterContent | undefined {
