@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import LeadCaptureForm from "@/components/LeadCaptureForm";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const resourceCards = [
   {
