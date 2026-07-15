@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import NeetResourceTabs from "@/components/NeetResourceTabs";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "NEET Physics",
@@ -28,6 +29,12 @@ const focusAreas = [
 export default function NeetPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "NEET", path: "/neet" },
+        ])}
+      />
       <PageHero
         eyebrow="NEET Track"
         title="Physics preparation focused entirely on NEET's exam pattern."
