@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "NEET Physics",
   description:
     "Complete NEET physics preparation — notes, formula sheets, Practice Questions, and PYQs by Ajay Sahu, focused on NEET's exam pattern.",
+  alternates: { canonical: "/neet" },
 };
 
 const focusAreas = [
