@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Video Lectures",
@@ -27,6 +28,12 @@ const formats = [
 export default function VideosPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Video Lectures", path: "/videos" },
+        ])}
+      />
       <PageHero
         eyebrow="Video Lectures"
         title="Video lectures are on the way."
