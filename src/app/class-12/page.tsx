@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Class 12 Physics",
   description:
     "Class 12 Physics chapters, notes, formula sheets, Practice Questions, and PYQs — covering electrostatics, current electricity, optics, and modern physics.",
+  alternates: { canonical: "/class-12" },
 };
 
 export default function Class12Page() {
