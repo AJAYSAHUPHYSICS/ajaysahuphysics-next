@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import PyqExamPicker from "@/components/PyqExamPicker";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "PYQ — Previous Year Questions",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function PyqPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "PYQ", path: "/pyq" },
+        ])}
+      />
       <PageHero
         eyebrow="PYQ Hub"
         title="Previous Year Questions, sorted by chapter."
