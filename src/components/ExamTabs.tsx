@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
 import { allChapters, type Chapter } from "@/lib/chapters";
-import { notesRegistry } from "@/lib/notes";
-import { dppRegistry } from "@/lib/dpp";
-import { pyqRegistry } from "@/lib/pyq";
+import { hasNotes } from "@/lib/notes/slugs";
+import { hasDpp } from "@/lib/dpp/slugs";
+import { hasPyqFor } from "@/lib/pyq/availability";
 import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
@@ -30,23 +30,17 @@ function isAvailableFor(
   chapter: Chapter
 ): boolean {
   const slug = chapter.slug;
-  if (resourceType === "notes") return !!notesRegistry[slug];
-  if (resourceType === "dpp") return !!dppRegistry[slug];
+  if (resourceType === "notes") return hasNotes(slug);
+  if (resourceType === "dpp") return hasDpp(slug);
   if (resourceType === "formula-sheet") return hasFormulaSheet(slug);
 
   // resourceType === "pyq" — availability depends on which exam tab is active,
   // since PYQ is the one resource genuinely split by exam type.
-  const pyq = pyqRegistry[slug];
-  if (!pyq) return false;
-  if (activeTab === "jee-main") {
-    return pyq.questions.some((q) => q.examType === "jee-main");
-  }
-  if (activeTab === "jee-advanced") {
-    return pyq.questions.some((q) => q.examType === "jee-advanced");
-  }
+  if (activeTab === "jee-main") return hasPyqFor(slug, "jee-main");
+  if (activeTab === "jee-advanced") return hasPyqFor(slug, "jee-advanced");
   // NEET tab: available if there's at least one legacy (untagged) question —
   // every existing NEET/AIPMT/AIIMS question predates the examType field.
-  return pyq.questions.some((q) => !q.examType);
+  return hasPyqFor(slug, "neet");
 }
 
 export default function ExamTabs({
