@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import JeeMainAdvancedPicker from "@/components/JeeMainAdvancedPicker";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "JEE Physics",
@@ -13,6 +14,12 @@ export const metadata: Metadata = {
 export default function JeePage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "JEE", path: "/jee" },
+        ])}
+      />
       <PageHero
         eyebrow="JEE Track"
         title="Physics preparation built for both JEE Main and JEE Advanced."
