@@ -68,3 +68,20 @@ export const notesRegistry: Record<string, ChapterNotes> = {
 export function getChapterNotes(slug: string): ChapterNotes | undefined {
   return notesRegistry[slug];
 }
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures slugs.ts (lightweight availability) matches the real registry.
+// Runs at module load during build; a mismatch throws and fails CI,
+// so the two sources can never silently diverge.
+import { notesSlugSet } from "./slugs";
+{
+  const registryKeys = Object.keys(notesRegistry);
+  const missingInSlugs = registryKeys.filter((k) => !notesSlugSet.has(k));
+  const extraInSlugs = [...notesSlugSet].filter((k) => !(k in notesRegistry));
+  if (missingInSlugs.length || extraInSlugs.length) {
+    throw new Error(
+      `notes slugs.ts is out of sync with index.ts. ` +
+        `Missing in slugs: [${missingInSlugs}]. Extra in slugs: [${extraInSlugs}].`
+    );
+  }
+}
