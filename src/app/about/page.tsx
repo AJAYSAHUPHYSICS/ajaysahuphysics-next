@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Meet Ajay Sahu — physics faculty for JEE and NEET with experience at Physics Wallah, Aakash Institute, and Narayana Institute.",
+  alternates: { canonical: "/about" },
 };
 
 const stats = [
