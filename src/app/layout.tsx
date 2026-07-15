@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@fontsource/source-serif-4/500.css";
 import "@fontsource/source-serif-4/600.css";
 import "@fontsource/source-serif-4/700.css";
@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
 import { siteConfig } from "@/lib/site-config";
+import { JsonLd, websiteJsonLd, organizationJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: {
@@ -46,6 +47,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0b1f45",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +59,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <JsonLd data={websiteJsonLd()} />
+        <JsonLd data={organizationJsonLd()} />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-navy focus:font-semibold focus:shadow-lg focus:outline-2 focus:outline-gold"
