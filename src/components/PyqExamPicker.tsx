@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
 import { allChapters, type Chapter } from "@/lib/chapters";
-import { pyqRegistry } from "@/lib/pyq";
+import { hasPyqFor } from "@/lib/pyq/availability";
 
 type ExamChoice = "neet" | "jee-main" | "jee-advanced" | null;
 type ClassFilter = "all" | "11" | "12";
@@ -33,10 +33,7 @@ const classFilters: { key: ClassFilter; label: string }[] = [
 ];
 
 function isAvailable(exam: Exclude<ExamChoice, null>, chapter: Chapter): boolean {
-  const pyq = pyqRegistry[chapter.slug];
-  if (!pyq) return false;
-  if (exam === "neet") return pyq.questions.some((q) => !q.examType);
-  return pyq.questions.some((q) => q.examType === exam);
+  return hasPyqFor(chapter.slug, exam);
 }
 
 export default function PyqExamPicker() {
