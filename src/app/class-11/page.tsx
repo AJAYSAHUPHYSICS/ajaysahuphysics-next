@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import ClassExamPicker from "@/components/ClassExamPicker";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Class 11 Physics",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function Class11Page() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Class 11", path: "/class-11" },
+        ])}
+      />
       <PageHero
         eyebrow="Class 11 Physics"
         title="The foundation chapters that decide how easy Class 12 feels."
