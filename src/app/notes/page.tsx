@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import ExamTabs from "@/components/ExamTabs";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Notes",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function NotesPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Notes", path: "/notes" },
+        ])}
+      />
       <PageHero
         eyebrow="Notes Hub"
         title="Typed, chapter-wise notes built for revision."
