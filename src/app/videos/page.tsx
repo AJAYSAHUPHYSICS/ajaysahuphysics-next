@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Video Lectures",
   description:
     "Video lectures and concept walkthroughs for JEE and NEET physics by Ajay Sahu, coming soon on a dedicated YouTube channel.",
+  alternates: { canonical: "/videos" },
 };
 
 const formats = [
