@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import ExamTabs from "@/components/ExamTabs";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Formula Sheet",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function FormulaSheetPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Formula Sheet", path: "/formula-sheet" },
+        ])}
+      />
       <PageHero
         eyebrow="Formula Sheet Hub"
         title="Every formula, organized by chapter."
