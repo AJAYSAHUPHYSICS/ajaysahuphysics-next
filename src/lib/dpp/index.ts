@@ -66,3 +66,20 @@ export const dppRegistry: Record<string, ChapterDpp> = {
 export function getChapterDpp(slug: string): ChapterDpp | undefined {
   return dppRegistry[slug];
 }
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures slugs.ts (lightweight availability) matches the real registry.
+// Runs at module load during build; a mismatch throws and fails CI,
+// so the two sources can never silently diverge.
+import { dppSlugSet } from "./slugs";
+{
+  const registryKeys = Object.keys(dppRegistry);
+  const missingInSlugs = registryKeys.filter((k) => !dppSlugSet.has(k));
+  const extraInSlugs = [...dppSlugSet].filter((k) => !(k in dppRegistry));
+  if (missingInSlugs.length || extraInSlugs.length) {
+    throw new Error(
+      `dpp slugs.ts is out of sync with index.ts. ` +
+        `Missing in slugs: [${missingInSlugs}]. Extra in slugs: [${extraInSlugs}].`
+    );
+  }
+}
