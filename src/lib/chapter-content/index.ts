@@ -4,6 +4,7 @@ import { propertiesOfMatterContent } from "./properties-of-matter";
 import { thermodynamicsClusterContent } from "./thermodynamics-cluster";
 import { oscillationsAndWavesContent } from "./oscillations-and-waves";
 import { electrostaticsContent } from "./electrostatics";
+import { currentElectricityContent } from "./current-electricity";
 
 // ─────────────────────────────────────────────────────────────────
 // Merge order matches Project ATLAS Milestone M7's build-out order:
@@ -24,6 +25,7 @@ export const chapterContentRegistry: Record<string, ChapterContent> = {
   ...thermodynamicsClusterContent,
   ...oscillationsAndWavesContent,
   ...electrostaticsContent,
+  ...currentElectricityContent,
 };
 
 export function getChapterContent(slug: string): ChapterContent | undefined {
