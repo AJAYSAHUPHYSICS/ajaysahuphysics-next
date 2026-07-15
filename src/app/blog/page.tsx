@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Blog",
   description:
     "Physics study tips, exam strategy, and updates from Ajay Sahu for JEE and NEET aspirants.",
+  alternates: { canonical: "/blog" },
 };
 
 const posts = [
