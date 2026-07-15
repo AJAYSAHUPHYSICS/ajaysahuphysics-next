@@ -7,6 +7,7 @@ import {
   type ResourceKey,
 } from "@/lib/resource-registry";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 type Params = { slug: string; resource: string };
 
@@ -82,6 +83,18 @@ export default async function Page({
           chapterName: chapter.name,
         })}
       />
+
+      <div className="mb-4">
+        <Breadcrumbs
+          variant="light"
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Class 12", href: "/class-12" },
+            { label: chapter.name, href: `/class-12/${slug}` },
+            { label: def.label },
+          ]}
+        />
+      </div>
 
       <h2 className="font-display text-2xl text-navy mb-4">
         {chapter.name} {def.label}
