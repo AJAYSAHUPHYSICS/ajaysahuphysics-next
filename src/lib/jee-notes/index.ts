@@ -28,3 +28,20 @@ export const jeeNotesRegistry: Record<string, ChapterJeeNotes> = {
 export function getChapterJeeNotes(slug: string): ChapterJeeNotes | undefined {
   return jeeNotesRegistry[slug];
 }
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures slugs.ts (lightweight availability) matches the real registry.
+// Runs at module load during build; a mismatch throws and fails CI,
+// so the two sources can never silently diverge.
+import { jeeNotesSlugSet } from "./slugs";
+{
+  const registryKeys = Object.keys(jeeNotesRegistry);
+  const missingInSlugs = registryKeys.filter((k) => !jeeNotesSlugSet.has(k));
+  const extraInSlugs = [...jeeNotesSlugSet].filter((k) => !(k in jeeNotesRegistry));
+  if (missingInSlugs.length || extraInSlugs.length) {
+    throw new Error(
+      `jee-notes slugs.ts is out of sync with index.ts. ` +
+        `Missing in slugs: [${missingInSlugs}]. Extra in slugs: [${extraInSlugs}].`
+    );
+  }
+}
