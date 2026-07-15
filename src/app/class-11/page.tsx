@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Class 11 Physics",
   description:
     "Class 11 Physics chapters, notes, formula sheets, Practice Questions, and PYQs — covering mechanics, thermodynamics, oscillations, and waves.",
+  alternates: { canonical: "/class-11" },
 };
 
 export default function Class11Page() {
