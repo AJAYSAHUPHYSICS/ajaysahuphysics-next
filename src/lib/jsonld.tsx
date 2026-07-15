@@ -16,6 +16,45 @@ export function breadcrumbJsonLd(items: BreadcrumbItem[]) {
   };
 }
 
+/**
+ * Builds a schema.org WebSite object for the site as a whole. Intentionally
+ * omits `potentialAction` (SearchAction) — the site has no crawlable,
+ * URL-pattern-based search endpoint (the "Search chapters..." boxes are
+ * client-side filters over an already-loaded list, not a real search route),
+ * and Google's guidelines require SearchAction to point to genuine search
+ * results. Adding it without a real endpoint would be invalid structured
+ * data. Render once, in the root layout.
+ */
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    inLanguage: "en",
+  };
+}
+
+/**
+ * Builds a schema.org Organization object describing the coaching brand.
+ * Render once, in the root layout.
+ */
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: siteConfig.name,
+    url: siteConfig.url,
+    logo: `${siteConfig.url}/icon.png`,
+    email: siteConfig.email,
+    sameAs: [siteConfig.instagram, siteConfig.linkedin],
+    founder: {
+      "@type": "Person",
+      name: "Ajay Sahu",
+    },
+  };
+}
+
 /** Builds a schema.org LearningResource object for a chapter resource page. */
 export function learningResourceJsonLd(params: {
   name: string;
