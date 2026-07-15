@@ -19,7 +19,7 @@ export async function generateMetadata({
   const chapter = getChapterBySlug("12", slug);
   if (!chapter) return {};
 
-  const title = `${chapter.name} — Class 12 Physics`;
+  const title = `${chapter.name} — Class 12`;
   const description = `Notes, formula sheet, practice questions, and PYQ for ${chapter.name}, a Class 12 Physics chapter for JEE and NEET.`;
   const path = `/class-12/${chapter.slug}`;
 
