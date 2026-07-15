@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
 import { allChapters, type Chapter } from "@/lib/chapters";
-import { jeeNotesRegistry } from "@/lib/jee-notes";
-import { jeeDppRegistry } from "@/lib/jee-dpp";
-import { pyqRegistry } from "@/lib/pyq";
+import { hasJeeNotes } from "@/lib/jee-notes/slugs";
+import { hasJeeDpp } from "@/lib/jee-dpp/slugs";
+import { hasPyqFor } from "@/lib/pyq/availability";
+import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
 
 type ResourceKey = "notes" | "formula-sheet" | "dpp" | "pyq";
 type ClassFilter = "all" | "11" | "12";
@@ -28,13 +29,11 @@ function isAvailable(
   chapter: Chapter
 ): boolean {
   const slug = chapter.slug;
-  if (resource === "notes") return !!jeeNotesRegistry[slug];
-  if (resource === "dpp") return !!jeeDppRegistry[slug];
-  if (resource === "formula-sheet") return false; // not built yet for any chapter on the site
+  if (resource === "notes") return hasJeeNotes(slug);
+  if (resource === "dpp") return hasJeeDpp(slug);
+  if (resource === "formula-sheet") return hasFormulaSheet(slug);
 
-  const pyq = pyqRegistry[slug];
-  if (!pyq) return false;
-  return pyq.questions.some((q) => q.examType === examFilter);
+  return hasPyqFor(slug, examFilter);
 }
 
 export default function SingleExamResourceTabs({
@@ -89,13 +88,6 @@ export default function SingleExamResourceTabs({
           </button>
         ))}
       </div>
-
-      {active === "formula-sheet" && (
-        <p className="text-sm text-slate/70 mb-5 max-w-xl">
-          Formula sheets are being prepared chapter by chapter — message Ajay
-          Sir on WhatsApp from any chapter card below to get notified.
-        </p>
-      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <div className="relative flex-1 max-w-sm">
