@@ -35,6 +35,8 @@ export type ResourceKey =
 export type ResourceDef = {
   key: ResourceKey;
   label: string;
+  /** Compact noun for <title> tags — keeps titles within SEO-safe length. */
+  titleNoun: string;
   /** Noun used in generated titles/descriptions, e.g. "formula sheet". */
   seoNoun: string;
   /** schema.org LearningResource `learningResourceType` value. */
@@ -60,6 +62,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   notes: {
     key: "notes",
     label: "Notes",
+    titleNoun: "Notes",
     seoNoun: "notes",
     learningResourceType: "Lecture Notes",
     hasData: (slug) => !!getChapterNotes(slug),
@@ -73,6 +76,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   "jee-notes": {
     key: "jee-notes",
     label: "JEE Notes",
+    titleNoun: "JEE Notes",
     seoNoun: "JEE notes",
     learningResourceType: "Lecture Notes",
     hasData: (slug) => !!getChapterJeeNotes(slug),
@@ -86,6 +90,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   "short-notes": {
     key: "short-notes",
     label: "Short Notes",
+    titleNoun: "Short Notes",
     seoNoun: "short notes",
     learningResourceType: "Lecture Notes",
     hasData: (slug) => !!getChapterShortNotes(slug),
@@ -99,6 +104,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   "formula-sheet": {
     key: "formula-sheet",
     label: "Formula Sheet",
+    titleNoun: "Formulas",
     seoNoun: "formula sheet",
     learningResourceType: "Formula Sheet",
     hasData: (slug) => !!getChapterFormulaSheet(slug),
@@ -116,6 +122,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   dpp: {
     key: "dpp",
     label: "Practice Questions",
+    titleNoun: "DPP",
     seoNoun: "practice questions",
     learningResourceType: "Practice Problems",
     hasData: (slug) => !!getChapterDpp(slug),
@@ -133,6 +140,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   "jee-dpp": {
     key: "jee-dpp",
     label: "JEE Practice Questions",
+    titleNoun: "JEE DPP",
     seoNoun: "JEE practice questions",
     learningResourceType: "Practice Problems",
     hasData: (slug) => !!getChapterJeeDpp(slug),
@@ -150,6 +158,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
   pyq: {
     key: "pyq",
     label: "PYQ",
+    titleNoun: "PYQ",
     seoNoun: "previous year questions",
     learningResourceType: "Practice Problems",
     hasData: (slug) => !!getChapterPyq(slug),
