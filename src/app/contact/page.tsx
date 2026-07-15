@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { siteConfig } from "@/lib/site-config";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -40,6 +41,12 @@ const channels = [
 export default function ContactPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Contact", path: "/contact" },
+        ])}
+      />
       <PageHero
         eyebrow="Contact"
         title="Have a question? Message Ajay Sir directly."
