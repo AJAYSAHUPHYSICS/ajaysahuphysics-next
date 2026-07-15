@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Notes",
   description:
     "Chapter-wise typed physics notes for Class 11, Class 12, JEE Main, JEE Advanced, and NEET.",
+  alternates: { canonical: "/notes" },
 };
 
 export default function NotesPage() {
