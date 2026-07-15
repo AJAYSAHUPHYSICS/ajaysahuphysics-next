@@ -1,9 +1,10 @@
 import type { ChapterPyq } from "./kinematics";
 import { basicMathematicsAndVectorsPyq } from "./basic-mathematics-and-vectors";
-import { centreOfMassAndCollisionsPyq } from "./centre-of-mass-and-collisions";
+import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { kinematicsPyq } from "./kinematics";
 import { lawsOfMotionPyq } from "./laws-of-motion";
 import { workEnergyAndPowerPyq } from "./work-energy-and-power";
+import { centreOfMassAndCollisionsPyq } from "./centre-of-mass-and-collisions";
 import { rotationalMotionPyq } from "./rotational-motion";
 import { gravitationPyq } from "./gravitation";
 import { mechanicalPropertiesOfSolidsPyq } from "./mechanical-properties-of-solids";
@@ -13,11 +14,10 @@ import { thermodynamicsPyq } from "./thermodynamics";
 import { kineticTheoryOfGasesPyq } from "./kinetic-theory-of-gases";
 import { oscillationsPyq } from "./oscillations";
 import { wavesPyq } from "./waves";
-import { physicalWorldAndMeasurementPyq } from "./physical-world-and-measurement";
 import { circularMotionPyq } from "./circular-motion";
-import { currentElectricityPyq } from "./current-electricity";
 import { electricChargesAndFieldsPyq } from "./electric-charges-and-fields";
 import { electrostaticPotentialAndCapacitancePyq } from "./electrostatic-potential-and-capacitance";
+import { currentElectricityPyq } from "./current-electricity";
 import { movingChargesAndMagnetismPyq } from "./moving-charges-and-magnetism";
 import { magnetismAndMatterPyq } from "./magnetism-and-matter";
 import { electromagneticInductionPyq } from "./electromagnetic-induction";
@@ -32,10 +32,11 @@ import { semiconductorElectronicsPyq } from "./semiconductor-electronics";
 
 export const pyqRegistry: Record<string, ChapterPyq> = {
   "basic-mathematics-and-vectors": basicMathematicsAndVectorsPyq,
-  "centre-of-mass-and-collisions": centreOfMassAndCollisionsPyq,
+  "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   kinematics: kinematicsPyq,
   "laws-of-motion": lawsOfMotionPyq,
   "work-energy-and-power": workEnergyAndPowerPyq,
+  "centre-of-mass-and-collisions": centreOfMassAndCollisionsPyq,
   "system-of-particles-and-rotational-motion": rotationalMotionPyq,
   gravitation: gravitationPyq,
   "mechanical-properties-of-solids": mechanicalPropertiesOfSolidsPyq,
@@ -45,11 +46,10 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
   "kinetic-theory-of-gases": kineticTheoryOfGasesPyq,
   oscillations: oscillationsPyq,
   waves: wavesPyq,
-  "physical-world-and-measurement": physicalWorldAndMeasurementPyq,
   "circular-motion": circularMotionPyq,
-  "current-electricity": currentElectricityPyq,
   "electric-charges-and-fields": electricChargesAndFieldsPyq,
   "electrostatic-potential-and-capacitance": electrostaticPotentialAndCapacitancePyq,
+  "current-electricity": currentElectricityPyq,
   "moving-charges-and-magnetism": movingChargesAndMagnetismPyq,
   "magnetism-and-matter": magnetismAndMatterPyq,
   "electromagnetic-induction": electromagneticInductionPyq,
