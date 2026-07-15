@@ -5,8 +5,12 @@ import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
 
 export const dynamic = "force-static";
 
-// Update this date when site content meaningfully changes.
-const LAST_MODIFIED = new Date("2026-06-19");
+// Computed once at build time (this route is `force-static`, so this runs
+// during `next build`, not per-request — no runtime fetching involved).
+// This replaces a hand-maintained hardcoded date that reliably went stale
+// between deploys; a build-time timestamp instead reflects the actual date
+// of the last production deployment automatically, with no upkeep required.
+const LAST_MODIFIED = new Date();
 
 function chapterResourceUrls(base: string, chapters: Chapter[]) {
   return chapters.flatMap((ch) => {
