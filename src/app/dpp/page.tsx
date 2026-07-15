@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
 import ExamTabs from "@/components/ExamTabs";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Practice Questions",
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 export default function DppPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Practice Questions", path: "/dpp" },
+        ])}
+      />
       <PageHero
         eyebrow="Practice Questions Hub"
         title="Practice Questions, chapter by chapter."
