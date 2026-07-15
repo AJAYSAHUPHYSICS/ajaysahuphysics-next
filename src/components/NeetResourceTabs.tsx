@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import ChapterGrid from "./ChapterGrid";
 import { allChapters, type Chapter } from "@/lib/chapters";
-import { notesRegistry } from "@/lib/notes";
-import { dppRegistry } from "@/lib/dpp";
-import { pyqRegistry } from "@/lib/pyq";
+import { hasNotes } from "@/lib/notes/slugs";
+import { hasDpp } from "@/lib/dpp/slugs";
+import { hasPyqFor } from "@/lib/pyq/availability";
+import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
 
 type ResourceKey = "notes" | "formula-sheet" | "dpp" | "pyq";
 type ClassFilter = "all" | "11" | "12";
@@ -25,16 +26,14 @@ const classFilters: { key: ClassFilter; label: string }[] = [
 
 function isAvailable(resource: ResourceKey, chapter: Chapter): boolean {
   const slug = chapter.slug;
-  if (resource === "notes") return !!notesRegistry[slug];
-  if (resource === "dpp") return !!dppRegistry[slug];
-  if (resource === "formula-sheet") return false; // not built yet for any chapter on the site
+  if (resource === "notes") return hasNotes(slug);
+  if (resource === "dpp") return hasDpp(slug);
+  if (resource === "formula-sheet") return hasFormulaSheet(slug);
 
   // PYQ on the NEET page specifically means: does this chapter have at least
   // one NEET/AIPMT/AIIMS-style (untagged) question? JEE-only chapters with
   // exclusively jee-main/jee-advanced tagged questions correctly stay unavailable here.
-  const pyq = pyqRegistry[slug];
-  if (!pyq) return false;
-  return pyq.questions.some((q) => !q.examType);
+  return hasPyqFor(slug, "neet");
 }
 
 export default function NeetResourceTabs({
@@ -76,13 +75,6 @@ export default function NeetResourceTabs({
           </button>
         ))}
       </div>
-
-      {active === "formula-sheet" && (
-        <p className="text-sm text-slate/70 mb-5 max-w-xl">
-          Formula sheets are being prepared chapter by chapter — message Ajay
-          Sir on WhatsApp from any chapter card below to get notified.
-        </p>
-      )}
 
       <div className="flex flex-col sm:flex-row gap-3 mb-8">
         <div className="relative flex-1 max-w-sm">
