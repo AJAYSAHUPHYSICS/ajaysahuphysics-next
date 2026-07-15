@@ -34,7 +34,7 @@ export async function generateMetadata({
   const def = resolveEntry(resource);
   if (!chapter || !def || !def.hasData(slug)) return {};
 
-  const title = `${chapter.name} ${def.label} — Class 12 Physics`;
+  const title = `${chapter.name} ${def.titleNoun}`;
   const description = def.describe(chapter.name, slug);
   const path = `/class-12/${slug}/${resource}`;
 
@@ -82,6 +82,10 @@ export default async function Page({
           chapterName: chapter.name,
         })}
       />
+
+      <h2 className="font-display text-2xl text-navy mb-4">
+        {chapter.name} {def.label}
+      </h2>
 
       {resource === "notes" ? (
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
