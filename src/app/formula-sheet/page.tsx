@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Formula Sheet",
   description:
     "Chapter-wise physics formula sheets for Class 11, Class 12, JEE Main, JEE Advanced, and NEET — every derived result in one place.",
+  alternates: { canonical: "/formula-sheet" },
 };
 
 export default function FormulaSheetPage() {
