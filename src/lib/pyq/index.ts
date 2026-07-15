@@ -66,3 +66,27 @@ export const pyqRegistry: Record<string, ChapterPyq> = {
 export function getChapterPyq(slug: string): ChapterPyq | undefined {
   return pyqRegistry[slug];
 }
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures availability.ts (lightweight exam-type map) covers the same
+// chapters as the real registry. Runs at module load during build; a
+// mismatch throws and fails CI, so the two sources can never silently
+// diverge. (Per-exam-type booleans inside availability.ts are derived by
+// hand from question data and are not deep-verified here — only slug
+// coverage is guarded, matching the same guarantee formula-sheet/notes/dpp
+// slug guards provide.)
+import { pyqAvailability } from "./availability";
+{
+  const registryKeys = Object.keys(pyqRegistry);
+  const availabilityKeys = Object.keys(pyqAvailability);
+  const missingInAvailability = registryKeys.filter(
+    (k) => !availabilityKeys.includes(k)
+  );
+  const extraInAvailability = availabilityKeys.filter((k) => !(k in pyqRegistry));
+  if (missingInAvailability.length || extraInAvailability.length) {
+    throw new Error(
+      `pyq availability.ts is out of sync with index.ts. ` +
+        `Missing in availability: [${missingInAvailability}]. Extra in availability: [${extraInAvailability}].`
+    );
+  }
+}
