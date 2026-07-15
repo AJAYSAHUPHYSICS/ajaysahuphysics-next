@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { class11Chapters, getChapterBySlug } from "@/lib/chapters";
 import { getChapterOverview } from "@/lib/chapter-overviews";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
+import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
 
 type Params = { slug: string };
 
@@ -77,6 +79,29 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           About this chapter
         </h3>
         <p className="text-slate leading-relaxed">{overview}</p>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-3">
+          Study {chapter.name}
+        </h3>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          {RESOURCE_ORDER.filter((key) =>
+            resourceRegistry[key].hasData(chapter.slug)
+          ).map((key) => {
+            const def = resourceRegistry[key];
+            return (
+              <li key={key}>
+                <Link
+                  href={`${path}/${key}`}
+                  className="text-slate hover:text-gold-deep transition-colors"
+                >
+                  {chapter.name} {def.seoNoun}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
