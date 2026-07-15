@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Get in touch with Ajay Sahu Physics over WhatsApp, email, or social media for demo classes and doubt support.",
+  alternates: { canonical: "/contact" },
 };
 
 const channels = [
