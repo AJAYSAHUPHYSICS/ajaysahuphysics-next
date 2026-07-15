@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/PageHero";
+import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -35,6 +36,12 @@ const posts = [
 export default function BlogPage() {
   return (
     <div>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Blog", path: "/blog" },
+        ])}
+      />
       <PageHero
         eyebrow="Blog"
         title="Notes from the classroom, for the exam."
