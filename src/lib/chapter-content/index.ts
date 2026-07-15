@@ -10,6 +10,7 @@ import { emiAndAcContent } from "./emi-and-ac";
 import { opticsContent } from "./optics";
 import { modernPhysicsContent } from "./modern-physics";
 import { semiconductorPhysicsContent } from "./semiconductor-physics";
+import { electromagneticWavesContent } from "./electromagnetic-waves";
 
 // ─────────────────────────────────────────────────────────────────
 // Merge order matches Project ATLAS Milestone M7's build-out order:
@@ -36,6 +37,7 @@ export const chapterContentRegistry: Record<string, ChapterContent> = {
   ...opticsContent,
   ...modernPhysicsContent,
   ...semiconductorPhysicsContent,
+  ...electromagneticWavesContent,
 };
 
 export function getChapterContent(slug: string): ChapterContent | undefined {
