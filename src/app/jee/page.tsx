@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "JEE Physics",
   description:
     "Complete JEE Main and JEE Advanced physics preparation — notes, formula sheets, Practice Questions, and PYQs by Ajay Sahu.",
+  alternates: { canonical: "/jee" },
 };
 
 export default function JeePage() {
