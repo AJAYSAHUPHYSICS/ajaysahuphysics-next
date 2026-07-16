@@ -8,6 +8,7 @@ import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd, faqPageJsonLd } from 
 import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
 import RelatedChaptersList from "@/components/RelatedChaptersList";
 import ChapterFaqAccordion from "@/components/ChapterFaqAccordion";
+import RecordChapterVisit from "@/components/RecordChapterVisit";
 
 type Params = { slug: string };
 
@@ -75,6 +76,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         })}
       />
       {content && <JsonLd data={faqPageJsonLd(content.faqs)} />}
+      <RecordChapterVisit slug={chapter.slug} cls={chapter.cls} name={chapter.name} />
       <h2 className="font-display text-2xl text-navy mb-4">
         {chapter.name} Overview
       </h2>
