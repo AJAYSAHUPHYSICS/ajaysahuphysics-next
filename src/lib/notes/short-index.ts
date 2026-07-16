@@ -66,3 +66,20 @@ export const shortNotesRegistry: Record<string, ChapterShortNotes> = {
 export function getChapterShortNotes(slug: string): ChapterShortNotes | undefined {
   return shortNotesRegistry[slug];
 }
+
+// ── Build-time drift guard ───────────────────────────────────────
+// Ensures short-slugs.ts (lightweight availability) matches the real
+// registry. Runs at module load during build; a mismatch throws and
+// fails CI, so the two sources can never silently diverge.
+import { shortNotesSlugSet } from "./short-slugs";
+{
+  const registryKeys = Object.keys(shortNotesRegistry);
+  const missingInSlugs = registryKeys.filter((k) => !shortNotesSlugSet.has(k));
+  const extraInSlugs = [...shortNotesSlugSet].filter((k) => !(k in shortNotesRegistry));
+  if (missingInSlugs.length || extraInSlugs.length) {
+    throw new Error(
+      `short-notes short-slugs.ts is out of sync with short-index.ts. ` +
+        `Missing in slugs: [${missingInSlugs}]. Extra in slugs: [${extraInSlugs}].`
+    );
+  }
+}
