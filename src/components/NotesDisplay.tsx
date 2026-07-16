@@ -1,12 +1,31 @@
 import type { ChapterNotes } from "@/lib/notes/kinematics";
 import { slugify } from "@/lib/slugify";
+import { estimateReadingMinutes } from "@/lib/reading-time";
+import ReadingTimeBadge from "./ReadingTimeBadge";
+import TableOfContents from "./TableOfContents";
 
 export default function NotesDisplay({ notes }: { notes: ChapterNotes }) {
+  const minutes = estimateReadingMinutes(
+    notes.intro,
+    notes.sections.map((s) => s.body ?? ""),
+    notes.sections.flatMap((s) => s.bullets ?? [])
+  );
+  const tocItems = notes.sections.map((s) => ({
+    id: slugify(s.heading),
+    label: s.heading,
+  }));
+
   return (
     <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-      <p className="text-slate leading-relaxed mb-8 text-[15px]">
+      <div className="mb-4">
+        <ReadingTimeBadge minutes={minutes} />
+      </div>
+
+      <p className="text-slate leading-relaxed mb-6 text-[15px]">
         {notes.intro}
       </p>
+
+      <TableOfContents items={tocItems} />
 
       <div className="space-y-8">
         {notes.sections.map((section) => (
