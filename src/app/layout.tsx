@@ -10,6 +10,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
+import PageViewTracker from "@/components/PageViewTracker";
 import { siteConfig } from "@/lib/site-config";
 import { JsonLd, websiteJsonLd, organizationJsonLd } from "@/lib/jsonld";
 
@@ -68,6 +69,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <Analytics />
+        <PageViewTracker />
         <Navbar />
         <main id="main-content" className="flex-1">{children}</main>
         <Footer />
