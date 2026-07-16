@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import LeadCaptureForm from "@/components/LeadCaptureForm";
+import ContinueLearning from "@/components/ContinueLearning";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -91,6 +92,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ContinueLearning />
 
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
