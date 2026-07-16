@@ -6,7 +6,9 @@ import { getChapterOverview } from "@/lib/chapter-overviews";
 import { getChapterContent } from "@/lib/chapter-content";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd, faqPageJsonLd } from "@/lib/jsonld";
 import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
+import type { ChecklistItemKey } from "@/lib/checklist";
 import ChapterContentSections from "@/components/ChapterContentSections";
+import ChapterProgressCard from "@/components/ChapterProgressCard";
 import RecordChapterVisit from "@/components/RecordChapterVisit";
 
 type Params = { slug: string };
@@ -54,6 +56,13 @@ export default async function Page({ params }: { params: Promise<Params> }) {
   const overview = getChapterOverview(chapter.slug);
   const content = getChapterContent(chapter.slug);
   const path = `/class-12/${chapter.slug}`;
+
+  const availableChecklist: ChecklistItemKey[] = [
+    resourceRegistry.notes.hasData(chapter.slug) ? ("notes" as const) : null,
+    resourceRegistry["formula-sheet"].hasData(chapter.slug) ? ("formulaSheet" as const) : null,
+    resourceRegistry.dpp.hasData(chapter.slug) ? ("dpp" as const) : null,
+    resourceRegistry.pyq.hasData(chapter.slug) ? ("pyq" as const) : null,
+  ].filter((item): item is ChecklistItemKey => item !== null);
 
   return (
     <div>
@@ -109,6 +118,14 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           })}
         </ul>
       </div>
+
+      <ChapterProgressCard
+        cls={chapter.cls}
+        slug={chapter.slug}
+        chapterName={chapter.name}
+        path={path}
+        availableChecklist={availableChecklist}
+      />
 
       {content && (
         <ChapterContentSections content={content} chapterName={chapter.name} />
