@@ -16,13 +16,21 @@ function normalize(path: string): string {
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
+/**
+ * A set of real navigation links between a chapter's resources — not
+ * an ARIA tabs widget, since each item is a full page navigation
+ * rather than an in-place panel swap. Using role="tablist"/"tab" here
+ * without the keyboard arrow-key behaviour screen readers expect from
+ * that pattern would be a false affordance, so this uses a plain nav
+ * landmark with aria-current instead, which every browser and screen
+ * reader already knows how to announce correctly.
+ */
 export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
   const pathname = usePathname();
   const current = normalize(pathname ?? "");
 
   return (
-    <div
-      role="tablist"
+    <nav
       aria-label="Chapter resources"
       className="flex gap-1 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
     >
@@ -46,8 +54,7 @@ export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
           <Link
             key={item.key}
             href={item.href}
-            role="tab"
-            aria-selected={isActive}
+            aria-current={isActive ? "page" : undefined}
             onClick={() => {
               if (!isActive) {
                 trackEvent("select_content", {
@@ -64,6 +71,6 @@ export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }
