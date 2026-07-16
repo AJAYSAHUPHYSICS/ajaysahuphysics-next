@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { primaryNav, examNav, classNav, siteConfig } from "@/lib/site-config";
+import GlobalSearch from "./GlobalSearch";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -94,29 +95,33 @@ export default function Navbar() {
               ))}
             </div>
 
-            <button
-              type="button"
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-navy hover:bg-navy/5 focus-visible:outline-2 focus-visible:outline-gold"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
+            <div className="flex items-center gap-2">
+              <GlobalSearch />
+
+              <button
+                type="button"
+                aria-label={open ? "Close menu" : "Open menu"}
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-navy hover:bg-navy/5 focus-visible:outline-2 focus-visible:outline-gold"
               >
-                {open ? (
-                  <path d="M6 6l12 12M18 6L6 18" />
-                ) : (
-                  <path d="M3 7h18M3 12h18M3 17h18" />
-                )}
-              </svg>
-            </button>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
+                  {open ? (
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  ) : (
+                    <path d="M3 7h18M3 12h18M3 17h18" />
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
