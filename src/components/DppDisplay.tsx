@@ -55,7 +55,7 @@ export default function DppDisplay({ dpp }: { dpp: ChapterDpp }) {
                         setSelected((s) => ({ ...s, [q.number]: i }));
                         setRevealed((r) => ({ ...r, [q.number]: true }));
                       }}
-                      className={`text-left text-sm rounded-md border px-3 py-2 transition-colors ${style}`}
+                      className={`text-left text-sm rounded-md border px-3 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-gold ${style}`}
                     >
                       {opt}
                     </button>
@@ -77,7 +77,7 @@ export default function DppDisplay({ dpp }: { dpp: ChapterDpp }) {
                   <button
                     type="button"
                     onClick={() => toggleReveal(q.number)}
-                    className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
+                    className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
                   >
                     Show answer
                   </button>
