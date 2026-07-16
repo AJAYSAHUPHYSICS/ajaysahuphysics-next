@@ -1,4 +1,8 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { whatsappLink } from "@/lib/site-config";
+import { trackEvent } from "@/lib/analytics";
 
 type Props = {
   message?: string;
@@ -13,6 +17,7 @@ export default function WhatsAppButton({
   variant = "solid",
   className = "",
 }: Props) {
+  const pathname = usePathname();
   const base =
     "inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-gold";
   const styles =
@@ -25,6 +30,7 @@ export default function WhatsAppButton({
       href={whatsappLink(message)}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => trackEvent("whatsapp_click", { page_path: pathname ?? "" })}
       className={`${base} ${styles} ${className}`}
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
