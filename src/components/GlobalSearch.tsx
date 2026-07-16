@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
+import { getRecentlyViewed, type RecentChapter } from "@/lib/recently-viewed";
 
 /**
  * Site-wide search, reachable from the Navbar on every page.
@@ -21,9 +22,11 @@ export default function GlobalSearch() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
+  const [recent, setRecent] = useState<RecentChapter[]>([]);
 
   const open = () => {
     setQuery("");
+    setRecent(getRecentlyViewed());
     dialogRef.current?.showModal();
     // Autofocus after the dialog paints, so it works reliably across browsers.
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -149,7 +152,30 @@ export default function GlobalSearch() {
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {query.trim() === "" && (
+          {query.trim() === "" && recent.length > 0 && (
+            <div className="px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate/50 mb-2">
+                Recently viewed
+              </p>
+              <ul className="flex flex-col gap-1">
+                {recent.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/class-${c.cls}/${c.slug}`}
+                      onClick={close}
+                      className="block rounded-md px-2 py-1.5 text-sm font-medium text-navy hover:bg-ivory transition-colors"
+                    >
+                      {c.name}
+                      <span className="ml-1.5 text-xs text-slate/50">
+                        Class {c.cls}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {query.trim() === "" && recent.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-slate/60">
               Start typing a chapter name, class, or resource type — like
               &ldquo;kinematics&rdquo;, &ldquo;class 12&rdquo;, or &ldquo;formula
