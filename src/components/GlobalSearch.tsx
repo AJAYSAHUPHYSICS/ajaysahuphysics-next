@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
 import { getRecentlyViewed, type RecentChapter } from "@/lib/recently-viewed";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Site-wide search, reachable from the Navbar on every page.
@@ -77,6 +78,19 @@ export default function GlobalSearch() {
       .slice(0, 20)
       .map((s) => s.entry);
   }, [query]);
+
+  // Debounced: fires once ~500ms after the student stops typing, not on
+  // every keystroke, and only for genuine (non-empty) queries. Uses GA4's
+  // reserved "search" event name + search_term param so it's picked up by
+  // GA4's built-in Site Search reports automatically.
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const timer = setTimeout(() => {
+      trackEvent("search", { search_term: q, result_count: results.length });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query, results.length]);
 
   return (
     <>
