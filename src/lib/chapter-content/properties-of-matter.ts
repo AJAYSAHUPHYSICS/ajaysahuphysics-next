@@ -28,6 +28,8 @@ export const propertiesOfMatterContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "mechanical-properties-of-fluids", reason: "Both chapters study how matter deforms or flows under applied force, just for solids versus fluids respectively." },
       { slug: "laws-of-motion", reason: "Stress is defined as force per unit area, directly building on the force concepts developed in Laws of Motion." },
+      { slug: "work-energy-and-power", reason: "Elastic potential energy stored in a stretched wire is a direct application of the energy concepts built in Work-Energy-Power." },
+      { slug: "thermal-properties-of-matter", reason: "A material's elastic properties, like its length, are also affected by temperature through thermal expansion, connecting the two chapters." },
     ],
     faqs: [
       {
@@ -77,6 +79,8 @@ export const propertiesOfMatterContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "mechanical-properties-of-solids", reason: "Both chapters study how matter responds to applied force, just for fluids versus solids respectively." },
       { slug: "thermal-properties-of-matter", reason: "Viscosity and other fluid properties are temperature-dependent, connecting to the thermal behavior of matter covered next." },
+      { slug: "laws-of-motion", reason: "Pascal's law and pressure-based force calculations in fluids build directly on the force concepts developed in Laws of Motion." },
+      { slug: "work-energy-and-power", reason: "Bernoulli's principle is energy conservation applied specifically to flowing fluids, directly extending the energy methods built earlier." },
     ],
     faqs: [
       {
