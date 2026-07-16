@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { primaryNav, examNav, classNav, siteConfig } from "@/lib/site-config";
 import GlobalSearch from "./GlobalSearch";
+import ReadingProgressBar from "./ReadingProgressBar";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -156,6 +157,8 @@ export default function Navbar() {
           </div>
         )}
       </nav>
+
+      <ReadingProgressBar />
     </header>
   );
 }
