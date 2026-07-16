@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 
 export type ResourceNavItem = {
   key: string;
@@ -47,6 +48,14 @@ export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
             href={item.href}
             role="tab"
             aria-selected={isActive}
+            onClick={() => {
+              if (!isActive) {
+                trackEvent("select_content", {
+                  content_type: item.key,
+                  item_id: current,
+                });
+              }
+            }}
             className={`shrink-0 px-4 py-2.5 rounded-md text-sm font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-gold ${
               isActive ? "bg-navy text-white" : "text-navy/70 hover:bg-navy/5"
             }`}
