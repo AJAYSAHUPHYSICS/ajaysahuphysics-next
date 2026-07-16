@@ -7,7 +7,10 @@ import {
   type ResourceKey,
 } from "@/lib/resource-registry";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
+import type { BookmarkType } from "@/lib/bookmarks";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import BookmarkButton from "@/components/BookmarkButton";
+import RecordResourceVisit from "@/components/RecordResourceVisit";
 
 type Params = { slug: string; resource: string };
 
@@ -96,9 +99,29 @@ export default async function Page({
         />
       </div>
 
-      <h2 className="font-display text-2xl text-navy mb-4">
-        {chapter.name} {def.label}
-      </h2>
+      <RecordResourceVisit
+        cls={chapter.cls}
+        slug={chapter.slug}
+        resourceKey={resource}
+        chapterName={chapter.name}
+        resourceLabel={def.label}
+        path={path}
+      />
+
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <h2 className="font-display text-2xl text-navy">
+          {chapter.name} {def.label}
+        </h2>
+        <BookmarkButton
+          cls={chapter.cls}
+          slug={chapter.slug}
+          type={resource as BookmarkType}
+          chapterName={chapter.name}
+          label={`${chapter.name} — ${def.label}`}
+          path={path}
+          size="sm"
+        />
+      </div>
 
       {resource === "notes" ? (
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
