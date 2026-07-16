@@ -18,7 +18,7 @@ export default function JeeMainAdvancedPicker({
         <button
           type="button"
           onClick={() => setChoice("jee-main")}
-          className={`text-left rounded-lg border p-7 transition-all ${
+          className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee-main"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
@@ -44,7 +44,7 @@ export default function JeeMainAdvancedPicker({
         <button
           type="button"
           onClick={() => setChoice("jee-advanced")}
-          className={`text-left rounded-lg border p-7 transition-all ${
+          className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee-advanced"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
