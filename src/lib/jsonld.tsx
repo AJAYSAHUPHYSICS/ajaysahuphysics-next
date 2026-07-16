@@ -89,6 +89,22 @@ export function learningResourceJsonLd(params: {
   };
 }
 
+/** Builds a schema.org FAQPage object from a chapter's genuine FAQ set. Only render this on a page where the FAQs are also visibly displayed — structured data must match visible content. */
+export function faqPageJsonLd(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+}
+
 /** Renders a JSON-LD script tag. Use once per structured-data object. */
 export function JsonLd({ data }: { data: object }) {
   return (
