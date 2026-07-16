@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { estimateReadingMinutes } from "@/lib/reading-time";
+import ReadingTimeBadge from "./ReadingTimeBadge";
 
 export type WorkedExample = {
   title: string;
@@ -19,8 +21,18 @@ export type ChapterJeeNotes = {
 export default function JeeNotesDisplay({ notes }: { notes: ChapterJeeNotes }) {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
 
+  const minutes = estimateReadingMinutes(
+    notes.intro,
+    notes.examples.map((ex) => ex.problem),
+    notes.examples.flatMap((ex) => ex.solutionSteps),
+    notes.examples.map((ex) => ex.answer)
+  );
+
   return (
     <div>
+      <div className="mb-4">
+        <ReadingTimeBadge minutes={minutes} />
+      </div>
       <p className="text-sm text-slate mb-6">{notes.intro}</p>
       <div className="space-y-5">
         {notes.examples.map((ex, idx) => {
@@ -58,7 +70,7 @@ export default function JeeNotesDisplay({ notes }: { notes: ChapterJeeNotes }) {
                   <button
                     type="button"
                     onClick={() => setRevealed((r) => ({ ...r, [idx]: true }))}
-                    className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
+                    className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded px-1 py-2 -mx-1"
                   >
                     Show solution
                   </button>
