@@ -31,6 +31,8 @@ export const mechanicsContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "kinematics", reason: "Vector resolution and calculus are used from the very first topic — relative velocity and projectile motion." },
       { slug: "laws-of-motion", reason: "Force resolution along inclines and connected-body problems rely directly on vector components." },
+      { slug: "work-energy-and-power", reason: "Work is defined as a dot product of force and displacement, a direct application of the vector products introduced here." },
+      { slug: "electric-charges-and-fields", reason: "Electric field superposition from multiple charges relies on the same vector addition techniques developed in this chapter." },
     ],
     faqs: [
       {
@@ -79,6 +81,9 @@ export const mechanicsContent: Record<string, ChapterContent> = {
       "Use DPPs to drill significant-figure rules and error-propagation formulas until the arithmetic is fast — these are easy marks lost purely to careless rounding, not conceptual gaps.",
     relatedChapters: [
       { slug: "basic-mathematics-and-vectors", reason: "Both are foundational, non-mechanics-specific chapters typically studied together at the start of Class 11." },
+      { slug: "kinematics", reason: "Dimensional analysis is routinely used to verify the equations of motion introduced in Kinematics." },
+      { slug: "mechanical-properties-of-solids", reason: "The dimensional formula of Young's modulus and other elastic moduli is a frequently tested application of the dimensional-analysis technique built here." },
+      { slug: "current-electricity", reason: "Deriving the dimensional formula of resistance and resistivity from their defining equations is a direct application of this chapter's methods." },
     ],
     faqs: [
       {
@@ -128,6 +133,8 @@ export const mechanicsContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "laws-of-motion", reason: "Laws of Motion explains WHY the motion described here happens — force produces the acceleration studied in Kinematics." },
       { slug: "circular-motion", reason: "Circular motion applies the same velocity/acceleration framework from Kinematics to a curved path." },
+      { slug: "gravitation", reason: "Free fall and projectile motion under gravity, studied here, are the direct starting point for orbital motion under gravity in that chapter." },
+      { slug: "work-energy-and-power", reason: "Kinematic quantities like velocity are combined with force to define work and kinetic energy in that chapter." },
     ],
     faqs: [
       {
@@ -178,6 +185,7 @@ export const mechanicsContent: Record<string, ChapterContent> = {
       { slug: "kinematics", reason: "Laws of Motion explains the cause of the motion Kinematics only described — force produces the acceleration studied there." },
       { slug: "circular-motion", reason: "Centripetal force problems are a direct application of Newton's second law to curved paths." },
       { slug: "work-energy-and-power", reason: "Work-Energy-Power reframes the same force problems using energy methods, often faster than force analysis alone." },
+      { slug: "system-of-particles-and-rotational-motion", reason: "Torque is the rotational analog of force, and rotational dynamics is built directly on Newton's laws established here." },
     ],
     faqs: [
       {
@@ -231,6 +239,8 @@ export const mechanicsContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "laws-of-motion", reason: "Energy methods are an alternative to (and often faster than) the force analysis learned in Laws of Motion, for the same class of problems." },
       { slug: "centre-of-mass-and-collisions", reason: "Collisions are analyzed using energy and momentum conservation, both introduced conceptually in this chapter." },
+      { slug: "gravitation", reason: "Gravitational potential energy directly extends the general potential energy concept built here to a new force." },
+      { slug: "kinematics", reason: "Kinematic quantities such as velocity and displacement are combined with force here to define work, kinetic energy, and power." },
     ],
     faqs: [
       {
@@ -280,6 +290,8 @@ export const mechanicsContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "work-energy-and-power", reason: "Elastic collisions rely directly on the kinetic energy conservation concept introduced in Work-Energy-Power." },
       { slug: "system-of-particles-and-rotational-motion", reason: "Centre of mass is the conceptual bridge into rigid-body rotational mechanics, which treats an object as a system of particles." },
+      { slug: "laws-of-motion", reason: "Momentum conservation in collisions is a direct consequence of Newton's third law applied to a system of interacting bodies." },
+      { slug: "gravitation", reason: "Two-body gravitational problems are often analyzed relative to the system's centre of mass, the central concept of this chapter." },
     ],
     faqs: [
       {
@@ -330,6 +342,7 @@ export const mechanicsContent: Record<string, ChapterContent> = {
       { slug: "centre-of-mass-and-collisions", reason: "Centre of mass is the foundational concept that rotational motion builds on when treating an extended body as a system of particles." },
       { slug: "circular-motion", reason: "Circular motion covers the kinematics of a single particle moving in a circle, which rotational motion extends to entire rigid bodies." },
       { slug: "gravitation", reason: "Angular momentum conservation from this chapter is the same principle behind Kepler's second law in planetary motion." },
+      { slug: "laws-of-motion", reason: "Torque, the central quantity of this chapter, is the direct rotational analog of force, built on Newton's laws established there." },
     ],
     faqs: [
       {
@@ -379,6 +392,8 @@ export const mechanicsContent: Record<string, ChapterContent> = {
     relatedChapters: [
       { slug: "circular-motion", reason: "Orbital motion is centripetal force analysis applied specifically to gravitational attraction — the same framework, a specific application." },
       { slug: "system-of-particles-and-rotational-motion", reason: "Kepler's second law (equal areas in equal times) is a direct consequence of angular momentum conservation, covered in Rotational Motion." },
+      { slug: "laws-of-motion", reason: "Newton's law of gravitation extends the same force-based framework built in Laws of Motion to a new, universally-acting force." },
+      { slug: "work-energy-and-power", reason: "Escape velocity and orbital energy calculations are direct applications of the energy conservation methods built in Work-Energy-Power." },
     ],
     faqs: [
       {
@@ -429,6 +444,7 @@ export const mechanicsContent: Record<string, ChapterContent> = {
       { slug: "laws-of-motion", reason: "Centripetal force problems are Newton's second law applied to circular paths — the same free-body-diagram approach, a specific geometry." },
       { slug: "gravitation", reason: "Orbital motion is circular motion where gravity itself provides the entire centripetal force." },
       { slug: "system-of-particles-and-rotational-motion", reason: "Rotational motion extends the single-particle circular motion studied here to entire rigid bodies." },
+      { slug: "kinematics", reason: "Circular motion directly reuses the velocity and acceleration framework first built for straight-line and projectile motion in Kinematics." },
     ],
     faqs: [
       {
