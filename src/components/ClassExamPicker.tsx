@@ -15,7 +15,7 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
         <button
           type="button"
           onClick={() => setChoice("neet")}
-          className={`text-left rounded-lg border p-7 transition-all ${
+          className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "neet"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
@@ -41,7 +41,7 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
         <button
           type="button"
           onClick={() => setChoice("jee")}
-          className={`text-left rounded-lg border p-7 transition-all ${
+          className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
