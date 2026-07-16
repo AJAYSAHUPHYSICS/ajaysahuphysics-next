@@ -56,7 +56,7 @@ function QuestionCard({
                 setSelected((s) => ({ ...s, [idx]: i }));
                 setRevealed((r) => ({ ...r, [idx]: true }));
               }}
-              className={`text-left text-sm rounded-md border px-3 py-2 transition-colors ${style}`}
+              className={`text-left text-sm rounded-md border px-3 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-gold ${style}`}
             >
               {opt}
             </button>
@@ -76,7 +76,7 @@ function QuestionCard({
           <button
             type="button"
             onClick={() => setRevealed((r) => ({ ...r, [idx]: true }))}
-            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors"
+            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
           >
             Show answer
           </button>
@@ -119,7 +119,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
           <button
             type="button"
             onClick={() => setExamFilter(null)}
-            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors shrink-0"
+            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-gold rounded"
           >
             View all exams
           </button>
