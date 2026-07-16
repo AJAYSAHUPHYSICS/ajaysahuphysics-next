@@ -11,7 +11,7 @@ export default function FormulaTopicGroupBlock({
       <div className="mb-4">
         <h3
           id={`${group.id}-heading`}
-          className="font-display text-xl sm:text-2xl text-navy"
+          className="font-display text-xl sm:text-2xl text-navy scroll-mt-24"
         >
           {group.title}
         </h3>
