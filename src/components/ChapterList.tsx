@@ -1,24 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useId } from "react";
 import Link from "next/link";
 import ProgressBar from "./ProgressBar";
-import { computeChapterProgress, progressStatus } from "@/lib/chapter-progress";
+import StudyStatusBadge from "./StudyStatusBadge";
+import { computeChapterProgress, studyStatus, type StudyStatus } from "@/lib/chapter-progress";
 import { makeBookmarkId } from "@/lib/bookmarks";
 import type { ChapterMeta } from "@/lib/chapter-meta";
 import type { ChapterChecklistState } from "@/lib/checklist";
 import type { RevisionEntry } from "@/lib/revision";
 
 type SortKey = "number" | "name" | "completion";
-type FilterKey = "all" | "11" | "12" | "not-started" | "in-progress" | "complete";
+type FilterKey = "all" | "11" | "12" | StudyStatus;
 
 const FILTER_OPTIONS: { value: FilterKey; label: string }[] = [
   { value: "all", label: "All chapters" },
   { value: "11", label: "Class 11 only" },
   { value: "12", label: "Class 12 only" },
-  { value: "not-started", label: "Not started" },
-  { value: "in-progress", label: "In progress" },
-  { value: "complete", label: "Complete" },
+  { value: "not-started", label: "Not Started" },
+  { value: "in-progress", label: "In Progress" },
+  { value: "completed", label: "Completed" },
+  { value: "mastered", label: "Mastered" },
 ];
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -40,6 +42,8 @@ export default function ChapterList({
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("number");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const filterId = useId();
+  const sortId = useId();
 
   const rows = useMemo(() => {
     const computed = chapters.map((ch) => {
@@ -47,7 +51,7 @@ export default function ChapterList({
       const state = checklists[key] ?? {};
       const rounds = revisionEntries[key]?.length ?? 0;
       const progress = computeChapterProgress(ch.availableChecklist, state, rounds);
-      const status = progressStatus(progress.percent);
+      const status = studyStatus(progress);
       const bookmarked = bookmarkedIds.has(makeBookmarkId(ch.cls, ch.slug, "chapter"));
       return { ch, progress, status, bookmarked };
     });
@@ -67,15 +71,15 @@ export default function ChapterList({
   }, [chapters, checklists, revisionEntries, bookmarkedIds, filter, sortKey]);
 
   return (
-    <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+    <div id="all-chapters" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <h3 className="font-display text-xl text-navy">All chapters</h3>
         <div className="flex flex-wrap gap-2">
-          <label className="sr-only" htmlFor="chapter-filter">
+          <label className="sr-only" htmlFor={filterId}>
             Filter chapters
           </label>
           <select
-            id="chapter-filter"
+            id={filterId}
             value={filter}
             onChange={(e) => setFilter(e.target.value as FilterKey)}
             className="text-sm rounded-md border border-navy/15 bg-white px-3 py-2 text-navy focus-visible:outline-2 focus-visible:outline-gold"
@@ -87,11 +91,11 @@ export default function ChapterList({
             ))}
           </select>
 
-          <label className="sr-only" htmlFor="chapter-sort">
+          <label className="sr-only" htmlFor={sortId}>
             Sort chapters
           </label>
           <select
-            id="chapter-sort"
+            id={sortId}
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
             className="text-sm rounded-md border border-navy/15 bg-white px-3 py-2 text-navy focus-visible:outline-2 focus-visible:outline-gold"
@@ -109,14 +113,14 @@ export default function ChapterList({
         <p className="text-sm text-slate">No chapters match this filter.</p>
       ) : (
         <ul className="space-y-2">
-          {rows.map(({ ch, progress, bookmarked }) => (
+          {rows.map(({ ch, progress, status, bookmarked }) => (
             <li key={`${ch.cls}-${ch.slug}`}>
               <Link
                 href={`/class-${ch.cls}/${ch.slug}`}
                 className="flex items-center gap-4 rounded-md border border-navy/10 px-4 py-3 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <span className="text-sm font-semibold text-navy truncate">{ch.name}</span>
                     <span className="shrink-0 text-xs text-slate/50">Class {ch.cls}</span>
                     {bookmarked && (
@@ -124,6 +128,7 @@ export default function ChapterList({
                         &#9733;
                       </span>
                     )}
+                    <StudyStatusBadge status={status} />
                   </div>
                   <ProgressBar percent={progress.percent} size="sm" label={`${ch.name} completion`} />
                 </div>
