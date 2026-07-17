@@ -53,10 +53,20 @@ function startOfTodayLocal(): number {
   return d.getTime();
 }
 
-/** Just today's events (local calendar day) — the input Task 2 needs. */
-export function getTodayActivity(): ActivityEvent[] {
+/** Filters an already-read log down to today's events (local calendar
+ * day) — pure, no storage access, so a caller that already has the
+ * full log (e.g. for Revision History) never has to read localStorage
+ * a second time just to get today's subset. */
+export function filterToday(events: ActivityEvent[]): ActivityEvent[] {
   const start = startOfTodayLocal();
-  return readAll().filter((e) => e.at >= start);
+  return events.filter((e) => e.at >= start);
+}
+
+/** Just today's events (local calendar day) — the input M11 Task 2
+ * needs. Prefer filterToday(getActivityLog()) if the full log is
+ * already being read elsewhere on the same page. */
+export function getTodayActivity(): ActivityEvent[] {
+  return filterToday(readAll());
 }
 
 export function logActivity(event: Omit<ActivityEvent, "at">): void {
