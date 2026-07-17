@@ -31,6 +31,11 @@ import { buildTodaysPriorities } from "@/lib/todays-priorities";
 import { getMilestones } from "@/lib/milestones";
 import { buildStudyInsights } from "@/lib/study-insights";
 import { formatRelativeTime } from "@/lib/format-relative-time";
+import { getMistakes, subscribeToMistakes, type Mistake } from "@/lib/mistakes";
+import { computeChapterAccuracy } from "@/lib/chapter-accuracy";
+import { getTopConcepts } from "@/lib/concept-analysis";
+import { getReattemptList } from "@/lib/reattempt-list";
+import { buildMistakeInsights } from "@/lib/mistake-insights";
 import type { ChapterMeta } from "@/lib/chapter-meta";
 import StudyStreakBadge from "./StudyStreakBadge";
 import ProgressBar from "./ProgressBar";
@@ -46,6 +51,10 @@ import ResourceGapsCard from "./ResourceGapsCard";
 import WeeklyProgress from "./WeeklyProgress";
 import RecommendedToday from "./RecommendedToday";
 import MilestonesCard from "./MilestonesCard";
+import MistakeNotebookCard from "./MistakeNotebookCard";
+import ChapterAccuracyList from "./ChapterAccuracyList";
+import ConceptAnalysisCard from "./ConceptAnalysisCard";
+import ReattemptListCard from "./ReattemptListCard";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -59,6 +68,7 @@ const EMPTY_STREAK: StreakState = { current: 0, longest: 0, lastActiveDate: null
 const EMPTY_RECENT_CHAPTERS: ReturnType<typeof getRecentlyViewed> = [];
 const EMPTY_RECENT_RESOURCES: RecentResource[] = [];
 const EMPTY_ACTIVITY_LOG: ActivityEvent[] = [];
+const EMPTY_MISTAKES: Mistake[] = [];
 
 export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] }) {
   const checklists = useSyncExternalStore(
@@ -89,6 +99,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     () => EMPTY_ACTIVITY_LOG
   );
   const todayActivity = filterToday(activityLog);
+  const mistakes = useSyncExternalStore(subscribeToMistakes, getMistakes, () => EMPTY_MISTAKES);
 
   const chapterMap = new Map(chapters.map((c) => [c.slug, c]));
   const bookmarkedIds = new Set(bookmarks.map((b) => b.id));
@@ -162,6 +173,14 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     resourcesCompleted,
     revisionCount,
   });
+
+  // M14 — Mistake Notebook: accuracy, concepts, reattempt list, insights,
+  // all reusing the single `mistakes` read above (no duplicate storage reads).
+  const chapterAccuracies = computeChapterAccuracy(chapters, checklists, mistakes);
+  const topConcepts = getTopConcepts(mistakes);
+  const reattemptList = getReattemptList(mistakes);
+  const mistakeInsights = buildMistakeInsights(mistakes, chapterAccuracies);
+  const allInsights = [...insights, ...mistakeInsights];
 
   // Task 3 — today's revision plan.
   const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
@@ -273,11 +292,11 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <RecommendedToday items={todaysPriorities} />
       </div>
 
-      {/* M12 Task 7 — Study Insights */}
-      {insights.length > 0 && (
+      {/* M12 Task 7 / M14 Task 8 — Study Insights */}
+      {allInsights.length > 0 && (
         <div className="rounded-lg border border-navy/10 bg-white p-6 sm:p-7">
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
-            {insights.map((insight) => (
+            {allInsights.map((insight) => (
               <li key={insight} className="text-sm text-navy flex items-center gap-2">
                 <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-gold" />
                 {insight}
@@ -305,6 +324,37 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-5">Milestones</h3>
         <MilestonesCard milestones={milestones} />
+      </div>
+
+      {/* M14 Task 3 — Mistake Notebook */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Mistake Notebook</h3>
+        <MistakeNotebookCard mistakes={mistakes} />
+      </div>
+
+      {/* M14 Task 4 — Chapter Performance */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Chapter Performance</h3>
+        <p className="text-sm text-slate mb-5">
+          Accuracy per chapter, based on practice done and mistakes logged.
+        </p>
+        <ChapterAccuracyList accuracies={chapterAccuracies} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {/* M14 Task 5 — Concept Analysis */}
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">Concept Analysis</h3>
+          <p className="text-sm text-slate mb-5">Concepts needing the most revision.</p>
+          <ConceptAnalysisCard concepts={topConcepts} />
+        </div>
+
+        {/* M14 Task 6/7 — Practice Again */}
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">Practice Again</h3>
+          <p className="text-sm text-slate mb-5">Unresolved mistakes, oldest and hardest first.</p>
+          <ReattemptListCard items={reattemptList} />
+        </div>
       </div>
 
       {/* Task 2 — Today's Activity */}
