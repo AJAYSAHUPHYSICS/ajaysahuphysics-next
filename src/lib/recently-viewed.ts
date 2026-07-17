@@ -11,6 +11,8 @@
 // `typeof window` so it never touches localStorage during SSG.
 // ─────────────────────────────────────────────────────────────────
 
+import { logActivity } from "./activity-log";
+
 const STORAGE_KEY = "atlas:recently-viewed";
 const MAX_ENTRIES = 5;
 
@@ -43,6 +45,7 @@ export function recordChapterVisit(chapter: Omit<RecentChapter, "visitedAt">): v
       MAX_ENTRIES
     );
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    logActivity({ type: "chapter-visited", cls: chapter.cls, slug: chapter.slug, label: chapter.name });
   } catch {
     // localStorage can throw in private-browsing/quota-exceeded edge cases —
     // recently-viewed is a nice-to-have, never worth breaking the page for.
