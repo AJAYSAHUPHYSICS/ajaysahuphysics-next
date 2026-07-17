@@ -12,21 +12,18 @@ import {
   getAllChecklists,
   countCompleted,
   subscribeToChecklist,
-  type ChecklistItemKey,
 } from "@/lib/checklist";
-import { getAllRevision, totalRevisionRounds, subscribeToRevision } from "@/lib/revision";
+import { getAllRevisionEntries, subscribeToRevision, type RevisionEntry } from "@/lib/revision";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { getRecentlyViewedResources } from "@/lib/recently-viewed-resources";
+import { computeChapterProgress } from "@/lib/chapter-progress";
+import { getWeakChapters } from "@/lib/weak-chapters";
+import { buildRevisionPlan } from "@/lib/revision-planner";
+import { getResourceCompletionBreakdown } from "@/lib/resource-stats";
+import type { ChapterMeta } from "@/lib/chapter-meta";
 import StudyStreakBadge from "./StudyStreakBadge";
-
-export type DashboardChapter = {
-  cls: "11" | "12";
-  slug: string;
-  name: string;
-  number: number;
-  availableChecklist: ChecklistItemKey[];
-  relatedChapters: { slug: string; reason: string }[];
-};
+import ProgressBar from "./ProgressBar";
+import ChapterList from "./ChapterList";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -34,21 +31,21 @@ export type DashboardChapter = {
 const noopSubscribe = () => () => {};
 
 const EMPTY_CHECKLISTS: ReturnType<typeof getAllChecklists> = {};
-const EMPTY_REVISION: ReturnType<typeof getAllRevision> = {};
+const EMPTY_REVISION_ENTRIES: Record<string, RevisionEntry[]> = {};
 const EMPTY_BOOKMARKS: Bookmark[] = [];
 const EMPTY_RECENT_CHAPTERS: ReturnType<typeof getRecentlyViewed> = [];
 const EMPTY_RECENT_RESOURCES: ReturnType<typeof getRecentlyViewedResources> = [];
 
-export default function DashboardClient({ chapters }: { chapters: DashboardChapter[] }) {
+export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] }) {
   const checklists = useSyncExternalStore(
     subscribeToChecklist,
     getAllChecklists,
     () => EMPTY_CHECKLISTS
   );
-  const revisionMap = useSyncExternalStore(
+  const revisionEntries = useSyncExternalStore(
     subscribeToRevision,
-    getAllRevision,
-    () => EMPTY_REVISION
+    getAllRevisionEntries,
+    () => EMPTY_REVISION_ENTRIES
   );
   const bookmarks = useSyncExternalStore(subscribeToBookmarks, getBookmarks, () => EMPTY_BOOKMARKS);
   const recentChapters = useSyncExternalStore(
@@ -63,22 +60,35 @@ export default function DashboardClient({ chapters }: { chapters: DashboardChapt
   );
 
   const chapterMap = new Map(chapters.map((c) => [c.slug, c]));
+  const bookmarkedIds = new Set(bookmarks.map((b) => b.id));
 
+  // Task 1 — per-chapter completion score (Notes + Formula Sheet + DPP + PYQ + revision rounds).
   const chaptersWithProgress = chapters.map((ch) => {
     const key = `${ch.cls}:${ch.slug}`;
     const state = checklists[key] ?? {};
-    const done = countCompleted(state);
-    const total = ch.availableChecklist.length;
-    return { ...ch, done, total, state };
+    const rounds = revisionEntries[key]?.length ?? 0;
+    const progress = computeChapterProgress(ch.availableChecklist, state, rounds);
+    return { ...ch, state, done: progress.completedResources, total: progress.totalResources, progress };
   });
 
-  const chaptersCompleted = chaptersWithProgress.filter(
-    (c) => c.total > 0 && c.done === c.total
-  ).length;
-  const resourcesCompleted = chaptersWithProgress.reduce((sum, c) => sum + c.done, 0);
-  const revisionCount = totalRevisionRounds(revisionMap);
+  const chaptersCompleted = chaptersWithProgress.filter((c) => c.progress.percent >= 100).length;
+  const resourcesCompleted = chaptersWithProgress.reduce((sum, c) => sum + countCompleted(c.state), 0);
+  const revisionCount = Object.values(revisionEntries).reduce((sum, list) => sum + list.length, 0);
 
-  // Recommendation 1: chapters started but not finished.
+  // Task 2 — weak chapters.
+  const weak = getWeakChapters(
+    chapters,
+    checklists,
+    Object.fromEntries(Object.entries(revisionEntries).map(([k, v]) => [k, v.length]))
+  );
+
+  // Task 3 — today's revision plan.
+  const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
+
+  // Task 4 — resource completion breakdown (Notes / Formula Sheet / DPP / PYQ, tracked separately).
+  const resourceBreakdown = getResourceCompletionBreakdown(chapters, checklists);
+
+  // M9 recommendation 1: chapters started but not finished.
   const inProgress = chaptersWithProgress
     .filter((c) => c.total > 0 && c.done > 0 && c.done < c.total)
     .slice(0, 4);
@@ -87,19 +97,13 @@ export default function DashboardClient({ chapters }: { chapters: DashboardChapt
     .slice(0, 4);
   const incompleteChapters = inProgress.length > 0 ? inProgress : notStarted;
 
-  // Recommendation 2: bookmarks (most recent first, already sorted).
   const recommendedBookmarks = bookmarks.slice(0, 4);
-
-  // Recommendation 3: recently viewed resources.
   const recommendedRecent = recentResources.slice(0, 4);
 
-  // Recommendation 4: related chapters, drawn from chapters the student
-  // has actually engaged with (checklist or revision progress), excluding
-  // chapters already fully complete.
   const engagedSlugs = new Set([
     ...chaptersWithProgress.filter((c) => c.done > 0).map((c) => c.slug),
-    ...Object.entries(revisionMap)
-      .filter(([, rounds]) => rounds.length > 0)
+    ...Object.entries(revisionEntries)
+      .filter(([, entries]) => entries.length > 0)
       .map(([key]) => key.split(":")[1]),
   ]);
   const relatedCandidates = new Map<string, { slug: string; reason: string }>();
@@ -146,6 +150,79 @@ export default function DashboardClient({ chapters }: { chapters: DashboardChapt
             PYQ as you complete them — your progress, streak, and recommendations will show
             up here.
           </p>
+        </div>
+      )}
+
+      {/* Task 4/6 — Resource completion chart */}
+      {resourceBreakdown.some((r) => r.total > 0) && (
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-5">Resource completion</h3>
+          <div className="space-y-4">
+            {resourceBreakdown
+              .filter((r) => r.total > 0)
+              .map((r) => {
+                const pct = Math.round((r.completed / r.total) * 100);
+                return (
+                  <div key={r.key}>
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-sm font-semibold text-navy">{r.label}</span>
+                      <span className="text-xs text-slate/60">
+                        {r.completed}/{r.total} chapters ({pct}%)
+                      </span>
+                    </div>
+                    <ProgressBar percent={pct} size="sm" label={`${r.label} completion across all chapters`} />
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Task 2 — Weak chapters */}
+      {(weak.incomplete.length > 0 || weak.neverRevised.length > 0 || weak.pyqNotSolved.length > 0) && (
+        <div className="rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">Needs attention</h3>
+          <p className="text-sm text-slate mb-5">
+            Chapters that are incomplete, haven&apos;t been revised, or still have unsolved PYQs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <WeakGroup title="Incomplete" entries={weak.incomplete} />
+            <WeakGroup title="Never revised" entries={weak.neverRevised} />
+            <WeakGroup title="PYQs not solved" entries={weak.pyqNotSolved} />
+          </div>
+        </div>
+      )}
+
+      {/* Task 3 — Today's revision plan */}
+      {revisionPlan.length > 0 && (
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">Today&apos;s revision plan</h3>
+          <p className="text-sm text-slate mb-5">
+            A short list worth revising today, based on due revisions, bookmarks, recent
+            activity, and unfinished chapters.
+          </p>
+          <ul className="space-y-2">
+            {revisionPlan.map((item) => (
+              <li key={`${item.cls}-${item.slug}`}>
+                <Link
+                  href={item.path}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-navy/10 px-4 py-3 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
+                >
+                  <span className="text-sm font-semibold text-navy">{item.name}</span>
+                  <span className="flex flex-wrap gap-1.5">
+                    {item.reasons.map((reason) => (
+                      <span
+                        key={reason}
+                        className="text-xs font-medium text-gold-deep bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5"
+                      >
+                        {reason}
+                      </span>
+                    ))}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -272,6 +349,14 @@ export default function DashboardClient({ chapters }: { chapters: DashboardChapt
           </div>
         )}
       </div>
+
+      {/* Task 1/5/6 — full chapter list with progress bars, filters, sorting */}
+      <ChapterList
+        chapters={chapters}
+        checklists={checklists}
+        revisionEntries={revisionEntries}
+        bookmarkedIds={bookmarkedIds}
+      />
     </div>
   );
 }
@@ -281,6 +366,44 @@ function Stat({ value, label }: { value: number; label: string }) {
     <div>
       <p className="text-3xl font-display text-navy">{value}</p>
       <p className="text-xs font-semibold uppercase tracking-wider text-slate/60 mt-1">{label}</p>
+    </div>
+  );
+}
+
+function WeakGroup({
+  title,
+  entries,
+}: {
+  title: string;
+  entries: { cls: "11" | "12"; slug: string; name: string; detail: string }[];
+}) {
+  if (entries.length === 0) {
+    return (
+      <div>
+        <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+        <p className="text-xs text-slate/50">None — nice work.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h4 className="font-semibold text-navy text-sm mb-2.5">
+        {title} <span className="text-slate/50 font-normal">({entries.length})</span>
+      </h4>
+      <ul className="space-y-2">
+        {entries.slice(0, 5).map((e) => (
+          <li key={`${e.cls}-${e.slug}`}>
+            <Link
+              href={`/class-${e.cls}/${e.slug}`}
+              className="block text-sm text-navy hover:text-gold-deep transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
+            >
+              {e.name}
+              <span className="block text-xs text-slate/50">{e.detail}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
