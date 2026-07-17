@@ -14,6 +14,7 @@
 
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
+import { logActivity } from "./activity-log";
 
 const STORAGE_KEY = "atlas:revision";
 const { subscribe, notify } = createNotifier();
@@ -131,7 +132,10 @@ export function setRevisionRound(
     : existing.filter((e) => e.round !== round);
 
   writeEntries(map);
-  if (done) recordActivity();
+  if (done) {
+    recordActivity();
+    logActivity({ type: "revision-completed", cls, slug, label: `Revision ${round}` });
+  }
 }
 
 /** Total revision rounds completed across every chapter — used by the dashboard. */
