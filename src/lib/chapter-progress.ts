@@ -44,3 +44,22 @@ export function progressStatus(percent: number): "not-started" | "in-progress" |
   if (percent > 0) return "in-progress";
   return "not-started";
 }
+
+export type StudyStatus = "not-started" | "in-progress" | "completed" | "mastered";
+
+/**
+ * The 4-tier badge status (M11 Task 4). Reuses the same ChapterProgress
+ * counts computeChapterProgress already produced — "Completed" means
+ * every available resource is checked off; "Mastered" additionally
+ * requires all 3 revision rounds. Distinct from progressStatus() above
+ * (which only has 3 tiers, kept for ChapterList's existing filters).
+ */
+export function studyStatus(progress: ChapterProgress): StudyStatus {
+  const resourcesDone = progress.totalResources > 0 && progress.completedResources === progress.totalResources;
+  const roundsDone = progress.completedRounds === progress.totalRounds;
+
+  if (resourcesDone && roundsDone) return "mastered";
+  if (resourcesDone) return "completed";
+  if (progress.completedResources > 0 || progress.completedRounds > 0) return "in-progress";
+  return "not-started";
+}
