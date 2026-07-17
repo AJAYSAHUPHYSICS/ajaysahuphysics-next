@@ -9,6 +9,7 @@
 
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
+import { logActivity } from "./activity-log";
 
 const STORAGE_KEY = "atlas:bookmarks";
 const MAX_ENTRIES = 300;
@@ -86,5 +87,6 @@ export function toggleBookmark(entry: Omit<Bookmark, "id" | "bookmarkedAt">): bo
   const next = [{ ...entry, id, bookmarkedAt: Date.now() }, ...existing].slice(0, MAX_ENTRIES);
   writeAll(next);
   recordActivity();
+  logActivity({ type: "bookmark-added", cls: entry.cls, slug: entry.slug, label: entry.label });
   return true;
 }
