@@ -17,13 +17,18 @@ import {
 import { getAllRevisionEntries, subscribeToRevision, type RevisionEntry } from "@/lib/revision";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { getRecentlyViewedResources, type RecentResource } from "@/lib/recently-viewed-resources";
-import { getActivityLog, filterToday, type ActivityEvent } from "@/lib/activity-log";
+import { getActivityLog, filterToday, filterLastDays, type ActivityEvent } from "@/lib/activity-log";
 import { getStreak, subscribeToStreak, type StreakState } from "@/lib/study-streak";
 import { computeChapterProgress } from "@/lib/chapter-progress";
 import { getWeakChapters } from "@/lib/weak-chapters";
 import { buildRevisionPlan } from "@/lib/revision-planner";
 import { getResourceCompletionBreakdown } from "@/lib/resource-stats";
 import { computeRevisionHealth } from "@/lib/revision-health";
+import { computeExamReadiness } from "@/lib/exam-readiness";
+import { getStrengthAnalysis } from "@/lib/chapter-strength";
+import { getResourceGaps } from "@/lib/resource-gaps";
+import { buildTodaysPriorities } from "@/lib/todays-priorities";
+import { getMilestones } from "@/lib/milestones";
 import { buildStudyInsights } from "@/lib/study-insights";
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import type { ChapterMeta } from "@/lib/chapter-meta";
@@ -35,6 +40,12 @@ import RevisionTimeline from "./RevisionTimeline";
 import MasteredLibrary from "./MasteredLibrary";
 import RevisionHistory from "./RevisionHistory";
 import RevisionHealthCard from "./RevisionHealthCard";
+import ExamReadinessCard from "./ExamReadinessCard";
+import StrengthAnalysis from "./StrengthAnalysis";
+import ResourceGapsCard from "./ResourceGapsCard";
+import WeeklyProgress from "./WeeklyProgress";
+import RecommendedToday from "./RecommendedToday";
+import MilestonesCard from "./MilestonesCard";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -129,6 +140,29 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
   const health = computeRevisionHealth(chapters, checklists, revisionEntries);
   const insights = buildStudyInsights(health);
 
+  // M13 Task 1/4 — exam readiness score + breakdown, reusing resource-stats and revision-health.
+  const readiness = computeExamReadiness(chapters, checklists, revisionEntries);
+
+  // M13 Task 2 — strength analysis, reusing computeChapterProgress.
+  const strength = getStrengthAnalysis(chapters, checklists, revisionEntries);
+
+  // M13 Task 3 — resource gaps, reusing resource-stats breakdown.
+  const resourceGaps = getResourceGaps(chapters, checklists, revisionEntries);
+
+  // M13 Task 5 — last 7 days, reusing the already-read activity log (no second read).
+  const weeklyEvents = filterLastDays(activityLog, 7);
+
+  // M13 Task 6 — today's priorities, reusing spaced-revision + weak-chapters.
+  const todaysPriorities = buildTodaysPriorities(chapters, checklists, revisionEntries, bookmarks);
+
+  // M13 Task 7 — milestones, reusing counts already computed above and health.masteredCount.
+  const milestones = getMilestones({
+    chaptersCompleted,
+    masteredCount: health.masteredCount,
+    resourcesCompleted,
+    revisionCount,
+  });
+
   // Task 3 — today's revision plan.
   const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
 
@@ -214,13 +248,30 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         )}
       </div>
 
+      {/* M13 Task 1/4 — Exam Readiness Score */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Exam Readiness</h3>
+        <ExamReadinessCard readiness={readiness} />
+      </div>
+
       {/* Task 5 — Quick actions */}
       <nav aria-label="Dashboard quick actions" className="flex flex-wrap gap-2">
+        <QuickAction href="#recommended-today" label="Recommended Today" />
         <QuickAction href="#continue-studying" label="Continue Study" />
         <QuickAction href="#todays-revision" label="Today's Revision" />
         <QuickAction href="#weak-chapters" label="Weak Chapters" />
         <QuickAction href="#all-chapters" label="Browse Chapters" />
       </nav>
+
+      {/* M13 Task 6 — Recommended Today */}
+      <div id="recommended-today" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Recommended Today</h3>
+        <p className="text-sm text-slate mb-5">
+          Up to 5 chapters worth your time today, in priority order: overdue revisions first,
+          then weak chapters, unfinished practice, and bookmarks.
+        </p>
+        <RecommendedToday items={todaysPriorities} />
+      </div>
 
       {/* M12 Task 7 — Study Insights */}
       {insights.length > 0 && (
@@ -248,6 +299,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <div className="pt-6 border-t border-navy/10">
           <StudyStreakBadge />
         </div>
+      </div>
+
+      {/* M13 Task 7 — Milestones */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Milestones</h3>
+        <MilestonesCard milestones={milestones} />
       </div>
 
       {/* Task 2 — Today's Activity */}
@@ -279,6 +336,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
             actionHref="#all-chapters"
           />
         )}
+      </div>
+
+      {/* M13 Task 5 — Weekly Progress (last 7 days) */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Weekly Progress</h3>
+        <WeeklyProgress events={weeklyEvents} />
       </div>
 
       {/* Task 1 — Continue Studying */}
@@ -360,6 +423,13 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         </div>
       )}
 
+      {/* M13 Task 3 — Resource Gaps */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Resource Gaps</h3>
+        <p className="text-sm text-slate mb-5">Work remaining across every resource type and revision.</p>
+        <ResourceGapsCard gaps={resourceGaps} />
+      </div>
+
       {/* Task 2 (M10) — Weak chapters */}
       <div id="weak-chapters" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-1">Needs attention</h3>
@@ -381,6 +451,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
             actionHref="#all-chapters"
           />
         )}
+      </div>
+
+      {/* M13 Task 2 — Strength Analysis */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Strength Analysis</h3>
+        <StrengthAnalysis analysis={strength} />
       </div>
 
       {/* Task 3 — Today's revision plan */}
