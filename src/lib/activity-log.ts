@@ -62,6 +62,15 @@ export function filterToday(events: ActivityEvent[]): ActivityEvent[] {
   return events.filter((e) => e.at >= start);
 }
 
+/** Filters an already-read log down to the last N days (inclusive of
+ * today) — same pure, no-storage-access pattern as filterToday, used
+ * by Weekly Progress (M13 Task 5) so it never reads localStorage a
+ * second time when the full log is already in hand. */
+export function filterLastDays(events: ActivityEvent[], days: number, now: number = Date.now()): ActivityEvent[] {
+  const cutoff = now - days * 24 * 60 * 60 * 1000;
+  return events.filter((e) => e.at >= cutoff);
+}
+
 /** Just today's events (local calendar day) — the input M11 Task 2
  * needs. Prefer filterToday(getActivityLog()) if the full log is
  * already being read elsewhere on the same page. */
