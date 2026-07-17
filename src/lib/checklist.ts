@@ -8,12 +8,24 @@
 
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
+import { logActivity } from "./activity-log";
 
 const STORAGE_KEY = "atlas:checklist";
 const { subscribe, notify } = createNotifier();
 export const subscribeToChecklist = subscribe;
 
 export type ChecklistItemKey = "notes" | "formulaSheet" | "dpp" | "pyq";
+
+/** Maps a resource-registry key (as used in recently-viewed-resources.ts
+ * and bookmarks.ts) to its corresponding checklist item, where one
+ * exists. "short-notes", "jee-notes", and "jee-dpp" have no checklist
+ * item — they're supplementary, not part of the 4-item core checklist. */
+export const RESOURCE_KEY_TO_CHECKLIST_ITEM: Partial<Record<string, ChecklistItemKey>> = {
+  notes: "notes",
+  "formula-sheet": "formulaSheet",
+  dpp: "dpp",
+  pyq: "pyq",
+};
 
 export const CHECKLIST_ITEMS: { key: ChecklistItemKey; label: string }[] = [
   { key: "notes", label: "Notes completed" },
@@ -63,7 +75,11 @@ export function setChecklistItem(
     all[key] = { ...all[key], [item]: done };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     notify();
-    if (done) recordActivity();
+    if (done) {
+      recordActivity();
+      const itemLabel = CHECKLIST_ITEMS.find((i) => i.key === item)?.label ?? item;
+      logActivity({ type: "resource-completed", cls, slug, label: itemLabel });
+    }
   } catch {
     // Never worth breaking the page for a nice-to-have.
   }
