@@ -20,7 +20,9 @@ export type ActivityEventType =
   | "resource-completed"
   | "chapter-visited"
   | "revision-completed"
-  | "bookmark-added";
+  | "bookmark-added"
+  | "mistake-logged"
+  | "mistake-resolved";
 
 export type ActivityEvent = {
   type: ActivityEventType;
