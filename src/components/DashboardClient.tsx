@@ -36,6 +36,9 @@ import { computeChapterAccuracy } from "@/lib/chapter-accuracy";
 import { getTopConcepts } from "@/lib/concept-analysis";
 import { getReattemptList } from "@/lib/reattempt-list";
 import { buildMistakeInsights } from "@/lib/mistake-insights";
+import { buildDailyStudyPlan } from "@/lib/study-plan";
+import { buildWeeklyPlan } from "@/lib/weekly-plan";
+import { getStreakBonus } from "@/lib/streak-bonus";
 import type { ChapterMeta } from "@/lib/chapter-meta";
 import StudyStreakBadge from "./StudyStreakBadge";
 import ProgressBar from "./ProgressBar";
@@ -55,6 +58,9 @@ import MistakeNotebookCard from "./MistakeNotebookCard";
 import ChapterAccuracyList from "./ChapterAccuracyList";
 import ConceptAnalysisCard from "./ConceptAnalysisCard";
 import ReattemptListCard from "./ReattemptListCard";
+import DailyStudyPlanCard from "./DailyStudyPlanCard";
+import WeeklyPlanCard from "./WeeklyPlanCard";
+import StreakBonusCard from "./StreakBonusCard";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -182,6 +188,16 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
   const mistakeInsights = buildMistakeInsights(mistakes, chapterAccuracies);
   const allInsights = [...insights, ...mistakeInsights];
 
+  // M15 Task 1/2/3/5/8 — daily study plan, reusing spaced-revision, mistakes,
+  // chapter-progress, checklist, and bookmarks already read above.
+  const dailyPlan = buildDailyStudyPlan(chapters, checklists, revisionEntries, mistakes, bookmarks);
+
+  // M15 Task 6 — weekly plan, pure computation, nothing persisted.
+  const weeklyPlan = buildWeeklyPlan(chapters, checklists, revisionEntries);
+
+  // M15 Task 7 — streak bonus, reusing the same `streak` state as StudyStreakBadge.
+  const streakBonus = getStreakBonus(streak, chapters, checklists, revisionEntries);
+
   // Task 3 — today's revision plan.
   const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
 
@@ -273,8 +289,19 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <ExamReadinessCard readiness={readiness} />
       </div>
 
+      {/* M15 Task 1/2/3/5/8 — Daily Study Plan */}
+      <div id="study-plan" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Study Plan</h3>
+        <p className="text-sm text-slate mb-5">
+          Up to 8 tasks, ranked by urgency and mixed across subjects, each linking straight
+          to what you need to do.
+        </p>
+        <DailyStudyPlanCard plan={dailyPlan} />
+      </div>
+
       {/* Task 5 — Quick actions */}
       <nav aria-label="Dashboard quick actions" className="flex flex-wrap gap-2">
+        <QuickAction href="#study-plan" label="Today's Plan" />
         <QuickAction href="#recommended-today" label="Recommended Today" />
         <QuickAction href="#continue-studying" label="Continue Study" />
         <QuickAction href="#todays-revision" label="Today's Revision" />
@@ -317,6 +344,9 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         </div>
         <div className="pt-6 border-t border-navy/10">
           <StudyStreakBadge />
+          <div className="mt-3">
+            <StreakBonusCard bonus={streakBonus} />
+          </div>
         </div>
       </div>
 
@@ -441,6 +471,15 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
           schedule after each round.
         </p>
         <RevisionTimeline chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
+      </div>
+
+      {/* M15 Task 6 — Weekly Plan */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Weekly Plan</h3>
+        <p className="text-sm text-slate mb-5">
+          A 7-day look ahead — computed fresh each time, nothing saved.
+        </p>
+        <WeeklyPlanCard days={weeklyPlan} />
       </div>
 
       {/* Task 4/6 — Resource completion chart */}
