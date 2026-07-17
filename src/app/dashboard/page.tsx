@@ -3,9 +3,10 @@ import { allChapters } from "@/lib/chapters";
 import { resourceRegistry } from "@/lib/resource-registry";
 import { getChapterContent } from "@/lib/chapter-content";
 import type { ChecklistItemKey } from "@/lib/checklist";
+import type { ChapterMeta } from "@/lib/chapter-meta";
 import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import PageHero from "@/components/PageHero";
-import DashboardClient, { type DashboardChapter } from "@/components/DashboardClient";
+import DashboardClient from "@/components/DashboardClient";
 
 // A personal, client-populated page with no unique server-rendered
 // content per visitor — kept out of the crawl index the same way any
@@ -22,7 +23,7 @@ export default function DashboardPage() {
   // Computed server-side so the heavy content registries (resourceRegistry,
   // chapter-content) never ship to the client — only the small, serializable
   // summary each chapter needs for the dashboard.
-  const chapters: DashboardChapter[] = allChapters.map((ch) => {
+  const chapters: ChapterMeta[] = allChapters.map((ch) => {
     const availableChecklist: ChecklistItemKey[] = [
       resourceRegistry.notes.hasData(ch.slug) ? ("notes" as const) : null,
       resourceRegistry["formula-sheet"].hasData(ch.slug) ? ("formulaSheet" as const) : null,
