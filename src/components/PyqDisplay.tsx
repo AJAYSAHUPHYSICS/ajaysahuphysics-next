@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { ChapterPyq, PyqQuestion } from "@/lib/pyq/kinematics";
+import AddMistakeButton from "./AddMistakeButton";
 
 export type ExamFilter = "jee-main" | "jee-advanced" | "neet" | null;
 
@@ -15,6 +16,9 @@ const FILTER_LABEL: Record<Exclude<ExamFilter, null>, string> = {
 function QuestionCard({
   q,
   idx,
+  cls,
+  slug,
+  chapterName,
   revealed,
   selected,
   setRevealed,
@@ -22,6 +26,9 @@ function QuestionCard({
 }: {
   q: PyqQuestion;
   idx: number;
+  cls: "11" | "12";
+  slug: string;
+  chapterName: string;
   revealed: Record<number, boolean>;
   selected: Record<number, number>;
   setRevealed: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
@@ -70,6 +77,13 @@ function QuestionCard({
             <span className="font-semibold text-gold-deep">Solution: </span>
             {q.solution}
           </p>
+          <AddMistakeButton
+            cls={cls}
+            slug={slug}
+            chapterName={chapterName}
+            resourceType="pyq"
+            questionId={String(idx)}
+          />
         </div>
       ) : (
         <div className="mt-3">
@@ -91,7 +105,7 @@ function matchesFilter(q: PyqQuestion, filter: Exclude<ExamFilter, null>) {
   return q.examType === filter;
 }
 
-export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
+export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: string }) {
   const searchParams = useSearchParams();
   const examParam = searchParams.get("exam");
   const initialExamFilter: ExamFilter =
@@ -102,6 +116,8 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
   const [examFilter, setExamFilter] = useState<ExamFilter>(initialExamFilter);
+
+  const cardProps = { cls: pyq.className, slug, chapterName: pyq.chapterName };
 
   if (examFilter) {
     const filtered = pyq.questions
@@ -131,6 +147,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
                 key={`${q.exam}-${idx}`}
                 q={q}
                 idx={idx}
+                {...cardProps}
                 revealed={revealed}
                 selected={selected}
                 setRevealed={setRevealed}
@@ -166,6 +183,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
               key={`${q.exam}-${idx}`}
               q={q}
               idx={idx}
+              {...cardProps}
               revealed={revealed}
               selected={selected}
               setRevealed={setRevealed}
@@ -210,6 +228,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
                   key={`${q.exam}-${idx}`}
                   q={q}
                   idx={idx}
+                  {...cardProps}
                   revealed={revealed}
                   selected={selected}
                   setRevealed={setRevealed}
@@ -234,6 +253,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
                   key={`${q.exam}-${idx}`}
                   q={q}
                   idx={idx}
+                  {...cardProps}
                   revealed={revealed}
                   selected={selected}
                   setRevealed={setRevealed}
@@ -258,6 +278,7 @@ export default function PyqDisplay({ pyq }: { pyq: ChapterPyq }) {
                   key={`${q.exam}-${idx}`}
                   q={q}
                   idx={idx}
+                  {...cardProps}
                   revealed={revealed}
                   selected={selected}
                   setRevealed={setRevealed}
