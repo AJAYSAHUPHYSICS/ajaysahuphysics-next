@@ -128,7 +128,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
     hasData: (slug) => !!getChapterDpp(slug),
     render: (slug) => {
       const dpp = getChapterDpp(slug);
-      return dpp ? <DppDisplay dpp={dpp} /> : null;
+      return dpp ? <DppDisplay dpp={dpp} slug={slug} /> : null;
     },
     describe: (chapterName, slug) => {
       const dpp = getChapterDpp(slug);
@@ -146,7 +146,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
     hasData: (slug) => !!getChapterJeeDpp(slug),
     render: (slug) => {
       const dpp = getChapterJeeDpp(slug);
-      return dpp ? <DppDisplay dpp={dpp} /> : null;
+      return dpp ? <DppDisplay dpp={dpp} slug={slug} /> : null;
     },
     describe: (chapterName, slug) => {
       const dpp = getChapterJeeDpp(slug);
@@ -170,7 +170,7 @@ export const resourceRegistry: Record<ResourceKey, ResourceDef> = {
       // Suspense boundary per Next.js App Router rules.
       return (
         <Suspense fallback={<div className="text-sm text-slate">Loading questions…</div>}>
-          <PyqDisplay pyq={pyq} />
+          <PyqDisplay pyq={pyq} slug={slug} />
         </Suspense>
       );
     },
