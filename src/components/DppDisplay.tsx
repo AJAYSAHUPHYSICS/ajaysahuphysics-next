@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { ChapterDpp } from "@/lib/dpp/kinematics";
+import AddMistakeButton from "./AddMistakeButton";
 
-export default function DppDisplay({ dpp }: { dpp: ChapterDpp }) {
+export default function DppDisplay({ dpp, slug }: { dpp: ChapterDpp; slug: string }) {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
 
@@ -71,6 +72,13 @@ export default function DppDisplay({ dpp }: { dpp: ChapterDpp }) {
                     </span>
                     {q.solution}
                   </p>
+                  <AddMistakeButton
+                    cls={dpp.className}
+                    slug={slug}
+                    chapterName={dpp.chapterName}
+                    resourceType="dpp"
+                    questionId={String(q.number)}
+                  />
                 </div>
               ) : (
                 <div className="mt-3 pl-7">
