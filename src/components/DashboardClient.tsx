@@ -17,18 +17,24 @@ import {
 import { getAllRevisionEntries, subscribeToRevision, type RevisionEntry } from "@/lib/revision";
 import { getRecentlyViewed } from "@/lib/recently-viewed";
 import { getRecentlyViewedResources, type RecentResource } from "@/lib/recently-viewed-resources";
-import { getTodayActivity } from "@/lib/activity-log";
+import { getActivityLog, filterToday, type ActivityEvent } from "@/lib/activity-log";
 import { getStreak, subscribeToStreak, type StreakState } from "@/lib/study-streak";
 import { computeChapterProgress } from "@/lib/chapter-progress";
 import { getWeakChapters } from "@/lib/weak-chapters";
 import { buildRevisionPlan } from "@/lib/revision-planner";
 import { getResourceCompletionBreakdown } from "@/lib/resource-stats";
+import { computeRevisionHealth } from "@/lib/revision-health";
+import { buildStudyInsights } from "@/lib/study-insights";
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import type { ChapterMeta } from "@/lib/chapter-meta";
 import StudyStreakBadge from "./StudyStreakBadge";
 import ProgressBar from "./ProgressBar";
 import ChapterList from "./ChapterList";
 import EmptyState from "./EmptyState";
+import RevisionTimeline from "./RevisionTimeline";
+import MasteredLibrary from "./MasteredLibrary";
+import RevisionHistory from "./RevisionHistory";
+import RevisionHealthCard from "./RevisionHealthCard";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -41,7 +47,7 @@ const EMPTY_BOOKMARKS: Bookmark[] = [];
 const EMPTY_STREAK: StreakState = { current: 0, longest: 0, lastActiveDate: null };
 const EMPTY_RECENT_CHAPTERS: ReturnType<typeof getRecentlyViewed> = [];
 const EMPTY_RECENT_RESOURCES: RecentResource[] = [];
-const EMPTY_TODAY_ACTIVITY: ReturnType<typeof getTodayActivity> = [];
+const EMPTY_ACTIVITY_LOG: ActivityEvent[] = [];
 
 export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] }) {
   const checklists = useSyncExternalStore(
@@ -66,11 +72,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     getRecentlyViewedResources,
     () => EMPTY_RECENT_RESOURCES
   );
-  const todayActivity = useSyncExternalStore(
+  const activityLog = useSyncExternalStore(
     noopSubscribe,
-    getTodayActivity,
-    () => EMPTY_TODAY_ACTIVITY
+    getActivityLog,
+    () => EMPTY_ACTIVITY_LOG
   );
+  const todayActivity = filterToday(activityLog);
 
   const chapterMap = new Map(chapters.map((c) => [c.slug, c]));
   const bookmarkedIds = new Set(bookmarks.map((b) => b.id));
@@ -117,6 +124,10 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     Object.fromEntries(Object.entries(revisionEntries).map(([k, v]) => [k, v.length]))
   );
   const hasWeakChapters = weak.incomplete.length > 0 || weak.neverRevised.length > 0 || weak.pyqNotSolved.length > 0;
+
+  // M12 Task 3 — revision health score, and Task 7 — deterministic insights built from it.
+  const health = computeRevisionHealth(chapters, checklists, revisionEntries);
+  const insights = buildStudyInsights(health);
 
   // Task 3 — today's revision plan.
   const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
@@ -211,6 +222,20 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <QuickAction href="#all-chapters" label="Browse Chapters" />
       </nav>
 
+      {/* M12 Task 7 — Study Insights */}
+      {insights.length > 0 && (
+        <div className="rounded-lg border border-navy/10 bg-white p-6 sm:p-7">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {insights.map((insight) => (
+              <li key={insight} className="text-sm text-navy flex items-center gap-2">
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-gold" />
+                {insight}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-5">Your progress</h3>
@@ -287,6 +312,22 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
             actionHref="#all-chapters"
           />
         )}
+      </div>
+
+      {/* M12 Task 3 — Revision Health */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Revision Health</h3>
+        <RevisionHealthCard health={health} />
+      </div>
+
+      {/* M12 Task 1 — Revision Timeline */}
+      <div id="revision-timeline" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Revision Timeline</h3>
+        <p className="text-sm text-slate mb-5">
+          Chapters grouped by when they&apos;re next due, based on a 1 / 7 / 30-day revision
+          schedule after each round.
+        </p>
+        <RevisionTimeline chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
       </div>
 
       {/* Task 4/6 — Resource completion chart */}
@@ -381,6 +422,21 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
             actionHref="#all-chapters"
           />
         )}
+      </div>
+
+      {/* M12 Task 4 — Mastered Library */}
+      <div id="mastered-chapters" className="scroll-mt-24 rounded-lg border border-green-200 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Mastered Chapters</h3>
+        <p className="text-sm text-slate mb-5">
+          Every resource completed, all 3 revision rounds done.
+        </p>
+        <MasteredLibrary chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
+      </div>
+
+      {/* M12 Task 5 — Revision History */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Revision History</h3>
+        <RevisionHistory log={activityLog} />
       </div>
 
       {/* Bookmarked Resources */}
