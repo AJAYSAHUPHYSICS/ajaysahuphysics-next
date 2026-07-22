@@ -39,6 +39,16 @@ import { buildMistakeInsights } from "@/lib/mistake-insights";
 import { buildDailyStudyPlan } from "@/lib/study-plan";
 import { buildWeeklyPlan } from "@/lib/weekly-plan";
 import { getStreakBonus } from "@/lib/streak-bonus";
+import { getActiveGoals, subscribeToGoals, toggleGoal, type ActiveGoal } from "@/lib/study-goals";
+import { GOAL_TYPES, type GoalType } from "@/lib/goal-types";
+import { computeAllGoalProgress, type GoalProgress } from "@/lib/goal-progress";
+import { computeGoalForecast, type GoalForecast } from "@/lib/goal-forecast";
+import { buildDailyTargets } from "@/lib/daily-targets";
+import { buildWeeklyTargets } from "@/lib/weekly-targets";
+import { computeProgressForecast } from "@/lib/progress-forecast";
+import { getAchievements } from "@/lib/achievements";
+import { computeProductivityScore } from "@/lib/productivity-score";
+import { buildGoalRecommendations } from "@/lib/goal-recommendations";
 import type { ChapterMeta } from "@/lib/chapter-meta";
 import StudyStreakBadge from "./StudyStreakBadge";
 import ProgressBar from "./ProgressBar";
@@ -61,6 +71,13 @@ import ReattemptListCard from "./ReattemptListCard";
 import DailyStudyPlanCard from "./DailyStudyPlanCard";
 import WeeklyPlanCard from "./WeeklyPlanCard";
 import StreakBonusCard from "./StreakBonusCard";
+import GoalsCard, { type GoalRow } from "./GoalsCard";
+import DailyTargetsCard from "./DailyTargetsCard";
+import WeeklyTargetsCard from "./WeeklyTargetsCard";
+import ProgressForecastCard from "./ProgressForecastCard";
+import AchievementsCard from "./AchievementsCard";
+import ProductivityScoreCard from "./ProductivityScoreCard";
+import SmartRecommendationsCard from "./SmartRecommendationsCard";
 
 // Read-once on mount, same rationale as ContinueLearning.tsx: these
 // don't change while the dashboard itself is open (a student can't be
@@ -75,6 +92,7 @@ const EMPTY_RECENT_CHAPTERS: ReturnType<typeof getRecentlyViewed> = [];
 const EMPTY_RECENT_RESOURCES: RecentResource[] = [];
 const EMPTY_ACTIVITY_LOG: ActivityEvent[] = [];
 const EMPTY_MISTAKES: Mistake[] = [];
+const EMPTY_ACTIVE_GOALS: ActiveGoal[] = [];
 
 export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] }) {
   const checklists = useSyncExternalStore(
@@ -106,6 +124,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
   );
   const todayActivity = filterToday(activityLog);
   const mistakes = useSyncExternalStore(subscribeToMistakes, getMistakes, () => EMPTY_MISTAKES);
+  const activeGoalsList = useSyncExternalStore(subscribeToGoals, getActiveGoals, () => EMPTY_ACTIVE_GOALS);
 
   const chapterMap = new Map(chapters.map((c) => [c.slug, c]));
   const bookmarkedIds = new Set(bookmarks.map((b) => b.id));
@@ -198,11 +217,68 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
   // M15 Task 7 — streak bonus, reusing the same `streak` state as StudyStreakBadge.
   const streakBonus = getStreakBonus(streak, chapters, checklists, revisionEntries);
 
-  // Task 3 — today's revision plan.
-  const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
-
   // Task 4 — resource completion breakdown (Notes / Formula Sheet / DPP / PYQ, tracked separately).
   const resourceBreakdown = getResourceCompletionBreakdown(chapters, checklists);
+
+  // M16 — Study Goals: which of the 8 fixed goal types are active, and
+  // each one's progress/forecast. No new completion logic — goal-progress.ts
+  // reuses resource-stats + chapter-progress + revision exactly as read above.
+  const activeGoalTypes = activeGoalsList.map((g) => g.type);
+  const activatedAtByType = new Map(activeGoalsList.map((g) => [g.type, g.activatedAt]));
+  const goalProgressList = computeAllGoalProgress(GOAL_TYPES, chapters, checklists, revisionEntries);
+  const progressByType = new Map<GoalType, GoalProgress>(goalProgressList.map((p) => [p.type, p]));
+  const goalRemaining: Partial<Record<GoalType, number>> = Object.fromEntries(
+    goalProgressList.map((p) => [p.type, p.total - p.completed])
+  );
+
+  // M16 Task 2 — target date forecast, only for goals actually being tracked.
+  const forecastByType = new Map<GoalType, GoalForecast>();
+  for (const type of activeGoalTypes) {
+    const progress = progressByType.get(type);
+    const activatedAt = activatedAtByType.get(type);
+    if (!progress || activatedAt === undefined) continue;
+    forecastByType.set(type, computeGoalForecast(progress, activatedAt, activityLog));
+  }
+
+  const goalRows: GoalRow[] = GOAL_TYPES.map((type) => ({
+    type,
+    active: activeGoalTypes.includes(type),
+    progress: progressByType.get(type) ?? { type, completed: 0, total: 0, percent: 0 },
+    forecast: forecastByType.get(type) ?? null,
+  }));
+
+  // M16 Task 3/4 — daily target reuses the M15 daily plan's own task
+  // selection (no second chapter-priority system); weekly target scales
+  // the same study-pace.ts rate goal-forecast.ts already computed from.
+  const dailyTargets = buildDailyTargets(activeGoalTypes, dailyPlan, revisionEntries, goalRemaining);
+  const weeklyTargets = buildWeeklyTargets(activeGoalTypes, activityLog, goalRemaining);
+
+  // M16 Task 5 — progress forecast, reusing resource-gaps.ts's counts as-is.
+  const progressForecastData = computeProgressForecast(chapters, checklists, revisionEntries, activityLog);
+
+  // M16 Task 6 — achievements, reusing counts already computed above (chaptersCompleted,
+  // revisionCount, health.masteredCount, resourceBreakdown, streak).
+  const achievementsList = getAchievements({
+    chaptersCompleted,
+    revisionCount,
+    masteredCount: health.masteredCount,
+    resourceBreakdown,
+    streak,
+  });
+
+  // M16 Task 7 — productivity score, reusing exam-readiness + chapter-accuracy + streak.
+  const productivityScoreData = computeProductivityScore(readiness, chapterAccuracies, streak);
+
+  // M16 Task 8 — smart recommendations, reusing goal forecasts + revision health.
+  const goalRecommendations = buildGoalRecommendations(
+    activeGoalTypes,
+    Object.fromEntries(progressByType),
+    Object.fromEntries(forecastByType),
+    health
+  );
+
+  // Task 3 — today's revision plan.
+  const revisionPlan = buildRevisionPlan(chapters, checklists, revisionEntries, bookmarks, recentResources);
 
   // M9 recommendation 1: chapters started but not finished.
   const inProgress = chaptersWithProgress
@@ -289,6 +365,15 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <ExamReadinessCard readiness={readiness} />
       </div>
 
+      {/* M16 Task 7 — Productivity Score */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Productivity Score</h3>
+        <p className="text-sm text-slate mb-5">
+          One score combining completion, revision, accuracy, and consistency.
+        </p>
+        <ProductivityScoreCard score={productivityScoreData} />
+      </div>
+
       {/* M15 Task 1/2/3/5/8 — Daily Study Plan */}
       <div id="study-plan" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Study Plan</h3>
@@ -299,9 +384,40 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <DailyStudyPlanCard plan={dailyPlan} />
       </div>
 
+      {/* M16 Task 1 — Study Goals */}
+      <div id="study-goals" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Study Goals</h3>
+        <p className="text-sm text-slate mb-5">
+          Track any of these and get a target date, daily/weekly targets, and coaching below.
+        </p>
+        <GoalsCard rows={goalRows} onToggle={toggleGoal} />
+      </div>
+
+      {/* M16 Task 3/4 — Daily & Weekly Targets */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Targets</h3>
+          <p className="text-sm text-slate mb-5">Based on your tracked goals and today&apos;s study plan.</p>
+          <DailyTargetsCard targets={dailyTargets} />
+        </div>
+        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+          <h3 className="font-display text-xl text-navy mb-1">This Week&apos;s Targets</h3>
+          <p className="text-sm text-slate mb-5">A rolling 7-day target based on your recent pace.</p>
+          <WeeklyTargetsCard targets={weeklyTargets} />
+        </div>
+      </div>
+
+      {/* M16 Task 8 — Smart Recommendations */}
+      <div className="rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Smart Recommendations</h3>
+        <p className="text-sm text-slate mb-5">Coaching based on your goal pace and revision schedule.</p>
+        <SmartRecommendationsCard recommendations={goalRecommendations} />
+      </div>
+
       {/* Task 5 — Quick actions */}
       <nav aria-label="Dashboard quick actions" className="flex flex-wrap gap-2">
         <QuickAction href="#study-plan" label="Today's Plan" />
+        <QuickAction href="#study-goals" label="Study Goals" />
         <QuickAction href="#recommended-today" label="Recommended Today" />
         <QuickAction href="#continue-studying" label="Continue Study" />
         <QuickAction href="#todays-revision" label="Today's Revision" />
@@ -354,6 +470,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
         <h3 className="font-display text-xl text-navy mb-5">Milestones</h3>
         <MilestonesCard milestones={milestones} />
+      </div>
+
+      {/* M16 Task 6 — Achievements */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-5">Achievements</h3>
+        <AchievementsCard achievements={achievementsList} />
       </div>
 
       {/* M14 Task 3 — Mistake Notebook */}
@@ -517,6 +639,15 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         <h3 className="font-display text-xl text-navy mb-1">Resource Gaps</h3>
         <p className="text-sm text-slate mb-5">Work remaining across every resource type and revision.</p>
         <ResourceGapsCard gaps={resourceGaps} />
+      </div>
+
+      {/* M16 Task 5 — Progress Forecast */}
+      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+        <h3 className="font-display text-xl text-navy mb-1">Progress Forecast</h3>
+        <p className="text-sm text-slate mb-5">
+          Estimated days remaining at your current pace, for chapters and each resource type.
+        </p>
+        <ProgressForecastCard forecast={progressForecastData} />
       </div>
 
       {/* Task 2 (M10) — Weak chapters */}
