@@ -32,15 +32,30 @@ export type ActivityEvent = {
   at: number;
 };
 
+// getActivityLog is called directly as a useSyncExternalStore snapshot
+// (see DashboardClient.tsx). React compares snapshots by reference, so
+// this must return the SAME array reference across calls whenever the
+// underlying localStorage value hasn't changed — otherwise React sees
+// a "new" value on every check and re-renders forever.
+let activityLogCache: ActivityEvent[] = [];
+let activityLogCacheRaw: string | null = null;
+
 function readAll(): ActivityEvent[] {
   if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === activityLogCacheRaw) return activityLogCache;
+  activityLogCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      activityLogCache = [];
+      return activityLogCache;
+    }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    activityLogCache = Array.isArray(parsed) ? parsed : [];
+    return activityLogCache;
   } catch {
-    return [];
+    activityLogCache = [];
+    return activityLogCache;
   }
 }
 
