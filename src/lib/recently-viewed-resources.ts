@@ -23,15 +23,30 @@ export type RecentResource = {
   visitedAt: number;
 };
 
+// getRecentlyViewedResources is called directly as a useSyncExternalStore
+// snapshot (see DashboardClient.tsx). React compares snapshots by
+// reference, so this must return the SAME array reference across calls
+// whenever the underlying localStorage value hasn't changed — otherwise
+// React sees a "new" value on every check and re-renders forever.
+let recentResourcesCache: RecentResource[] = [];
+let recentResourcesCacheRaw: string | null = null;
+
 export function getRecentlyViewedResources(): RecentResource[] {
   if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === recentResourcesCacheRaw) return recentResourcesCache;
+  recentResourcesCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      recentResourcesCache = [];
+      return recentResourcesCache;
+    }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    recentResourcesCache = Array.isArray(parsed) ? parsed : [];
+    return recentResourcesCache;
   } catch {
-    return [];
+    recentResourcesCache = [];
+    return recentResourcesCache;
   }
 }
 
