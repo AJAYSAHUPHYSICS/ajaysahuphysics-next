@@ -34,6 +34,26 @@ function highlightRanges(text: string, ranges: [number, number][]) {
   return parts;
 }
 
+/** Resource-type filter options. Deliberately limited to the four types
+ * requested — Short Notes / JEE Notes / JEE DPP also exist in the index
+ * but weren't asked for; add them here if that scope changes. Every key
+ * below is a real `resources[].key` value already produced by
+ * search-index.ts, so this never invents data the index doesn't have. */
+const RESOURCE_TYPE_OPTIONS: { key: string; label: string }[] = [
+  { key: "notes", label: "Notes" },
+  { key: "formula-sheet", label: "Formula Sheet" },
+  { key: "dpp", label: "DPP" },
+  { key: "pyq", label: "PYQ" },
+];
+
+/** Chapter filter options — derived once from the existing searchIndex
+ * (not recomputed per render, and the index itself isn't rebuilt). No
+ * "topic" field exists anywhere in SearchEntry, so a Topic filter isn't
+ * implemented — adding one would mean inventing data that doesn't exist. */
+const CHAPTER_OPTIONS = searchIndex
+  .map((e) => ({ optionKey: `${e.cls}:${e.slug}`, cls: e.cls, name: e.name }))
+  .sort((a, b) => (a.cls === b.cls ? a.name.localeCompare(b.name) : a.cls.localeCompare(b.cls)));
+
 /** Unifies the two mutually-exclusive lists the dialog can show (recent
  * chapters when the query is empty, search results once typing starts)
  * into one shape so arrow-key navigation, Home/End, Enter, and hover
@@ -68,6 +88,41 @@ export default function GlobalSearch() {
   const [recent, setRecent] = useState<RecentChapter[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedClasses, setSelectedClasses] = useState<Set<"11" | "12">>(new Set());
+  const [selectedResourceTypes, setSelectedResourceTypes] = useState<Set<string>>(new Set());
+  const [selectedChapters, setSelectedChapters] = useState<Set<string>>(new Set());
+
+  function toggleClass(cls: "11" | "12") {
+    setSelectedClasses((prev) => {
+      const next = new Set(prev);
+      if (next.has(cls)) next.delete(cls);
+      else next.add(cls);
+      return next;
+    });
+  }
+  function toggleResourceType(key: string) {
+    setSelectedResourceTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+  function toggleChapter(optionKey: string) {
+    setSelectedChapters((prev) => {
+      const next = new Set(prev);
+      if (next.has(optionKey)) next.delete(optionKey);
+      else next.add(optionKey);
+      return next;
+    });
+  }
+  function clearAllFilters() {
+    setSelectedClasses(new Set());
+    setSelectedResourceTypes(new Set());
+    setSelectedChapters(new Set());
+  }
+  const filtersActive =
+    selectedClasses.size > 0 || selectedResourceTypes.size > 0 || selectedChapters.size > 0;
 
   const open = () => {
     setQuery("");
@@ -97,11 +152,38 @@ export default function GlobalSearch() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // Facet filtering runs independently of the query, memoized on the
+  // filter selections only — this is the "narrow without a query" path.
+  // Never touches/rebuilds searchIndex itself, just filters the existing
+  // array reference.
+  const filteredByFacets = useMemo(() => {
+    if (!filtersActive) return searchIndex;
+    return searchIndex.filter((entry) => {
+      if (selectedClasses.size > 0 && !selectedClasses.has(entry.cls)) return false;
+      if (selectedChapters.size > 0 && !selectedChapters.has(`${entry.cls}:${entry.slug}`))
+        return false;
+      if (selectedResourceTypes.size > 0) {
+        const entryResourceKeys = new Set(entry.resources.map((r) => r.key));
+        const matchesAny = [...selectedResourceTypes].some((rt) => entryResourceKeys.has(rt));
+        if (!matchesAny) return false;
+      }
+      return true;
+    });
+  }, [selectedClasses, selectedResourceTypes, selectedChapters, filtersActive]);
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return [];
+    if (!q && !filtersActive) return [];
+
     const scored: { entry: SearchEntry; score: number; nameRanges: [number, number][] }[] = [];
-    for (const entry of searchIndex) {
+    for (const entry of filteredByFacets) {
+      if (!q) {
+        // Pure filter-browse: no query to score against, just list what
+        // matches the filters (alphabetical, via the sort's tiebreak below).
+        scored.push({ entry, score: 0, nameRanges: [] });
+        continue;
+      }
+
       const name = entry.name.toLowerCase();
       const nameMatch = matchQuery(name, q);
 
@@ -126,16 +208,19 @@ export default function GlobalSearch() {
         });
       }
     }
-    return scored
-      .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
-      .slice(0, 20);
-  }, [query]);
+    return scored.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name));
+  }, [query, filteredByFacets, filtersActive]);
+
+  // True whenever the dialog should be in "results" mode (search results
+  // or a filtered browse list) rather than the default recent/placeholder
+  // state — the query alone no longer decides this once filters exist.
+  const showResultsMode = query.trim() !== "" || filtersActive;
 
   // Whichever list is actually on screen right now — recent chapters
   // (empty query) or search results (typing) — unified so keyboard nav
   // doesn't need to know which one it's driving.
   const navItems: NavItem[] = useMemo(() => {
-    if (query.trim() === "") {
+    if (!showResultsMode) {
       return recent.map((c) => ({ type: "recent" as const, key: c.slug, chapter: c }));
     }
     return results.map(({ entry, nameRanges }) => ({
@@ -144,7 +229,7 @@ export default function GlobalSearch() {
       entry,
       nameRanges,
     }));
-  }, [query, recent, results]);
+  }, [showResultsMode, recent, results]);
 
   // Selection always snaps to the first item (or none) whenever the
   // visible list changes — covers "dialog just opened", "typed a new
@@ -213,6 +298,27 @@ export default function GlobalSearch() {
     }, 500);
     return () => clearTimeout(timer);
   }, [query, results.length]);
+
+  // Active filter chips, built fresh each render from current selections —
+  // cheap (at most ~3 small Sets) and keeps chip labels in sync with the
+  // same option constants the dropdowns use, with no separate source of truth.
+  const filterChips: { key: string; label: string; onRemove: () => void }[] = [
+    ...[...selectedClasses].map((c) => ({
+      key: `cls-${c}`,
+      label: `Class ${c}`,
+      onRemove: () => toggleClass(c),
+    })),
+    ...[...selectedResourceTypes].map((rt) => ({
+      key: `rt-${rt}`,
+      label: RESOURCE_TYPE_OPTIONS.find((o) => o.key === rt)?.label ?? rt,
+      onRemove: () => toggleResourceType(rt),
+    })),
+    ...[...selectedChapters].map((ck) => ({
+      key: `ch-${ck}`,
+      label: CHAPTER_OPTIONS.find((o) => o.optionKey === ck)?.name ?? ck,
+      onRemove: () => toggleChapter(ck),
+    })),
+  ];
 
   return (
     <>
@@ -300,12 +406,124 @@ export default function GlobalSearch() {
         </div>
 
         <div
+          role="group"
+          aria-label="Search filters"
+          className="flex flex-wrap items-center gap-1.5 border-b border-navy/10 px-3 py-2"
+        >
+          <details className="relative">
+            <summary className="cursor-pointer list-none rounded-md border border-navy/15 px-2.5 py-1 text-xs font-medium text-slate hover:border-gold hover:text-gold-deep">
+              Class
+            </summary>
+            <div
+              role="group"
+              aria-label="Filter by class"
+              className="absolute z-10 mt-1 w-32 rounded-md border border-navy/10 bg-white p-1.5 shadow-lg"
+            >
+              {(["11", "12"] as const).map((c) => (
+                <label
+                  key={c}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm text-navy hover:bg-ivory"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedClasses.has(c)}
+                    onChange={() => toggleClass(c)}
+                  />
+                  Class {c}
+                </label>
+              ))}
+            </div>
+          </details>
+
+          <details className="relative">
+            <summary className="cursor-pointer list-none rounded-md border border-navy/15 px-2.5 py-1 text-xs font-medium text-slate hover:border-gold hover:text-gold-deep">
+              Resource Type
+            </summary>
+            <div
+              role="group"
+              aria-label="Filter by resource type"
+              className="absolute z-10 mt-1 w-44 rounded-md border border-navy/10 bg-white p-1.5 shadow-lg"
+            >
+              {RESOURCE_TYPE_OPTIONS.map((r) => (
+                <label
+                  key={r.key}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm text-navy hover:bg-ivory"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedResourceTypes.has(r.key)}
+                    onChange={() => toggleResourceType(r.key)}
+                  />
+                  {r.label}
+                </label>
+              ))}
+            </div>
+          </details>
+
+          <details className="relative">
+            <summary className="cursor-pointer list-none rounded-md border border-navy/15 px-2.5 py-1 text-xs font-medium text-slate hover:border-gold hover:text-gold-deep">
+              Chapter
+            </summary>
+            <div
+              role="group"
+              aria-label="Filter by chapter"
+              className="absolute z-10 mt-1 max-h-72 w-64 overflow-y-auto rounded-md border border-navy/10 bg-white p-1.5 shadow-lg"
+            >
+              {(["11", "12"] as const).map((cls) => (
+                <div key={cls}>
+                  <p className="px-2 pt-1.5 pb-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate/50">
+                    Class {cls}
+                  </p>
+                  {CHAPTER_OPTIONS.filter((c) => c.cls === cls).map((c) => (
+                    <label
+                      key={c.optionKey}
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm text-navy hover:bg-ivory"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedChapters.has(c.optionKey)}
+                        onChange={() => toggleChapter(c.optionKey)}
+                      />
+                      {c.name}
+                    </label>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {filterChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              onClick={chip.onRemove}
+              aria-label={`Remove ${chip.label} filter`}
+              className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-xs font-medium text-gold-deep hover:bg-gold/20"
+            >
+              {chip.label}
+              <span aria-hidden="true">&times;</span>
+            </button>
+          ))}
+
+          {filterChips.length > 0 && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              aria-label="Clear all filters"
+              className="text-xs font-semibold text-slate/60 underline-offset-2 hover:text-navy hover:underline"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+
+        <div
           id="global-search-listbox"
           role="listbox"
           aria-label="Search results"
           className="max-h-[60vh] overflow-y-auto p-2"
         >
-          {query.trim() === "" && recent.length > 0 && (
+          {!showResultsMode && recent.length > 0 && (
             <div className="px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate/50 mb-2">
                 Recently viewed
@@ -345,16 +563,25 @@ export default function GlobalSearch() {
               </ul>
             </div>
           )}
-          {query.trim() === "" && recent.length === 0 && (
+          {!showResultsMode && recent.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-slate/60">
               Start typing a chapter name, class, or resource type — like
               &ldquo;kinematics&rdquo;, &ldquo;class 12&rdquo;, or &ldquo;formula
               sheet&rdquo;.
             </p>
           )}
-          {query.trim() !== "" && results.length === 0 && (
-            <p className="px-3 py-6 text-center text-sm text-slate/60">
-              No chapters match &ldquo;{query}&rdquo;. Try a different search.
+          {showResultsMode && (
+            <p className="px-3 pt-1 pb-2 text-xs font-medium text-slate/50" aria-live="polite">
+              {results.length === 0
+                ? "No results"
+                : `${results.length} ${results.length === 1 ? "result" : "results"}`}
+            </p>
+          )}
+          {showResultsMode && results.length === 0 && (
+            <p className="px-3 pb-6 text-center text-sm text-slate/60">
+              {query.trim() !== ""
+                ? <>No chapters match &ldquo;{query}&rdquo;. Try a different search.</>
+                : "No chapters match the selected filters."}
             </p>
           )}
           <ul className="flex flex-col gap-1">
