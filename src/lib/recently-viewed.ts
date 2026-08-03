@@ -23,16 +23,32 @@ export type RecentChapter = {
   visitedAt: number;
 };
 
+// getRecentlyViewed is called directly as a useSyncExternalStore snapshot
+// (see ContinueLearning.tsx). React compares snapshots by reference, so
+// this must return the SAME array reference across calls whenever the
+// underlying localStorage value hasn't changed — otherwise React sees a
+// "new" value on every check and re-renders forever.
+let recentlyViewedCache: RecentChapter[] = [];
+let recentlyViewedCacheRaw: string | null = null;
+
+/** Returns a stable (cached) reference when the underlying data hasn't
+ * changed, so it's safe to use directly as a useSyncExternalStore snapshot. */
 export function getRecentlyViewed(): RecentChapter[] {
   if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === recentlyViewedCacheRaw) return recentlyViewedCache;
+  recentlyViewedCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      recentlyViewedCache = [];
+      return recentlyViewedCache;
+    }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
+    recentlyViewedCache = Array.isArray(parsed) ? parsed : [];
+    return recentlyViewedCache;
   } catch {
-    return [];
+    recentlyViewedCache = [];
+    return recentlyViewedCache;
   }
 }
 
