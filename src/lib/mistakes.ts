@@ -68,9 +68,23 @@ function writeAll(mistakes: Mistake[]): void {
   }
 }
 
+// getMistakes is called directly as a useSyncExternalStore snapshot
+// (see MistakeNotebookCard.tsx / DashboardClient.tsx). React compares
+// snapshots by reference, so this must return the SAME array reference
+// across calls whenever the underlying localStorage value hasn't
+// changed — otherwise React sees a "new" value on every check and
+// re-renders forever.
+let mistakesCache: Mistake[] = [];
+let mistakesCacheRaw: string | null = null;
+
 /** All mistakes, most recent first — safe during SSG (returns []). */
 export function getMistakes(): Mistake[] {
-  return readAll().sort((a, b) => b.createdAt - a.createdAt);
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === mistakesCacheRaw) return mistakesCache;
+  mistakesCacheRaw = raw;
+  mistakesCache = readAll().sort((a, b) => b.createdAt - a.createdAt);
+  return mistakesCache;
 }
 
 export function addMistake(entry: {
