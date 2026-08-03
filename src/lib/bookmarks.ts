@@ -64,9 +64,24 @@ function writeAll(bookmarks: Bookmark[]): void {
   }
 }
 
-/** All bookmarks, most recent first — safe to call during SSG (returns []). */
+// getBookmarks is called directly as a useSyncExternalStore snapshot
+// (see BookmarkedResources.tsx). React compares snapshots by reference,
+// so this must return the SAME array reference across calls whenever
+// the underlying localStorage value hasn't changed — otherwise React
+// sees a "new" value on every check and re-renders forever.
+let bookmarksCache: Bookmark[] = [];
+let bookmarksCacheRaw: string | null = null;
+
+/** All bookmarks, most recent first — safe to call during SSG (returns []).
+ * Returns a stable (cached) reference when the underlying data hasn't
+ * changed, so it's safe to use directly as a useSyncExternalStore snapshot. */
 export function getBookmarks(): Bookmark[] {
-  return readAll().sort((a, b) => b.bookmarkedAt - a.bookmarkedAt);
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === bookmarksCacheRaw) return bookmarksCache;
+  bookmarksCacheRaw = raw;
+  bookmarksCache = readAll().sort((a, b) => b.bookmarkedAt - a.bookmarkedAt);
+  return bookmarksCache;
 }
 
 export function isBookmarked(id: string): boolean {
