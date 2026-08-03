@@ -5,14 +5,20 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
-import { getRecentlyViewed, type RecentChapter } from "@/lib/recently-viewed";
 import { trackEvent } from "@/lib/analytics";
 import { matchQuery } from "@/lib/fuzzy-match";
+import {
+  getRecentSearches,
+  subscribeToRecentSearches,
+  recordRecentSearch,
+} from "@/lib/recent-searches";
+import { getPopularResources, type PopularItem } from "@/lib/popular-resources";
 
 /** Renders `text` with `ranges` ([start, end) into `text`) wrapped in
  * <mark> for search-match highlighting. Ranges must be pre-merged and
@@ -32,6 +38,95 @@ function highlightRanges(text: string, ranges: [number, number][]) {
   });
   if (last < text.length) parts.push(text.slice(last));
   return parts;
+}
+
+/** Small stroke icons for result-card hierarchy — same visual language
+ * (currentColor, 2px stroke) as the search/close icons already in this
+ * file. Chosen per resource-type key; falls back to a generic document
+ * icon for any type not explicitly listed. */
+function ResourceTypeIcon({ resourceKey, className }: { resourceKey: string; className?: string }) {
+  const common = {
+    width: 14,
+    height: 14,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+    className,
+  };
+  switch (resourceKey) {
+    case "dpp":
+      return (
+        <svg {...common}>
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      );
+    case "pyq":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 3" />
+        </svg>
+      );
+    case "formula-sheet":
+      return (
+        <svg {...common}>
+          <path d="M18 4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10" />
+          <path d="M8 4c-2 3-2 13 0 16" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M14 3v5h5" />
+          <path d="M6 3h8l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+        </svg>
+      );
+  }
+}
+
+function ChapterIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width={14}
+      height={14}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
 }
 
 /** Resource-type filter options. Deliberately limited to the four types
@@ -54,12 +149,15 @@ const CHAPTER_OPTIONS = searchIndex
   .map((e) => ({ optionKey: `${e.cls}:${e.slug}`, cls: e.cls, name: e.name }))
   .sort((a, b) => (a.cls === b.cls ? a.name.localeCompare(b.name) : a.cls.localeCompare(b.cls)));
 
-/** Unifies the two mutually-exclusive lists the dialog can show (recent
- * chapters when the query is empty, search results once typing starts)
- * into one shape so arrow-key navigation, Home/End, Enter, and hover
- * work identically against whichever list is currently visible. */
+const EMPTY_RECENT_SEARCHES: string[] = [];
+
+/** Unifies every list the dialog can show — recent searches and popular
+ * resources on the empty state, search results once typing/filtering
+ * starts — into one shape so arrow-key navigation, Home/End, Enter, and
+ * hover work identically no matter which list is currently visible. */
 type NavItem =
-  | { type: "recent"; key: string; chapter: RecentChapter }
+  | { type: "recent-search"; key: string; queryText: string }
+  | { type: "popular"; key: string; item: PopularItem }
   | {
       type: "result";
       key: string;
@@ -85,12 +183,26 @@ export default function GlobalSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [query, setQuery] = useState("");
-  const [recent, setRecent] = useState<RecentChapter[]>([]);
+  const [popular, setPopular] = useState<{ items: PopularItem[]; source: "history" | "derived" }>(
+    { items: [], source: "derived" }
+  );
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedClasses, setSelectedClasses] = useState<Set<"11" | "12">>(new Set());
   const [selectedResourceTypes, setSelectedResourceTypes] = useState<Set<string>>(new Set());
   const [selectedChapters, setSelectedChapters] = useState<Set<string>>(new Set());
+
+  // Reactive (not read-once-on-open like `popular` below) so a search
+  // executed just now shows up immediately if the student clears the
+  // query and looks at the empty state again in the same session.
+  // getRecentSearches is stable-cached, so this is safe against the
+  // useSyncExternalStore infinite-render issue every other ATLAS
+  // snapshot function in this codebase already guards against.
+  const recentSearches = useSyncExternalStore(
+    subscribeToRecentSearches,
+    getRecentSearches,
+    () => EMPTY_RECENT_SEARCHES
+  );
 
   function toggleClass(cls: "11" | "12") {
     setSelectedClasses((prev) => {
@@ -126,7 +238,7 @@ export default function GlobalSearch() {
 
   const open = () => {
     setQuery("");
-    setRecent(getRecentlyViewed());
+    setPopular(getPopularResources(6));
     setIsOpen(true);
     dialogRef.current?.showModal();
     // Autofocus after the dialog paints, so it works reliably across browsers.
@@ -221,7 +333,14 @@ export default function GlobalSearch() {
   // doesn't need to know which one it's driving.
   const navItems: NavItem[] = useMemo(() => {
     if (!showResultsMode) {
-      return recent.map((c) => ({ type: "recent" as const, key: c.slug, chapter: c }));
+      return [
+        ...recentSearches.map((q) => ({
+          type: "recent-search" as const,
+          key: `rs-${q}`,
+          queryText: q,
+        })),
+        ...popular.items.map((p) => ({ type: "popular" as const, key: p.key, item: p })),
+      ];
     }
     return results.map(({ entry, nameRanges }) => ({
       type: "result" as const,
@@ -229,7 +348,7 @@ export default function GlobalSearch() {
       entry,
       nameRanges,
     }));
-  }, [showResultsMode, recent, results]);
+  }, [showResultsMode, recentSearches, popular, results]);
 
   // Selection always snaps to the first item (or none) whenever the
   // visible list changes — covers "dialog just opened", "typed a new
@@ -271,13 +390,21 @@ export default function GlobalSearch() {
         break;
       case "Enter":
         e.preventDefault();
-        if (activeIndex >= 0) {
-          // Click the item's own <Link>, so navigation and the existing
-          // onClick={close} behavior both fire exactly as they do on a
-          // real mouse click — no separate navigation path to maintain.
-          itemRefs.current[activeIndex]
-            ?.querySelector<HTMLAnchorElement>("a")
-            ?.click();
+        if (activeIndex < 0) break;
+        {
+          const active = navItems[activeIndex];
+          if (active.type === "recent-search") {
+            // Reruns the search — populate the query, stay in the dialog,
+            // matching what clicking the same item does with the mouse.
+            setQuery(active.queryText);
+          } else {
+            // Click the item's own <Link>, so navigation and the existing
+            // onClick={close} behavior both fire exactly as they do on a
+            // real mouse click — no separate navigation path to maintain.
+            itemRefs.current[activeIndex]
+              ?.querySelector<HTMLAnchorElement>("a")
+              ?.click();
+          }
         }
         break;
       // Esc is intentionally not handled here — the native <dialog>
@@ -295,6 +422,7 @@ export default function GlobalSearch() {
     if (!q) return;
     const timer = setTimeout(() => {
       trackEvent("search", { search_term: q, result_count: results.length });
+      recordRecentSearch(q);
     }, 500);
     return () => clearTimeout(timer);
   }, [query, results.length]);
@@ -523,15 +651,15 @@ export default function GlobalSearch() {
           aria-label="Search results"
           className="max-h-[60vh] overflow-y-auto p-2"
         >
-          {!showResultsMode && recent.length > 0 && (
+          {!showResultsMode && recentSearches.length > 0 && (
             <div className="px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate/50 mb-2">
-                Recently viewed
+                Recent Searches
               </p>
               <ul className="flex flex-col gap-1">
-                {recent.map((c, i) => (
+                {recentSearches.map((q, i) => (
                   <li
-                    key={c.slug}
+                    key={`rs-${q}`}
                     id={`global-search-option-${i}`}
                     role="option"
                     aria-selected={i === activeIndex}
@@ -543,27 +671,71 @@ export default function GlobalSearch() {
                     }}
                     onMouseEnter={() => setActiveIndex(i)}
                     className={`rounded-md border-l-4 transition-colors ${
-                      i === activeIndex
-                        ? "bg-ivory border-gold"
-                        : "border-transparent"
+                      i === activeIndex ? "bg-ivory border-gold" : "border-transparent"
                     }`}
                   >
-                    <Link
-                      href={`/class-${c.cls}/${c.slug}`}
-                      onClick={close}
-                      className="block rounded-md px-2 py-1.5 text-sm font-medium text-navy hover:bg-ivory transition-colors"
+                    {/* Reruns the search — stays open, unlike result/popular
+                        links which navigate and close. */}
+                    <button
+                      type="button"
+                      onClick={() => setQuery(q)}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm font-medium text-navy hover:bg-ivory transition-colors"
                     >
-                      {c.name}
-                      <span className="ml-1.5 text-xs text-slate/50">
-                        Class {c.cls}
-                      </span>
-                    </Link>
+                      <ClockIcon className="shrink-0 text-slate/40" />
+                      {q}
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          {!showResultsMode && recent.length === 0 && (
+          {!showResultsMode && popular.items.length > 0 && (
+            <div className="px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate/50 mb-2">
+                {popular.source === "history" ? "Frequently Visited" : "Popular Resources"}
+              </p>
+              <ul className="flex flex-col gap-1">
+                {popular.items.map((p, localI) => {
+                  const i = recentSearches.length + localI;
+                  return (
+                    <li
+                      key={p.key}
+                      id={`global-search-option-${i}`}
+                      role="option"
+                      aria-selected={i === activeIndex}
+                      ref={(el) => {
+                        itemRefs.current[i] = el;
+                        return () => {
+                          itemRefs.current[i] = null;
+                        };
+                      }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      className={`rounded-md border-l-4 transition-colors ${
+                        i === activeIndex ? "bg-ivory border-gold" : "border-transparent"
+                      }`}
+                    >
+                      <Link
+                        href={p.path}
+                        onClick={close}
+                        className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-ivory transition-colors"
+                      >
+                        <ChapterIcon className="shrink-0 text-slate/40" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-navy">
+                            {p.title}
+                          </span>
+                          <span className="block truncate text-xs text-slate/50">
+                            {p.subtitle}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          {!showResultsMode && recentSearches.length === 0 && popular.items.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-slate/60">
               Start typing a chapter name, class, or resource type — like
               &ldquo;kinematics&rdquo;, &ldquo;class 12&rdquo;, or &ldquo;formula
@@ -604,32 +776,38 @@ export default function GlobalSearch() {
                     : "border-transparent hover:bg-ivory"
                 }`}
               >
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <Link
-                    href={`/class-${entry.cls}/${entry.slug}`}
-                    onClick={close}
-                    className="font-semibold text-navy hover:text-gold-deep transition-colors"
-                  >
-                    {highlightRanges(entry.name, nameRanges)}
-                  </Link>
-                  <span className="text-xs text-slate/60">
-                    Class {entry.cls} &middot; {entry.subject}
-                  </span>
-                </div>
-                {entry.resources.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {entry.resources.map((r) => (
+                <div className="flex items-start gap-2">
+                  <ChapterIcon className="mt-0.5 shrink-0 text-slate/40" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <Link
-                        key={r.key}
-                        href={r.href}
+                        href={`/class-${entry.cls}/${entry.slug}`}
                         onClick={close}
-                        className="text-xs font-medium px-2 py-0.5 rounded-full border border-navy/15 text-navy/70 hover:border-gold hover:text-gold-deep transition-colors"
+                        className="font-semibold text-navy hover:text-gold-deep transition-colors"
                       >
-                        {r.label}
+                        {highlightRanges(entry.name, nameRanges)}
                       </Link>
-                    ))}
+                      <span className="text-xs text-slate/60">
+                        Class {entry.cls} &middot; {entry.subject}
+                      </span>
+                    </div>
+                    {entry.resources.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {entry.resources.map((r) => (
+                          <Link
+                            key={r.key}
+                            href={r.href}
+                            onClick={close}
+                            className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-navy/15 text-navy/70 hover:border-gold hover:text-gold-deep transition-colors"
+                          >
+                            <ResourceTypeIcon resourceKey={r.key} />
+                            {r.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </li>
             ))}
           </ul>
