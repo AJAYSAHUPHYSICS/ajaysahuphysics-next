@@ -41,15 +41,33 @@ function chapterKey(cls: "11" | "12", slug: string): string {
   return `${cls}:${slug}`;
 }
 
+// readAll (and everything built on it) is called directly, or nearly
+// directly, as a useSyncExternalStore snapshot (getAllChecklists in
+// DashboardClient.tsx, getChapterChecklist in ChapterChecklist.tsx /
+// ChapterProgressCard.tsx). React compares snapshots by reference, so
+// this must return the SAME reference across calls whenever the
+// underlying localStorage value hasn't changed — otherwise React sees
+// a "new" value on every check and re-renders forever.
+let checklistCache: ChecklistMap = {};
+let checklistCacheRaw: string | null = null;
+const EMPTY_CHAPTER_CHECKLIST: ChapterChecklistState = {};
+
 function readAll(): ChecklistMap {
   if (typeof window === "undefined") return {};
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === checklistCacheRaw) return checklistCache;
+  checklistCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
+    if (!raw) {
+      checklistCache = {};
+      return checklistCache;
+    }
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
+    checklistCache = parsed && typeof parsed === "object" ? parsed : {};
+    return checklistCache;
   } catch {
-    return {};
+    checklistCache = {};
+    return checklistCache;
   }
 }
 
@@ -59,7 +77,9 @@ export function getAllChecklists(): ChecklistMap {
 }
 
 export function getChapterChecklist(cls: "11" | "12", slug: string): ChapterChecklistState {
-  return readAll()[chapterKey(cls, slug)] ?? {};
+  // EMPTY_CHAPTER_CHECKLIST (not a fresh {} literal) so an unstarted
+  // chapter's snapshot is also referentially stable across calls.
+  return readAll()[chapterKey(cls, slug)] ?? EMPTY_CHAPTER_CHECKLIST;
 }
 
 export function setChecklistItem(
