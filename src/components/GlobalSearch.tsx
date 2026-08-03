@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
 import { getRecentlyViewed, type RecentChapter } from "@/lib/recently-viewed";
@@ -27,6 +34,19 @@ function highlightRanges(text: string, ranges: [number, number][]) {
   return parts;
 }
 
+/** Unifies the two mutually-exclusive lists the dialog can show (recent
+ * chapters when the query is empty, search results once typing starts)
+ * into one shape so arrow-key navigation, Home/End, Enter, and hover
+ * work identically against whichever list is currently visible. */
+type NavItem =
+  | { type: "recent"; key: string; chapter: RecentChapter }
+  | {
+      type: "result";
+      key: string;
+      entry: SearchEntry;
+      nameRanges: [number, number][];
+    };
+
 /**
  * Site-wide search, reachable from the Navbar on every page.
  *
@@ -43,12 +63,16 @@ function highlightRanges(text: string, ranges: [number, number][]) {
 export default function GlobalSearch() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [query, setQuery] = useState("");
   const [recent, setRecent] = useState<RecentChapter[]>([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [isOpen, setIsOpen] = useState(false);
 
   const open = () => {
     setQuery("");
     setRecent(getRecentlyViewed());
+    setIsOpen(true);
     dialogRef.current?.showModal();
     // Autofocus after the dialog paints, so it works reliably across browsers.
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -107,6 +131,76 @@ export default function GlobalSearch() {
       .slice(0, 20);
   }, [query]);
 
+  // Whichever list is actually on screen right now — recent chapters
+  // (empty query) or search results (typing) — unified so keyboard nav
+  // doesn't need to know which one it's driving.
+  const navItems: NavItem[] = useMemo(() => {
+    if (query.trim() === "") {
+      return recent.map((c) => ({ type: "recent" as const, key: c.slug, chapter: c }));
+    }
+    return results.map(({ entry, nameRanges }) => ({
+      type: "result" as const,
+      key: entry.slug,
+      entry,
+      nameRanges,
+    }));
+  }, [query, recent, results]);
+
+  // Selection always snaps to the first item (or none) whenever the
+  // visible list changes — covers "dialog just opened", "typed a new
+  // character", and "recent list loaded" in one place, since all three
+  // produce a new navItems array. Adjusted directly during render
+  // (React's documented pattern for this) rather than in a useEffect,
+  // which would cause an extra visible render pass.
+  const [prevNavItems, setPrevNavItems] = useState(navItems);
+  if (prevNavItems !== navItems) {
+    setPrevNavItems(navItems);
+    setActiveIndex(navItems.length > 0 ? 0 : -1);
+  }
+
+  // Keep the active item scrolled into view as selection moves via
+  // keyboard, so results below the fold are reachable without a mouse.
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    itemRefs.current[activeIndex]?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
+
+  function onInputKeyDown(e: ReactKeyboardEvent<HTMLInputElement>) {
+    if (navItems.length === 0) return;
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setActiveIndex((i) => (i + 1) % navItems.length);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setActiveIndex((i) => (i - 1 + navItems.length) % navItems.length);
+        break;
+      case "Home":
+        e.preventDefault();
+        setActiveIndex(0);
+        break;
+      case "End":
+        e.preventDefault();
+        setActiveIndex(navItems.length - 1);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (activeIndex >= 0) {
+          // Click the item's own <Link>, so navigation and the existing
+          // onClick={close} behavior both fire exactly as they do on a
+          // real mouse click — no separate navigation path to maintain.
+          itemRefs.current[activeIndex]
+            ?.querySelector<HTMLAnchorElement>("a")
+            ?.click();
+        }
+        break;
+      // Esc is intentionally not handled here — the native <dialog>
+      // already closes on Escape (fires cancel -> close), which the
+      // existing onClose handler below already resets query for.
+    }
+  }
+
   // Debounced: fires once ~500ms after the student stops typing, not on
   // every keystroke, and only for genuine (non-empty) queries. Uses GA4's
   // reserved "search" event name + search_term param so it's picked up by
@@ -149,7 +243,10 @@ export default function GlobalSearch() {
 
       <dialog
         ref={dialogRef}
-        onClose={() => setQuery("")}
+        onClose={() => {
+          setQuery("");
+          setIsOpen(false);
+        }}
         onClick={(e) => {
           // Click on the backdrop (the <dialog> element itself, outside its
           // content box) closes it — native <dialog> has no built-in
@@ -179,8 +276,17 @@ export default function GlobalSearch() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onInputKeyDown}
             placeholder="Search chapters, notes, DPP, PYQ…"
             aria-label="Search query"
+            role="combobox"
+            aria-expanded={isOpen}
+            aria-controls="global-search-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              activeIndex >= 0 ? `global-search-option-${activeIndex}` : undefined
+            }
+            autoComplete="off"
             className="flex-1 border-0 outline-none text-navy placeholder:text-slate/40 py-1"
           />
           <button
@@ -193,15 +299,37 @@ export default function GlobalSearch() {
           </button>
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-2">
+        <div
+          id="global-search-listbox"
+          role="listbox"
+          aria-label="Search results"
+          className="max-h-[60vh] overflow-y-auto p-2"
+        >
           {query.trim() === "" && recent.length > 0 && (
             <div className="px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate/50 mb-2">
                 Recently viewed
               </p>
               <ul className="flex flex-col gap-1">
-                {recent.map((c) => (
-                  <li key={c.slug}>
+                {recent.map((c, i) => (
+                  <li
+                    key={c.slug}
+                    id={`global-search-option-${i}`}
+                    role="option"
+                    aria-selected={i === activeIndex}
+                    ref={(el) => {
+                      itemRefs.current[i] = el;
+                      return () => {
+                        itemRefs.current[i] = null;
+                      };
+                    }}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    className={`rounded-md border-l-4 transition-colors ${
+                      i === activeIndex
+                        ? "bg-ivory border-gold"
+                        : "border-transparent"
+                    }`}
+                  >
                     <Link
                       href={`/class-${c.cls}/${c.slug}`}
                       onClick={close}
@@ -230,8 +358,25 @@ export default function GlobalSearch() {
             </p>
           )}
           <ul className="flex flex-col gap-1">
-            {results.map(({ entry, nameRanges }) => (
-              <li key={entry.slug} className="rounded-md p-3 hover:bg-ivory">
+            {results.map(({ entry, nameRanges }, i) => (
+              <li
+                key={entry.slug}
+                id={`global-search-option-${i}`}
+                role="option"
+                aria-selected={i === activeIndex}
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                  return () => {
+                    itemRefs.current[i] = null;
+                  };
+                }}
+                onMouseEnter={() => setActiveIndex(i)}
+                className={`rounded-md p-3 border-l-4 transition-colors ${
+                  i === activeIndex
+                    ? "bg-ivory border-gold"
+                    : "border-transparent hover:bg-ivory"
+                }`}
+              >
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <Link
                     href={`/class-${entry.cls}/${entry.slug}`}
