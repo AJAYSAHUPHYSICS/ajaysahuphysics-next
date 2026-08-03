@@ -1,10 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
 import { getRecentlyViewed, type RecentChapter } from "@/lib/recently-viewed";
 import { trackEvent } from "@/lib/analytics";
+import { matchQuery } from "@/lib/fuzzy-match";
+
+/** Renders `text` with `ranges` ([start, end) into `text`) wrapped in
+ * <mark> for search-match highlighting. Ranges must be pre-merged and
+ * sorted (matchQuery already guarantees this). */
+function highlightRanges(text: string, ranges: [number, number][]) {
+  if (ranges.length === 0) return text;
+  const parts: ReactNode[] = [];
+  let last = 0;
+  ranges.forEach(([start, end], i) => {
+    if (start > last) parts.push(text.slice(last, start));
+    parts.push(
+      <mark key={i} className="bg-gold/30 text-navy rounded-sm">
+        {text.slice(start, end)}
+      </mark>
+    );
+    last = end;
+  });
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
 
 /**
  * Site-wide search, reachable from the Navbar on every page.
@@ -55,28 +76,35 @@ export default function GlobalSearch() {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    const scored: { entry: SearchEntry; score: number }[] = [];
+    const scored: { entry: SearchEntry; score: number; nameRanges: [number, number][] }[] = [];
     for (const entry of searchIndex) {
       const name = entry.name.toLowerCase();
-      const haystack = [
-        name,
+      const nameMatch = matchQuery(name, q);
+
+      // Matches on slug/subject/class/resource labels still surface the
+      // chapter (e.g. searching "dpp"), just ranked below any name match —
+      // same behavior as before, now typo-tolerant on each field too.
+      const otherFields = [
         entry.slug,
         entry.subject.toLowerCase(),
         `class ${entry.cls}`,
         entry.cls,
         ...entry.resources.map((r) => r.label.toLowerCase()),
       ];
-      const matches = haystack.some((h) => h.includes(q));
-      if (matches) {
-        // Rank exact-start-of-name matches above partial/resource-type matches.
-        const score = name.startsWith(q) ? 2 : name.includes(q) ? 1 : 0;
-        scored.push({ entry, score });
+      const otherMatch = otherFields.some((f) => matchQuery(f, q).matched);
+
+      if (nameMatch.matched || otherMatch) {
+        const score = nameMatch.matched ? nameMatch.score : 0;
+        scored.push({
+          entry,
+          score,
+          nameRanges: nameMatch.matched ? nameMatch.ranges : [],
+        });
       }
     }
     return scored
       .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
-      .slice(0, 20)
-      .map((s) => s.entry);
+      .slice(0, 20);
   }, [query]);
 
   // Debounced: fires once ~500ms after the student stops typing, not on
@@ -202,7 +230,7 @@ export default function GlobalSearch() {
             </p>
           )}
           <ul className="flex flex-col gap-1">
-            {results.map((entry) => (
+            {results.map(({ entry, nameRanges }) => (
               <li key={entry.slug} className="rounded-md p-3 hover:bg-ivory">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <Link
@@ -210,7 +238,7 @@ export default function GlobalSearch() {
                     onClick={close}
                     className="font-semibold text-navy hover:text-gold-deep transition-colors"
                   >
-                    {entry.name}
+                    {highlightRanges(entry.name, nameRanges)}
                   </Link>
                   <span className="text-xs text-slate/60">
                     Class {entry.cls} &middot; {entry.subject}
