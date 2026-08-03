@@ -52,12 +52,25 @@ function writeAll(map: GoalMap): void {
   }
 }
 
+// getActiveGoals is called directly as a useSyncExternalStore snapshot
+// (see DashboardClient.tsx). React compares snapshots by reference, so
+// this must return the SAME array reference across calls whenever the
+// underlying localStorage value hasn't changed — otherwise React sees
+// a "new" value on every check and re-renders forever.
+let activeGoalsCache: ActiveGoal[] = [];
+let activeGoalsCacheRaw: string | null = null;
+
 /** All active goals, most recently activated first — safe during SSG (returns []). */
 export function getActiveGoals(): ActiveGoal[] {
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === activeGoalsCacheRaw) return activeGoalsCache;
+  activeGoalsCacheRaw = raw;
   const map = readAll();
-  return (Object.entries(map) as [GoalType, number][])
+  activeGoalsCache = (Object.entries(map) as [GoalType, number][])
     .map(([type, activatedAt]) => ({ type, activatedAt }))
     .sort((a, b) => b.activatedAt - a.activatedAt);
+  return activeGoalsCache;
 }
 
 export function isGoalActive(type: GoalType): boolean {
