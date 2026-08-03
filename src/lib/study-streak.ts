@@ -40,20 +40,38 @@ function yesterdayKey(): string {
   return dateKey(d);
 }
 
+// read() is used directly as a useSyncExternalStore snapshot (getStreak,
+// in StudyStreakBadge.tsx / DashboardClient.tsx). React compares snapshots
+// by reference, so this must return the SAME object reference across
+// calls whenever the underlying localStorage value hasn't changed —
+// otherwise React sees a "new" value on every check and re-renders forever.
+let streakCache: StreakState = EMPTY_STREAK;
+let streakCacheRaw: string | null = null;
+
 function read(): StreakState {
   if (typeof window === "undefined") return EMPTY_STREAK;
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === streakCacheRaw) return streakCache;
+  streakCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY_STREAK;
+    if (!raw) {
+      streakCache = EMPTY_STREAK;
+      return streakCache;
+    }
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return EMPTY_STREAK;
-    return {
+    if (!parsed || typeof parsed !== "object") {
+      streakCache = EMPTY_STREAK;
+      return streakCache;
+    }
+    streakCache = {
       current: typeof parsed.current === "number" ? parsed.current : 0,
       longest: typeof parsed.longest === "number" ? parsed.longest : 0,
       lastActiveDate: typeof parsed.lastActiveDate === "string" ? parsed.lastActiveDate : null,
     };
+    return streakCache;
   } catch {
-    return EMPTY_STREAK;
+    streakCache = EMPTY_STREAK;
+    return streakCache;
   }
 }
 
