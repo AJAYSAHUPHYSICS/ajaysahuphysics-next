@@ -36,15 +36,36 @@ function isValidRound(n: unknown): n is RevisionRound {
   return typeof n === "number" && (REVISION_ROUNDS as readonly number[]).includes(n);
 }
 
+// readEntries (and everything built on it) is called directly, or
+// nearly directly, as a useSyncExternalStore snapshot (getAllRevisionEntries
+// in DashboardClient.tsx, getRevisionEntries in ChapterProgressCard.tsx,
+// getCompletedRounds in RevisionTracker.tsx). React compares snapshots by
+// reference, so these must return the SAME reference across calls whenever
+// the underlying localStorage value hasn't changed — otherwise React sees
+// a "new" value on every check and re-renders forever.
+let revisionEntriesCache: RevisionEntryMap = {};
+let revisionEntriesCacheRaw: string | null = null;
+const EMPTY_REVISION_ENTRIES: RevisionEntry[] = [];
+const EMPTY_REVISION_ROUNDS: RevisionRound[] = [];
+const completedRoundsCache = new Map<string, { source: RevisionEntry[]; result: RevisionRound[] }>();
+
 /** Reads the stored map, migrating the legacy `number[]` shape (round
  * numbers with no timestamp) to `{round, completedAt}[]` on the fly. */
 function readEntries(): RevisionEntryMap {
   if (typeof window === "undefined") return {};
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (raw === revisionEntriesCacheRaw) return revisionEntriesCache;
+  revisionEntriesCacheRaw = raw;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
+    if (!raw) {
+      revisionEntriesCache = {};
+      return revisionEntriesCache;
+    }
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") return {};
+    if (!parsed || typeof parsed !== "object") {
+      revisionEntriesCache = {};
+      return revisionEntriesCache;
+    }
 
     const map: RevisionEntryMap = {};
     for (const [key, value] of Object.entries(parsed)) {
@@ -64,9 +85,11 @@ function readEntries(): RevisionEntryMap {
         .filter((e): e is RevisionEntry => e !== null);
       map[key] = entries;
     }
-    return map;
+    revisionEntriesCache = map;
+    return revisionEntriesCache;
   } catch {
-    return {};
+    revisionEntriesCache = {};
+    return revisionEntriesCache;
   }
 }
 
@@ -87,7 +110,7 @@ export function getAllRevisionEntries(): RevisionEntryMap {
 
 /** Entries (with timestamps) for one chapter. */
 export function getRevisionEntries(cls: "11" | "12", slug: string): RevisionEntry[] {
-  return readEntries()[chapterKey(cls, slug)] ?? [];
+  return readEntries()[chapterKey(cls, slug)] ?? EMPTY_REVISION_ENTRIES;
 }
 
 /** Most recent revision timestamp for a chapter, or null if never revised. */
@@ -109,11 +132,19 @@ export function getAllRevision(): RevisionMap {
   return map;
 }
 
-/** Completed round numbers for a chapter, e.g. [1, 2]. */
+/** Completed round numbers for a chapter, e.g. [1, 2]. Cached per chapter
+ * (keyed on the source entries reference) so it's safe to use directly as
+ * a useSyncExternalStore snapshot — .map().sort() would otherwise build a
+ * new array on every call even when nothing changed. */
 export function getCompletedRounds(cls: "11" | "12", slug: string): RevisionRound[] {
-  return getRevisionEntries(cls, slug)
-    .map((e) => e.round)
-    .sort();
+  const entries = getRevisionEntries(cls, slug);
+  if (entries.length === 0) return EMPTY_REVISION_ROUNDS;
+  const key = chapterKey(cls, slug);
+  const cached = completedRoundsCache.get(key);
+  if (cached && cached.source === entries) return cached.result;
+  const result = entries.map((e) => e.round).sort();
+  completedRoundsCache.set(key, { source: entries, result });
+  return result;
 }
 
 export function setRevisionRound(
