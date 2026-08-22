@@ -131,14 +131,6 @@ export default function Footer() {
                   {siteConfig.email}
                 </a>
               </li>
-              <li>
-                <a
-                  href={`tel:${siteConfig.phone}`}
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  {siteConfig.phone}
-                </a>
-              </li>
             </ul>
           </div>
         </div>
