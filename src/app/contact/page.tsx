@@ -13,12 +13,6 @@ export const metadata: Metadata = {
 
 const channels = [
   {
-    label: "WhatsApp",
-    value: siteConfig.phone,
-    note: "Fastest way to reach Ajay Sir — for demo classes, fees, and doubts.",
-    href: null,
-  },
-  {
     label: "Email",
     value: siteConfig.email,
     note: "For detailed queries or anything that needs a written reply.",
@@ -60,6 +54,17 @@ export default function ContactPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="rounded-lg border border-navy/10 p-7 hover:border-gold hover:shadow-lg transition-all">
+              <h3 className="font-display text-xl text-navy">WhatsApp</h3>
+              <p className="mt-3 text-sm text-slate leading-relaxed">
+                Fastest way to reach Ajay Sir — for demo classes, fees, and doubts.
+              </p>
+              <div className="mt-4">
+                <WhatsAppButton message="Hi Ajay Sir, I have a question.">
+                  Chat now
+                </WhatsAppButton>
+              </div>
+            </div>
             {channels.map((c) => (
               <div
                 key={c.label}
