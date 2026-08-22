@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { primaryNav, examNav, classNav, siteConfig } from "@/lib/site-config";
+import { primaryNav, examNav, classNav } from "@/lib/site-config";
 import GlobalSearch from "./GlobalSearch";
 import ReadingProgressBar from "./ReadingProgressBar";
 
@@ -41,14 +41,6 @@ export default function Navbar() {
               JEE Main &middot; JEE Advanced &middot; NEET
             </span>
             <span className="sm:hidden text-white/70">JEE &middot; NEET Physics</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href={`tel:${siteConfig.phone}`}
-              className="text-white/80 hover:text-gold transition-colors"
-            >
-              {siteConfig.phone}
-            </a>
           </div>
         </div>
       </div>
