@@ -3,20 +3,50 @@
 import { useState } from "react";
 import type { ChapterDpp } from "@/lib/dpp/kinematics";
 import AddMistakeButton from "./AddMistakeButton";
+import TimedPracticeSession, { type TimedQuestion } from "./TimedPracticeSession";
 
 export default function DppDisplay({ dpp, slug }: { dpp: ChapterDpp; slug: string }) {
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
+  const [mode, setMode] = useState<"normal" | "timed">("normal");
 
   const toggleReveal = (n: number) =>
     setRevealed((r) => ({ ...r, [n]: !r[n] }));
 
+  if (mode === "timed") {
+    const timedQuestions: TimedQuestion[] = dpp.questions.map((q) => ({
+      key: String(q.number),
+      tag: `Q${q.number}`,
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      solution: q.solution,
+    }));
+    return (
+      <TimedPracticeSession
+        questions={timedQuestions}
+        chapterName={dpp.chapterName}
+        resourceLabel="Practice Questions"
+        onExit={() => setMode("normal")}
+      />
+    );
+  }
+
   return (
     <div>
-      <p className="text-sm text-slate mb-6">
-        {dpp.questions.length} questions on {dpp.chapterName}. Try each one
-        before checking the answer.
-      </p>
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+        <p className="text-sm text-slate">
+          {dpp.questions.length} questions on {dpp.chapterName}. Try each one
+          before checking the answer.
+        </p>
+        <button
+          type="button"
+          onClick={() => setMode("timed")}
+          className="shrink-0 text-xs font-semibold text-white bg-navy hover:bg-navy-light transition-colors rounded-md px-3 py-1.5 focus-visible:outline-2 focus-visible:outline-gold"
+        >
+          Start Timed Practice
+        </button>
+      </div>
       <div className="space-y-5">
         {dpp.questions.map((q) => {
           const isRevealed = !!revealed[q.number];

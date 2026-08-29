@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { ChapterPyq, PyqQuestion } from "@/lib/pyq/kinematics";
 import AddMistakeButton from "./AddMistakeButton";
+import TimedPracticeSession, { type TimedQuestion } from "./TimedPracticeSession";
 
 export type ExamFilter = "jee-main" | "jee-advanced" | "neet" | null;
 
@@ -116,8 +117,48 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
   const [selected, setSelected] = useState<Record<number, number>>({});
   const [examFilter, setExamFilter] = useState<ExamFilter>(initialExamFilter);
+  const [mode, setMode] = useState<"normal" | "timed">("normal");
 
   const cardProps = { cls: pyq.className, slug, chapterName: pyq.chapterName };
+
+  // Timed mode respects the active exam filter (JEE Main / JEE Advanced /
+  // NEET) so a student practicing one exam's questions stays within that
+  // set. With no filter active, it falls back to the full question list,
+  // matching the previous behavior.
+  if (mode === "timed") {
+    const sourceQuestions = examFilter
+      ? pyq.questions
+          .map((q, idx) => ({ q, idx }))
+          .filter(({ q }) => matchesFilter(q, examFilter))
+      : pyq.questions.map((q, idx) => ({ q, idx }));
+
+    const timedQuestions: TimedQuestion[] = sourceQuestions.map(({ q, idx }) => ({
+      key: String(idx),
+      tag: q.exam,
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      solution: q.solution,
+    }));
+    return (
+      <TimedPracticeSession
+        questions={timedQuestions}
+        chapterName={pyq.chapterName}
+        resourceLabel="PYQ"
+        onExit={() => setMode("normal")}
+      />
+    );
+  }
+
+  const timedToggle = (
+    <button
+      type="button"
+      onClick={() => setMode("timed")}
+      className="shrink-0 text-xs font-semibold text-white bg-navy hover:bg-navy-light transition-colors rounded-md px-3 py-1.5 focus-visible:outline-2 focus-visible:outline-gold"
+    >
+      Start Timed Practice
+    </button>
+  );
 
   if (examFilter) {
     const filtered = pyq.questions
@@ -132,13 +173,16 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
             {filtered.length === 1 ? "" : "s"} on {pyq.chapterName}, rewritten
             here in original wording with the same tested concept.
           </p>
-          <button
-            type="button"
-            onClick={() => setExamFilter(null)}
-            className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors shrink-0 focus-visible:outline-2 focus-visible:outline-gold rounded"
-          >
-            View all exams
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setExamFilter(null)}
+              className="text-xs font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
+            >
+              View all exams
+            </button>
+            {timedToggle}
+          </div>
         </div>
         {filtered.length > 0 ? (
           <div className="space-y-5">
@@ -172,11 +216,14 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
   if (!hasExamTypeSplit) {
     return (
       <div>
-        <p className="text-sm text-slate mb-6">
-          {pyq.questions.length} real questions previously asked in NEET/AIPMT
-          exams on {pyq.chapterName}, rewritten here in original wording with
-          the same tested concept.
-        </p>
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+          <p className="text-sm text-slate">
+            {pyq.questions.length} real questions previously asked in
+            NEET/AIPMT exams on {pyq.chapterName}, rewritten here in original
+            wording with the same tested concept.
+          </p>
+          {timedToggle}
+        </div>
         <div className="space-y-5">
           {pyq.questions.map((q, idx) => (
             <QuestionCard
@@ -207,11 +254,14 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
 
   return (
     <div>
-      <p className="text-sm text-slate mb-6">
-        {pyq.questions.length} previous year questions on {pyq.chapterName},
-        rewritten here in original wording with the same tested concept —
-        grouped by exam.
-      </p>
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+        <p className="text-sm text-slate">
+          {pyq.questions.length} previous year questions on {pyq.chapterName},
+          rewritten here in original wording with the same tested concept —
+          grouped by exam.
+        </p>
+        {timedToggle}
+      </div>
 
       <div className="space-y-10">
         {jeeMain.length > 0 && (
