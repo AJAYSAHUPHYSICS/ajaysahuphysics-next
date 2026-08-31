@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { primaryNav, examNav, classNav } from "@/lib/site-config";
 import GlobalSearch from "./GlobalSearch";
 import ReadingProgressBar from "./ReadingProgressBar";
+import AuthButton from "./AuthButton";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -89,6 +90,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-2">
+              <AuthButton className="hidden sm:inline-flex" />
               <GlobalSearch />
 
               <button
@@ -121,6 +123,9 @@ export default function Navbar() {
         {open && (
           <div className="lg:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-4 sm:px-6 py-3 flex flex-col gap-1">
+              <div className="sm:hidden pb-2 mb-1 border-b border-navy/10">
+                <AuthButton className="w-full flex items-center justify-center" />
+              </div>
               {primaryNav.map((link) => (
                 <Link
                   key={link.href}
