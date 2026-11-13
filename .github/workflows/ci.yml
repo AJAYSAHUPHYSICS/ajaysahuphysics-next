@@ -1,0 +1,59 @@
+name: CI
+
+# Quality gate for every feature branch and pull request.
+# This workflow NEVER deploys: it has read-only permissions and no access to
+# repository secrets. Production deploys happen only from main via deploy.yml.
+#
+# The job is named "ci"; that is the status check to mark as required in the
+# branch protection rule for main.
+
+on:
+  pull_request:
+  push:
+    branches-ignore: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # Skipped automatically until a "test" script exists in package.json
+      # (Vitest is added in phase-1b-fixes).
+      - name: Unit tests
+        run: npm test --if-present
+
+      # Built WITHOUT Supabase secrets on purpose: the Supabase client is
+      # designed to be inert when its env vars are absent, and CI must never
+      # need production credentials.
+      - name: Build static site
+        run: npm run build
+
+      - name: Verify build output (URLs, sitemap, robots, titles, canonicals, links)
+        run: node scripts/verify-build.mjs
