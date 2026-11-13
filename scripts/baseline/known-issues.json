@@ -1,0 +1,20 @@
+{
+  "_comment": "Open issues that verify-build.mjs reports as notes instead of failures. Each entry must be removed when its issue is fixed: verify-build fails if a listed issue no longer occurs. Never add an entry to make CI pass without an owner-approved reason and a tracking ID.",
+  "brokenLinks": [
+    {
+      "href": "/notes-pdf/class-12/electromagnetic-induction.pdf",
+      "tracking": "P1-4",
+      "reason": "Notes PDF not yet created; link to be hidden in phase-1b-fixes (decision D-2)."
+    },
+    {
+      "href": "/notes-pdf/class-12/semiconductor-electronics.pdf",
+      "tracking": "P1-4",
+      "reason": "Notes PDF not yet created; link to be hidden in phase-1b-fixes (decision D-2)."
+    },
+    {
+      "href": "/notes-pdf/class-12/wave-optics.pdf",
+      "tracking": "P1-4",
+      "reason": "Notes PDF not yet created; link to be hidden in phase-1b-fixes (decision D-2)."
+    }
+  ]
+}

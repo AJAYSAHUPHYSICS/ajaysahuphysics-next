@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   build:
+    # Production deploys come from main only. Without this guard, the manual
+    # "Run workflow" button (workflow_dispatch) could publish any branch to
+    # the live site. Feature branches are checked by ci.yml instead.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,6 +49,7 @@ jobs:
           path: ./out
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
