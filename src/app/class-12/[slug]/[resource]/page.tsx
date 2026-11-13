@@ -7,6 +7,7 @@ import {
   type ResourceKey,
 } from "@/lib/resource-registry";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
+import { hasNotesPdf, notesPdfHref } from "@/lib/notes-pdf";
 import type { BookmarkType } from "@/lib/bookmarks";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import BookmarkButton from "@/components/BookmarkButton";
@@ -126,16 +127,19 @@ export default async function Page({
       {resource === "notes" ? (
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
           <p className="text-sm text-slate">Typed notes for {chapter.name}.</p>
-          <a
-            href={`/notes-pdf/class-12/${chapter.slug}.pdf`}
-            download
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
-            </svg>
-            Download PDF
-          </a>
+          {/* Only link a PDF that exists (checked at build time); see docs/MISSING_ASSETS.md. */}
+          {hasNotesPdf("12", chapter.slug) ? (
+            <a
+              href={notesPdfHref("12", chapter.slug)}
+              download
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+              </svg>
+              Download PDF
+            </a>
+          ) : null}
         </div>
       ) : null}
 
