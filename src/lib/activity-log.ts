@@ -12,6 +12,8 @@
 // completion state or reading localStorage a second time per feature.
 // ─────────────────────────────────────────────────────────────────
 
+import { safeGetItem } from "./safe-storage";
+
 const STORAGE_KEY = "atlas:activity-log";
 const MAX_ENTRIES = 400;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // prune anything older than 30 days
@@ -42,7 +44,7 @@ let activityLogCacheRaw: string | null = null;
 
 function readAll(): ActivityEvent[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === activityLogCacheRaw) return activityLogCache;
   activityLogCacheRaw = raw;
   try {

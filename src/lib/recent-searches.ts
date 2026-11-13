@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { createNotifier } from "./local-store-events";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:recent-searches";
 const MAX_ENTRIES = 10;
@@ -27,7 +28,7 @@ let cacheRaw: string | null = null;
 
 function readAll(): string[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === cacheRaw) return cache;
   cacheRaw = raw;
   try {

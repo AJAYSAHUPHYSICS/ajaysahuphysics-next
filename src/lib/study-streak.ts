@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { createNotifier } from "./local-store-events";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:study-streak";
 const { subscribe, notify } = createNotifier();
@@ -50,7 +51,7 @@ let streakCacheRaw: string | null = null;
 
 function read(): StreakState {
   if (typeof window === "undefined") return EMPTY_STREAK;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === streakCacheRaw) return streakCache;
   streakCacheRaw = raw;
   try {

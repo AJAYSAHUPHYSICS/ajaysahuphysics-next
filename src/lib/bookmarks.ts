@@ -10,6 +10,7 @@
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
 import { logActivity } from "./activity-log";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:bookmarks";
 const MAX_ENTRIES = 300;
@@ -77,7 +78,7 @@ let bookmarksCacheRaw: string | null = null;
  * changed, so it's safe to use directly as a useSyncExternalStore snapshot. */
 export function getBookmarks(): Bookmark[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === bookmarksCacheRaw) return bookmarksCache;
   bookmarksCacheRaw = raw;
   bookmarksCache = readAll().sort((a, b) => b.bookmarkedAt - a.bookmarkedAt);

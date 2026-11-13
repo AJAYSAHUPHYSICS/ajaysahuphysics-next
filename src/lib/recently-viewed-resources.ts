@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { recordActivity } from "./study-streak";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:recently-viewed-resources";
 const MAX_ENTRIES = 8;
@@ -33,7 +34,7 @@ let recentResourcesCacheRaw: string | null = null;
 
 export function getRecentlyViewedResources(): RecentResource[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === recentResourcesCacheRaw) return recentResourcesCache;
   recentResourcesCacheRaw = raw;
   try {

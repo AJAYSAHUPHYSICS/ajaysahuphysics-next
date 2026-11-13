@@ -15,6 +15,7 @@
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
 import { logActivity } from "./activity-log";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:revision";
 const { subscribe, notify } = createNotifier();
@@ -53,7 +54,7 @@ const completedRoundsCache = new Map<string, { source: RevisionEntry[]; result: 
  * numbers with no timestamp) to `{round, completedAt}[]` on the fly. */
 function readEntries(): RevisionEntryMap {
   if (typeof window === "undefined") return {};
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === revisionEntriesCacheRaw) return revisionEntriesCache;
   revisionEntriesCacheRaw = raw;
   try {
