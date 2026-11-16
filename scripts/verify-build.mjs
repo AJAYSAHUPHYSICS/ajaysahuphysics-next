@@ -23,6 +23,13 @@
 //      except entries recorded in scripts/baseline/known-issues.json.
 //      A known issue that has been fixed must be removed from that
 //      file, so the record of open issues stays accurate.
+//   6. Open Graph images: every chapter image listed in
+//      assets/og-sources/sources.json exists in the build as a valid PNG,
+//      exactly 1200 × 630 and under 300 KB; every indexable page has
+//      og:image and twitter:image on the production origin pointing to a
+//      file that exists; every chapter and chapter-resource page uses its
+//      own chapter's image; and the homepage's social meta tags are
+//      byte-for-byte unchanged from scripts/baseline/home-social.txt.
 //
 // Changing the baseline is intentional: run with --update-baseline and
 // commit the resulting diff under scripts/baseline/, so every URL,
@@ -129,6 +136,26 @@ function isNoindex(html) {
   return /<meta name="robots" content="[^"]*noindex/.test(html);
 }
 
+/** All og:* and twitter:* meta tags, in document order, as they appear in the HTML. */
+function socialTags(html) {
+  return [...html.matchAll(/<meta (?:property|name)="(?:og|twitter):[^"]+"[^>]*\/?>/g)].map((m) => m[0]);
+}
+
+function metaContent(html, key) {
+  const m = html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`));
+  return m ? decodeEntities(m[1]) : null;
+}
+
+/** PNG signature + IHDR dimensions, read directly from the file header. */
+function pngInfo(file) {
+  const buf = readFileSync(file);
+  const signature = buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const ihdr = buf.subarray(12, 16).toString("ascii") === "IHDR";
+  return { valid: signature && ihdr, width: ihdr ? buf.readUInt32BE(16) : 0, height: ihdr ? buf.readUInt32BE(20) : 0, bytes: buf.length };
+}
+
+const OG_W = 1200, OG_H = 630, OG_MAX_BYTES = 300 * 1024;
+
 // ── Load build output ────────────────────────────────────────────
 
 if (!existsSync(OUT)) {
@@ -166,6 +193,7 @@ if (UPDATE) {
     path.join(BASELINE, "meta.tsv"),
     meta.map((m) => [m.page, m.title, m.canonical].join("\t"))
   );
+  writeLines(path.join(BASELINE, "home-social.txt"), socialTags(html.get("index.html") ?? ""));
   console.log(
     `verify-build: baseline updated (${htmlPages.length} HTML files, ${sitemapUrls.length} sitemap URLs). ` +
       "Review and commit the diff in scripts/baseline/."
@@ -267,12 +295,68 @@ for (const href of knownBroken.keys()) {
   }
 }
 
+// ── 6. Open Graph images ─────────────────────────────────────────
+
+const sourcesPath = path.join(ROOT, "assets", "og-sources", "sources.json");
+const ogSources = existsSync(sourcesPath) ? JSON.parse(readFileSync(sourcesPath, "utf8")) : [];
+if (ogSources.length === 0) fail("og", "assets/og-sources/sources.json missing or empty");
+
+// 6a. Every expected chapter image is in the build and meets the format rules.
+const expectedOg = new Map(); // "/og/class-11/kinematics.png" -> entry
+for (const s of ogSources) {
+  const urlPath = "/" + s.output.replace(/^public\//, "");
+  expectedOg.set(urlPath, s);
+  const file = path.join(OUT, urlPath);
+  if (!existsSync(file)) { fail("og", `missing OG image ${urlPath}`); continue; }
+  const info = pngInfo(file);
+  if (!info.valid) fail("og", `${urlPath} is not a valid PNG`);
+  else if (info.width !== OG_W || info.height !== OG_H) fail("og", `${urlPath} is ${info.width}×${info.height}, expected ${OG_W}×${OG_H}`);
+  if (info.bytes >= OG_MAX_BYTES) fail("og", `${urlPath} is ${info.bytes} B, must be under ${OG_MAX_BYTES} B`);
+}
+
+// 6b. Every indexable page has og:image + twitter:image that resolve; chapter pages use their own image.
+let chapterPagesChecked = 0;
+for (const [page, h] of html) {
+  if (NOT_FOUND_PAGES.has(page) || isNoindex(h)) continue;
+  const urlPath = pageToUrlPath(page);
+  const og = metaContent(h, "og:image");
+  const tw = metaContent(h, "twitter:image");
+  if (!og) { fail("og", `${urlPath}: missing og:image`); continue; }
+  if (!tw) fail("og", `${urlPath}: missing twitter:image`);
+  else if (tw !== og) fail("og", `${urlPath}: twitter:image (${tw}) differs from og:image (${og})`);
+  if (!og.startsWith(ORIGIN + "/")) { fail("og", `${urlPath}: og:image not on ${ORIGIN}: ${og}`); continue; }
+  const imgPath = og.slice(ORIGIN.length);
+  if (!resolveInternal(imgPath)) fail("og", `${urlPath}: og:image points to a missing file ${imgPath}`);
+  const chapter = urlPath.match(/^\/class-(11|12)\/([a-z0-9-]+)\//);
+  if (chapter) {
+    chapterPagesChecked++;
+    const expected = `/og/class-${chapter[1]}/${chapter[2]}.png`;
+    if (imgPath !== expected) fail("og", `${urlPath}: og:image ${imgPath}, expected the chapter image ${expected}`);
+    if (!expectedOg.has(expected)) fail("og", `${urlPath}: no sources.json entry for ${expected}`);
+    if (metaContent(h, "og:image:width") !== String(OG_W) || metaContent(h, "og:image:height") !== String(OG_H)) {
+      fail("og", `${urlPath}: og:image:width/height should be ${OG_W}/${OG_H}`);
+    }
+  }
+}
+
+// 6c. Homepage social tags unchanged.
+const homeBaselinePath = path.join(BASELINE, "home-social.txt");
+if (!existsSync(homeBaselinePath)) fail("og", "scripts/baseline/home-social.txt missing");
+else {
+  const expectedHome = readLines(homeBaselinePath);
+  const actualHome = socialTags(html.get("index.html") ?? "");
+  if (expectedHome.join("\n") !== actualHome.join("\n")) {
+    fail("og", `homepage social meta tags changed\n  expected: ${expectedHome.join(" ")}\n  actual:   ${actualHome.join(" ")}`);
+  }
+}
+
 // ── Report ───────────────────────────────────────────────────────
 
 console.log(
   `verify-build: ${htmlPages.length} HTML files (${indexPages.length} pages), ` +
     `${sitemapUrls.length} sitemap URLs, ${brokenSeen.size} broken internal link(s) ` +
-    `(${[...brokenSeen.keys()].filter((h) => knownBroken.has(h)).length} known).`
+    `(${[...brokenSeen.keys()].filter((h) => knownBroken.has(h)).length} known), ` +
+    `${expectedOg.size} OG images, ${chapterPagesChecked} chapter pages checked for og:image.`
 );
 for (const n of notices) console.log(`  note  ${n}`);
 if (failures.length > 0) {

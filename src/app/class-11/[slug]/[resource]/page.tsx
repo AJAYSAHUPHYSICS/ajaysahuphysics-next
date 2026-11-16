@@ -8,6 +8,7 @@ import {
 } from "@/lib/resource-registry";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
 import { hasNotesPdf, notesPdfHref } from "@/lib/notes-pdf";
+import { chapterSocialMetadata } from "@/lib/social-metadata";
 import type { BookmarkType } from "@/lib/bookmarks";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import BookmarkButton from "@/components/BookmarkButton";
@@ -59,8 +60,8 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { title, description, url: path, type: "article" },
-    twitter: { card: "summary_large_image", title, description },
+    // Resource pages reuse their chapter's Open Graph image.
+    ...chapterSocialMetadata({ cls: "11", slug, chapterName: chapter.name, title, description, path }),
   };
 }
 

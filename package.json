@@ -2,12 +2,17 @@
   "name": "ajaysahuphysics-next",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "og:fonts": "node scripts/fetch-og-fonts.mjs",
+    "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs"
   },
   "dependencies": {
     "@fontsource/source-sans-3": "^5.2.9",
@@ -18,6 +23,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

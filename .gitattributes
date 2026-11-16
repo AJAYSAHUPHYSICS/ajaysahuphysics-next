@@ -1,0 +1,3 @@
+# Third-party OG sources and fonts must stay byte-identical (SHA-256 recorded).
+assets/og-sources/** -text
+assets/og-fonts/** -text

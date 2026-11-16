@@ -1,0 +1,66 @@
+{
+  "fetchedAt": "2026-11-14T14:56:42.159Z",
+  "license": "SIL Open Font License 1.1 (OFL-1.1)",
+  "files": [
+    {
+      "file": "SourceSerif4-Bold.ttf",
+      "repo": "adobe-fonts/source-serif",
+      "path": "TTF/SourceSerif4-Bold.ttf",
+      "commit": "80d3f8894c09c937bebfa9011247d2e1c79fd6f4",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/80d3f8894c09c937bebfa9011247d2e1c79fd6f4/TTF/SourceSerif4-Bold.ttf",
+      "bytes": 271568,
+      "gitBlobSha1": "c4159ff2a409d9224dfa97af4e5167817e91e833",
+      "sha256": "7cf4f4e1ad74f45058d5bc61716b82560442fbdcd9d3654d2dea96bf6c683d86"
+    },
+    {
+      "file": "SourceSerif4-Semibold.ttf",
+      "repo": "adobe-fonts/source-serif",
+      "path": "TTF/SourceSerif4-Semibold.ttf",
+      "commit": "80d3f8894c09c937bebfa9011247d2e1c79fd6f4",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/80d3f8894c09c937bebfa9011247d2e1c79fd6f4/TTF/SourceSerif4-Semibold.ttf",
+      "bytes": 272088,
+      "gitBlobSha1": "151e9a9d5c08dfd4751650ab4bff92771a132888",
+      "sha256": "36db62940cb5728b12b1802476dc7fcf4c6c519a7bdd476ba23a4e555fc4655f"
+    },
+    {
+      "file": "SourceSans3-Regular.ttf",
+      "repo": "adobe-fonts/source-sans",
+      "path": "TTF/SourceSans3-Regular.ttf",
+      "commit": "87b37a2daaed80fcb8e8ccb0085c4d72ddade12e",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/TTF/SourceSans3-Regular.ttf",
+      "bytes": 431196,
+      "gitBlobSha1": "c5dd0b88cc8ff4edd7ebdcefee0290df15529657",
+      "sha256": "4644c81b86ec9caaa76b634889968ed3c4f4f52f054855933acc7c2b21e53b0f"
+    },
+    {
+      "file": "SourceSans3-Semibold.ttf",
+      "repo": "adobe-fonts/source-sans",
+      "path": "TTF/SourceSans3-Semibold.ttf",
+      "commit": "87b37a2daaed80fcb8e8ccb0085c4d72ddade12e",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/TTF/SourceSans3-Semibold.ttf",
+      "bytes": 425904,
+      "gitBlobSha1": "4aff9a3aea9b5f1e746f03ed40e1b293740dc8a2",
+      "sha256": "a3f4f8dcf343a8f24dc61951de93f3ba1558b15cd250ba24af8a40e957081b7d"
+    },
+    {
+      "file": "OFL-SourceSerif4.md",
+      "repo": "adobe-fonts/source-serif",
+      "path": "LICENSE.md",
+      "commit": "80d3f8894c09c937bebfa9011247d2e1c79fd6f4",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-serif/80d3f8894c09c937bebfa9011247d2e1c79fd6f4/LICENSE.md",
+      "bytes": 4491,
+      "gitBlobSha1": "5871e1f3d1b3362453b3a1f6c493fbefdbd3dcf3",
+      "sha256": "c21d7293d87b6d7ab1d0229a2f55b77f33a7613a6a4e66f6693d68d7d8d09464"
+    },
+    {
+      "file": "OFL-SourceSans3.md",
+      "repo": "adobe-fonts/source-sans",
+      "path": "LICENSE.md",
+      "commit": "87b37a2daaed80fcb8e8ccb0085c4d72ddade12e",
+      "url": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/LICENSE.md",
+      "bytes": 4486,
+      "gitBlobSha1": "22c601b82f29fc6bb801445098c9f23ffdca4f94",
+      "sha256": "56af9b9c6715597e458284a474dc118a50a4150e9d547c70f7b4a33c3e6a9328"
+    }
+  ]
+}
