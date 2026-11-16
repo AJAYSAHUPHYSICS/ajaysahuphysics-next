@@ -1,7 +1,7 @@
-// PREVIEW PHASE: this repo currently deploys to https://ajaysahuphysics.github.io/ajaysahuphysics-next/
-// which needs a basePath. When ready to switch the live ajaysahuphysics.com domain to this repo,
-// remove the GH_PAGES_PREVIEW env var from .github/workflows/deploy.yml (no other change needed)
-// and add a public/CNAME file containing "ajaysahuphysics.com".
+// Static export served from GitHub Pages at the custom domain ajaysahuphysics.com
+// (public/CNAME), so production builds use no basePath.
+// GH_PAGES_PREVIEW=true is an optional switch, not set by any workflow, for building
+// the site under the github.io project URL, which needs the /ajaysahuphysics-next basePath.
 import type { NextConfig } from "next";
 
 const isGhPagesPreview = process.env.GH_PAGES_PREVIEW === "true";
