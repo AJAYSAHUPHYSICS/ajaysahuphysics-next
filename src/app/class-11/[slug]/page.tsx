@@ -6,6 +6,7 @@ import { getChapterOverview } from "@/lib/chapter-overviews";
 import { getChapterContent } from "@/lib/chapter-content";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd, faqPageJsonLd } from "@/lib/jsonld";
 import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
+import { chapterSocialMetadata } from "@/lib/social-metadata";
 import type { ChecklistItemKey } from "@/lib/checklist";
 import ChapterContentSections from "@/components/ChapterContentSections";
 import ChapterProgressCard from "@/components/ChapterProgressCard";
@@ -34,17 +35,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: path },
-    openGraph: {
-      title,
-      description,
-      url: path,
-      type: "article",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
+    ...chapterSocialMetadata({ cls: "11", slug: chapter.slug, chapterName: chapter.name, title, description, path }),
   };
 }
 

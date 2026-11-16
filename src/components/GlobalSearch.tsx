@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { searchIndex, type SearchEntry } from "@/lib/search-index";
 import { trackEvent } from "@/lib/analytics";
+import { searchEventParams } from "@/lib/search-analytics";
 import { matchQuery } from "@/lib/fuzzy-match";
 import {
   getRecentSearches,
@@ -417,15 +418,20 @@ export default function GlobalSearch() {
   // every keystroke, and only for genuine (non-empty) queries. Uses GA4's
   // reserved "search" event name + search_term param so it's picked up by
   // GA4's built-in Site Search reports automatically.
+  //
+  // Privacy: the typed query is NEVER sent to analytics. search_term is the
+  // top result's chapter slug (or "no_results"); see search-analytics.ts.
+  // The query itself is only kept on this device, in recent searches.
+  const topResultSlug = results[0]?.entry.slug;
   useEffect(() => {
     const q = query.trim();
     if (!q) return;
     const timer = setTimeout(() => {
-      trackEvent("search", { search_term: q, result_count: results.length });
+      trackEvent("search", searchEventParams(q, topResultSlug, results.length));
       recordRecentSearch(q);
     }, 500);
     return () => clearTimeout(timer);
-  }, [query, results.length]);
+  }, [query, results.length, topResultSlug]);
 
   // Active filter chips, built fresh each render from current selections —
   // cheap (at most ~3 small Sets) and keeps chip labels in sync with the

@@ -16,6 +16,7 @@ import type { Difficulty } from "./formula-sheet";
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
 import { logActivity } from "./activity-log";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:mistakes";
 const MAX_ENTRIES = 500;
@@ -80,7 +81,7 @@ let mistakesCacheRaw: string | null = null;
 /** All mistakes, most recent first — safe during SSG (returns []). */
 export function getMistakes(): Mistake[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === mistakesCacheRaw) return mistakesCache;
   mistakesCacheRaw = raw;
   mistakesCache = readAll().sort((a, b) => b.createdAt - a.createdAt);

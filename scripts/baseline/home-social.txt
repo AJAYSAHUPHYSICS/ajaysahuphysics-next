@@ -1,0 +1,14 @@
+<meta property="og:title" content="Ajay Sahu Physics | Physics That Makes You Score"/>
+<meta property="og:description" content="Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants. Chapter-wise notes, formula sheets, daily practice problems, and previous year questions by Ajay Sahu."/>
+<meta property="og:url" content="https://ajaysahuphysics.com/"/>
+<meta property="og:site_name" content="Ajay Sahu Physics"/>
+<meta property="og:locale" content="en_IN"/>
+<meta property="og:image" content="https://ajaysahuphysics.com/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Ajay Sahu Physics — Physics that makes you score"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Ajay Sahu Physics | Physics That Makes You Score"/>
+<meta name="twitter:description" content="Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants."/>
+<meta name="twitter:image" content="https://ajaysahuphysics.com/og-image.png"/>

@@ -13,6 +13,7 @@
 
 import { createNotifier } from "./local-store-events";
 import { GOAL_TYPES, type GoalType } from "./goal-types";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:goals";
 const { subscribe, notify } = createNotifier();
@@ -63,7 +64,7 @@ let activeGoalsCacheRaw: string | null = null;
 /** All active goals, most recently activated first — safe during SSG (returns []). */
 export function getActiveGoals(): ActiveGoal[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === activeGoalsCacheRaw) return activeGoalsCache;
   activeGoalsCacheRaw = raw;
   const map = readAll();

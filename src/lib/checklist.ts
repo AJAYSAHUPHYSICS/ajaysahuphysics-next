@@ -9,6 +9,7 @@
 import { createNotifier } from "./local-store-events";
 import { recordActivity } from "./study-streak";
 import { logActivity } from "./activity-log";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:checklist";
 const { subscribe, notify } = createNotifier();
@@ -54,7 +55,7 @@ const EMPTY_CHAPTER_CHECKLIST: ChapterChecklistState = {};
 
 function readAll(): ChecklistMap {
   if (typeof window === "undefined") return {};
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === checklistCacheRaw) return checklistCache;
   checklistCacheRaw = raw;
   try {

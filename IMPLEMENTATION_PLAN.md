@@ -6,6 +6,27 @@
 | **Date** | 2026-11-12 |
 | **Based on** | [ARCHITECTURE_AUDIT.md](ARCHITECTURE_AUDIT.md) (finding IDs below refer to it) |
 
+## Status (updated 2026-11-14)
+
+| Phase | Status |
+|---|---|
+| 0: Audit | ✅ Merged (PR #1) |
+| 1A: CI gate | ✅ Merged (PR #2); CI green; owner ruleset on `main` requires `ci` |
+| 1B: Quick fixes | 🔄 All work prepared on branch `phase-1b-fixes` (not pushed). Committed locally: Vitest (`f61732c`), storage crash (`0ec9b60`), PDF links (`c028683`), search-analytics privacy (`f2a465f`). Prepared and awaiting commit: OG images (owner-approved), modal wording (P1-1), docs/config (P3-1), security review and documentation. Next: commits, push, CI, PR. |
+| 1C: Next.js 16.4.6 | ⏳ Not started (approved, separate branch). Node 22 for CI/deploy deferred here. |
+| 2–5 | ⏳ Not started. Phase 4 server-side student data is blocked on the DPDP / under-18 review (D-4). |
+
+**Changes to this plan during execution** (all approved by the owner):
+- **PDF links:** done with a build-time file-existence check (`src/lib/notes-pdf.ts`), not a static slug list. Restoring a PDF needs no code change. Missing files are recorded in `docs/MISSING_ASSETS.md`.
+- **Vitest:** added in 1B (not Phase 5), pinned to **4.1.12** because Vitest 5 requires Node ≥ 22.12.
+- **Search analytics:** `search_term` is now the top result's chapter slug; the typed query is never sent.
+- **OG images:** in place of the original "add `images` to metadata", each of the 30 chapters got its own 1200 × 630 image.
+  - **Illustrations:** licensed Wikimedia Commons illustrations, each verified individually; sources and credits are in `docs/ASSET_CREDITS.md`.
+  - **Rendering:** generated offline with `@resvg/resvg-js` (dev dependency) and the OFL brand fonts.
+  - **Metadata:** set through `src/lib/social-metadata.ts`.
+  - **Root layout:** left untouched, so the homepage's social tags stay identical.
+- **Security write-up:** `SECURITY_REVIEW.md` created in 1B with the dependency-advisory analysis.
+
 ## 0. Working agreement
 
 1. **One phase at a time.** Each phase starts with a proposal (changes, files, risks, dependencies) and ends with a report (changed files, check results, open issues). The next phase starts only after approval.

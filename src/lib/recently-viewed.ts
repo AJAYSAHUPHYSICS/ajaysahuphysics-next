@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 import { logActivity } from "./activity-log";
+import { safeGetItem } from "./safe-storage";
 
 const STORAGE_KEY = "atlas:recently-viewed";
 const MAX_ENTRIES = 5;
@@ -35,7 +36,7 @@ let recentlyViewedCacheRaw: string | null = null;
  * changed, so it's safe to use directly as a useSyncExternalStore snapshot. */
 export function getRecentlyViewed(): RecentChapter[] {
   if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  const raw = safeGetItem(STORAGE_KEY);
   if (raw === recentlyViewedCacheRaw) return recentlyViewedCache;
   recentlyViewedCacheRaw = raw;
   try {

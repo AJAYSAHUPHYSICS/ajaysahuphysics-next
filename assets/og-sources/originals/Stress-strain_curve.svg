@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="330.59702"
+   height="248.0829"
+   id="svg2">
+  <defs
+     id="defs4">
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow2Mend">
+      <path
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.97309,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(-0.6,-0.6)"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2906" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow2Mstart">
+      <path
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.97309,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.6,0.6)"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2909" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow2Lstart">
+      <path
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.97309,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="matrix(1.1,0,0,1.1,1.1,0)"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2915" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow2Lend">
+      <path
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.97309,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)"
+         style="font-size:12px;fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         id="path2912" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow1Lend">
+      <path
+         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z "
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill-rule:evenodd;stroke:black;stroke-width:1pt;marker-start:none"
+         id="path2930" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow1Lstart">
+      <path
+         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z "
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         style="fill-rule:evenodd;stroke:black;stroke-width:1pt;marker-start:none"
+         id="path2933" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow1Mend">
+      <path
+         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z "
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill-rule:evenodd;stroke:black;stroke-width:1pt;marker-start:none"
+         id="path2924" />
+    </marker>
+    <marker
+       refX="0"
+       refY="0"
+       orient="auto"
+       style="overflow:visible"
+       id="Arrow1Mstart">
+      <path
+         d="M 0,0 L 5,-5 L -12.5,0 L 5,5 L 0,0 z "
+         transform="matrix(0.4,0,0,0.4,4,0)"
+         style="fill-rule:evenodd;stroke:black;stroke-width:1pt;marker-start:none"
+         id="path2927" />
+    </marker>
+  </defs>
+  <g
+     transform="translate(-94.3869,-79.98445)"
+     id="layer1">
+    <path
+       d="M 114.95846,85.371966 L 114.95846,306.60372 L 418.62088,306.60372"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.84913063;stroke-linecap:butt;stroke-linejoin:miter;marker-start:url(#Arrow2Mstart);marker-mid:none;marker-end:url(#Arrow2Mend);stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path1872" />
+    <text
+       x="217.07362"
+       y="322.45776"
+       style="font-size:12.69202614px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       id="text2946"
+       xml:space="preserve"><tspan
+         x="217.07362"
+         y="322.45776"
+         id="tspan2948">Engineering strain</tspan></text>
+    <text
+       x="-254.2168"
+       y="107.54489"
+       transform="matrix(0,-1,1,0,0,0)"
+       style="font-size:12.69202614px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       id="text2950"
+       xml:space="preserve"><tspan
+         x="-254.2168"
+         y="107.54489"
+         id="tspan2952">Engineering stress</tspan></text>
+    <path
+       d="M 115.15751,305.43931 L 173.2475,182.71306 C 173.2475,182.71306 186.72898,149.11507 240.15667,123.68302 C 267.42436,110.70336 288.85106,108.82799 320.45692,110.39686 C 361.83632,112.42567 393.5622,153.9898 393.5622,153.9898"
+       style="fill:none;fill-rule:evenodd;stroke:red;stroke-width:1.56209564;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2958" />
+    <path
+       d="M 199.20166,149.61306 L 123.88496,307.70256"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.40100443;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:5.60401785, 1.40100446;stroke-dashoffset:0;stroke-opacity:1"
+       id="path2960" />
+    <path
+       d="M 208.57236 153.57652 A 4.1610446 4.1610446 0 1 1  200.25027,153.57652 A 4.1610446 4.1610446 0 1 1  208.57236 153.57652 z"
+       transform="matrix(0.97631,0,0,0.97631,-0.955423,1.278769)"
+       style="fill:black;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:4, 1;stroke-dashoffset:0;stroke-opacity:1"
+       id="path5621" />
+    <path
+       d="M 208.57236 153.57652 A 4.1610446 4.1610446 0 1 1  200.25027,153.57652 A 4.1610446 4.1610446 0 1 1  208.57236 153.57652 z"
+       transform="matrix(0.97631,0,0,0.97631,101.6219,-40.86935)"
+       style="fill:black;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:4, 1;stroke-dashoffset:0;stroke-opacity:1"
+       id="path6512" />
+    <text
+       x="264.61682"
+       y="103.28505"
+       style="font-size:12.69202614px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       id="text6514"
+       xml:space="preserve"><tspan
+         x="264.61682"
+         y="103.28505"
+         id="tspan6516">UTS</tspan></text>
+    <path
+       d="M 208.57236 153.57652 A 4.1610446 4.1610446 0 1 1  200.25027,153.57652 A 4.1610446 4.1610446 0 1 1  208.57236 153.57652 z"
+       transform="matrix(0.97631,0,0,0.97631,193.0275,3.817808)"
+       style="fill:black;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:4, 1;stroke-dashoffset:0;stroke-opacity:1"
+       id="path6518" />
+    <text
+       x="284.10306"
+       y="156.5791"
+       style="font-size:12.69202614px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       id="text6520"
+       xml:space="preserve"><tspan
+         x="284.10306"
+         y="156.5791"
+         id="tspan6522">Fracture stress</tspan></text>
+    <path
+       d="M 393.15476,153.75605 L 374.0057,153.75605"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.6025508px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path6526" />
+    <path
+       d="M 301.38748,108.56109 L 262.89661,108.56109"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:0.7542488px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path6528" />
+    <path
+       d="M 196.9343,151.72483 L 125.07076,151.72483"
+       style="fill:none;fill-rule:evenodd;stroke:black;stroke-width:1.23808527px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path6532" />
+    <text
+       x="124.9811"
+       y="147.92628"
+       style="font-size:12.69202614px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial"
+       id="text6534"
+       xml:space="preserve"><tspan
+         x="124.9811"
+         y="147.92628"
+         id="tspan6536">Yield stress</tspan></text>
+  </g>
+</svg>

@@ -82,9 +82,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
               {mode === "login" ? "Log in" : "Create your account"}
             </h3>
             <p className="mt-1.5 text-sm text-slate text-center">
-              {mode === "login"
-                ? "Sync your progress, bookmarks, and practice history."
-                : "Save your progress and access it on any device."}
+              Your progress is saved on this device; syncing across devices is coming soon.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-5 space-y-3">
