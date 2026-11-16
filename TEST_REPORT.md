@@ -1,6 +1,74 @@
 # Test Report
 
 Results of the verification run for each phase branch. Newest phase first.
+Only results from checks that were actually executed are recorded.
+
+---
+
+## Phase 1B: quick fixes (`phase-1b-fixes`; prepared, awaiting commits, push, CI and PR)
+
+| | |
+|---|---|
+| **Base** | `main` at `def0e85` |
+| **Environment** | Windows 11, Node v26.13.1 (local). CI (ubuntu-latest, Node 20) not yet run for 1B: the branch isn't pushed. |
+
+### Step results (each run locally when the step was completed)
+| Step | Commit | Tests | Type-check | Lint | Clean build | verify-build |
+|---|---|---|---|---|---|---|
+| Vitest setup | `f61732c` | ✅ 1/1 | ✅ | ✅ | ✅ | ✅ (3 known PDF issues) |
+| Storage crash fix | `0ec9b60` | ✅ 107/107 | ✅ | ✅ | ✅ | ✅ |
+| PDF link fix | `c028683` | ✅ 113/113 | ✅ | ✅ | ✅ | ✅ 0 broken links |
+| Search analytics privacy | `f2a465f` | ✅ 127/127 | ✅ | ✅ | ✅ | ✅ |
+| **OG images** | prepared, awaiting commit | ✅ **194/194** | ✅ | ✅ | ✅ (no warnings) | ✅ incl. new OG checks |
+| **Modal wording + docs/config (final 1B gate)** | prepared, awaiting commit | ✅ 194/194 | ✅ | ✅ | ✅ (no warnings) | ✅ all checks incl. OG; 30 images, 202 chapter pages |
+
+**Final 1B gate extras:**
+- **OG preserved:** all 30 PNGs and 3 derived SVGs are byte-identical to the reviewed versions.
+- **Modal text:** the built JavaScript contains the single new supporting text (used in both the sign-up and login views) and neither old text.
+- **`engines`:** `npm ci --dry-run` accepts the new field (exit 0); CI's Node 20.x satisfies `>=20.9`.
+- **Diff review:** layout, site config, Supabase/auth, storage helper, both workflows and all existing baseline files are byte-unchanged.
+
+**Storage fix:** tests were written first. 34 failed on the old code and 73 passed, so they describe today's data formats. After the fix all pass.
+**Analytics:** the built JavaScript was checked. The live site sends `search_term:e` (the typed query); the new build sends `search_term:L??"no_results"` with `L=A[0]?.entry.slug`.
+**PDF:** 27/30 notes pages keep a working PDF link; the 3 with missing files show none. The visible page text is otherwise identical to the live site.
+
+### OG images: verification detail
+| Check | Result |
+|---|---|
+| 30 approved sources present; SHA-1 matches Commons; licence matches review record | ✅ 30/30 |
+| Originals copied into the repo byte-identical (SHA-256) | ✅ 30/30 |
+| Fonts: git blob SHA-1 matches GitHub for all 6 files (4 TTF + 2 OFL texts), pinned commits | ✅ |
+| Derived edits: each targeted element found exactly once; rendered and inspected | ✅ 3 (Vernier crop and callouts, incline labels, "Zeit" → "time") |
+| Generated images: 1200 × 630 PNG, 47–120 KB (all under 300 KB) | ✅ 30/30 |
+| Regeneration deterministic (all 30 PNGs + 3 derived SVGs byte-identical on a second run) | ✅ |
+| Unit tests: helper output; one image per chapter; PNG size and format; source SHA-256; licence and credit rules; every source credited in `ASSET_CREDITS.md` | ✅ 67 new tests |
+| `verify-build` OG checks on the real build: 30 images valid; **202 chapter pages** (30 overview + 172 resource) use their own chapter's image; every indexable page has og:image and twitter:image on the production domain; homepage social tags identical to the pre-change baseline | ✅ |
+| Existing baseline (pages, sitemap, robots, titles, canonicals) | ✅ unchanged |
+| Built HTML spot-check (`/class-12/semiconductor-electronics/`, `/class-11/laws-of-motion/pyq/`) | ✅ correct og:image, twitter:image, width/height, site_name, locale; titles, descriptions and canonicals unchanged |
+
+**Negative tests for the new OG checks** (scratch copy of `out/`, each mutation undone):
+
+| # | Mutation | Result |
+|---|---|---|
+| 0 | none | ✅ pass |
+| 1 | OG image missing | ✅ fail: `missing OG image` |
+| 2 | wrong dimensions (192×192) | ✅ fail |
+| 3 | not a PNG | ✅ fail |
+| 4 | over 300 KB | ✅ fail |
+| 5 | chapter page uses another chapter's image | ✅ fail |
+| 6 | og:image off the production domain | ✅ fail |
+| 7 | twitter:image missing | ✅ fail |
+| 8 | og:image missing on a non-chapter page | ✅ fail |
+| 9 | homepage social tag changed | ✅ fail |
+| — | clean copy after all undos | ✅ pass |
+
+**11/11 as expected.**
+
+**Correction:** the Phase 0 audit listed 103 + 71 chapter resource pages. The build actually has **102 + 70 = 172** (30 overview + 172 resource = 202 chapter pages). The audit's total of 218 HTML pages was correct.
+
+### Not yet verified
+- CI on GitHub for Phase 1B (branch not pushed).
+- Real-browser checks: dashboard with storage blocked; a WhatsApp/social preview of a chapter link (needs the live URL after deploy).
 
 ---
 
@@ -64,9 +132,16 @@ Each case mutates a scratch copy of `out/`, runs the verifier, and undoes the mu
 | Deploy guard: a manual "Run workflow" of `deploy.yml` from a non-main branch skips both jobs | Can only be tested from the GitHub UI; doing so is safe (both jobs are skipped) |
 | Branch protection requiring `ci` on `main` | Owner action in GitHub settings |
 
-### 5. GitHub Actions results
-_Filled in after push._
+### 5. GitHub Actions results (recorded 2026-11-14 from the GitHub API)
+| Run | Trigger | Commit | Result |
+|---|---|---|---|
+| [CI #43434439236](https://github.com/AJAYSAHUPHYSICS/ajaysahuphysics-next/actions/runs/43434439236) | push to `phase-1a-ci`, 2026-11-13 13:31 UTC | `f941ea5` | ✅ success |
+| [CI #43449278781](https://github.com/AJAYSAHUPHYSICS/ajaysahuphysics-next/actions/runs/43449278781) | pull request #2, 2026-11-13 15:06 UTC | `f941ea5` | ✅ success. Every step ran and passed: install, type-check, lint, unit tests (skipped as designed), build, verify-build |
+| [Deploy #43448869673](https://github.com/AJAYSAHUPHYSICS/ajaysahuphysics-next/actions/runs/43448869673) | merge of PR #1 (Phase 0) to `main` | `c7bccf6` | ✅ success |
+| [Deploy #43449780054](https://github.com/AJAYSAHUPHYSICS/ajaysahuphysics-next/actions/runs/43449780054) | merge of PR #2 (Phase 1A) to `main` | `def0e85` | ✅ success; `main`'s code is identical to the reviewed `f941ea5` |
+
+After the merges the live site responded normally (`/`, a PYQ page, a notes page, `sitemap.xml`). The owner confirmed a GitHub ruleset on `main` requiring the `ci` check. **Not tested:** a manual "Run workflow" of `deploy.yml` from a non-main branch (that would only show both jobs being skipped).
 
 ### Open issues carried forward
-- 3 missing Class 12 notes PDFs (P1-4): known issues, resolved in `phase-1b-fixes`.
-- The `og:image` check is added in `phase-1b-fixes` together with its fix.
+- 3 missing Class 12 notes PDFs (P1-4): resolved in `phase-1b-fixes` (`c028683`).
+- The `og:image` check: added in `phase-1b-fixes` together with its fix.
