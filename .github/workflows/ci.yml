@@ -57,3 +57,9 @@ jobs:
 
       - name: Verify build output (URLs, sitemap, robots, titles, canonicals, links)
         run: node scripts/verify-build.mjs
+
+      # Runs against the build produced above (it fails if there is none):
+      # no withheld legacy learning text in any page, RSC payload or script,
+      # and no PDF in the export. See src/build-checks/.
+      - name: Check build output for withheld legacy content
+        run: npm run test:build-output

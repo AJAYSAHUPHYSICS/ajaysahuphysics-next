@@ -33,8 +33,8 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
               choice === "neet" ? "text-white/80" : "text-slate"
             }`}
           >
-            Notes, practice questions, and PYQs for Class {cls}, tuned to
-            NEET&apos;s exam pattern.
+            Class {cls} chapters for NEET&apos;s exam pattern. Resources are
+            being rebuilt and appear as they&apos;re reviewed.
           </p>
         </button>
 
@@ -59,8 +59,8 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
               choice === "jee" ? "text-white/80" : "text-slate"
             }`}
           >
-            Notes, practice questions, and PYQs for Class {cls}, split across
-            JEE Main and JEE Advanced.
+            Class {cls} chapters for JEE Main and JEE Advanced. Resources are
+            being rebuilt and appear as they&apos;re reviewed.
           </p>
         </button>
       </div>

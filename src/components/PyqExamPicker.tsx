@@ -12,17 +12,17 @@ const exams: { key: Exclude<ExamChoice, null>; label: string; desc: string }[] =
   {
     key: "neet",
     label: "NEET",
-    desc: "Real questions previously asked in NEET/AIPMT exams, chapter by chapter.",
+    desc: "NEET questions, added chapter by chapter once checked against the official paper and cleared for reproduction.",
   },
   {
     key: "jee-main",
     label: "JEE Main",
-    desc: "Previous year JEE Main questions, organized chapter by chapter.",
+    desc: "JEE Main questions, added chapter by chapter once checked against the official paper and cleared for reproduction.",
   },
   {
     key: "jee-advanced",
     label: "JEE Advanced",
-    desc: "Previous year JEE Advanced questions — harder, multi-concept problems.",
+    desc: "JEE Advanced questions, added chapter by chapter once checked against the official paper and cleared for reproduction.",
   },
 ];
 

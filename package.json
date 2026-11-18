@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "test:build-output": "vitest run --config vitest.build.config.ts",
     "og:fonts": "node scripts/fetch-og-fonts.mjs",
     "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs"
   },

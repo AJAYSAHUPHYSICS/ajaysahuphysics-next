@@ -13,22 +13,22 @@ const resourceCards = [
   {
     title: "Notes",
     href: "/notes",
-    desc: "Chapter-wise typed notes for Class 11 and Class 12, built around what actually shows up in exams.",
+    desc: "Chapter-wise notes for Class 11 and Class 12, being rebuilt from openly licensed resources and independently written material.",
   },
   {
     title: "Formula Sheet",
     href: "/formula-sheet",
-    desc: "Every derived result in one place, organized by chapter, for fast revision before tests.",
+    desc: "Chapter-wise formula sheets, being rebuilt with every formula checked and its sources recorded.",
   },
   {
     title: "Practice Questions",
     href: "/dpp",
-    desc: "Practice questions to keep your problem-solving sharp, one chapter at a time.",
+    desc: "New chapter-wise practice questions, being written with solutions by AjaySahuPhysics.",
   },
   {
     title: "PYQ",
     href: "/pyq",
-    desc: "Previous Year Questions from JEE Main, JEE Advanced, and NEET, sorted by chapter.",
+    desc: "JEE Main, JEE Advanced and NEET questions, added only after they've been checked against the official papers.",
   },
 ];
 
@@ -86,7 +86,7 @@ export default function Home() {
                 href="/notes"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-gold transition-colors"
               >
-                Browse free notes
+                Explore the study hubs
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
@@ -139,8 +139,13 @@ export default function Home() {
             <div>
               <div className="gold-rule mb-4" />
               <h2 className="font-display text-2xl sm:text-3xl text-navy">
-                Everything you need to prepare
+                Free study resources, being rebuilt
               </h2>
+              <p className="mt-3 text-slate leading-relaxed max-w-2xl">
+                Every chapter is being rebuilt from openly licensed educational
+                resources and material written independently by AjaySahuPhysics.
+                Chapters go live as they&apos;re reviewed.
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -176,8 +181,9 @@ export default function Home() {
               <p className="mt-4 text-slate leading-relaxed">
                 Whether you&apos;re preparing for engineering entrance or
                 medical entrance, the physics fundamentals are the same — the
-                application is not. Notes, Practice Questions, and PYQs are
-                organized separately for each exam and class.
+                application is not. As they&apos;re rebuilt, notes, practice
+                questions and PYQs are organized separately for each exam and
+                class.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

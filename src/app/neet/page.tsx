@@ -7,7 +7,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "NEET Physics",
   description:
-    "Complete NEET physics preparation — notes, formula sheets, Practice Questions, and PYQs by Ajay Sahu, focused on NEET's exam pattern.",
+    "NEET physics with Ajay Sahu, focused on NEET's exam pattern. Chapter-wise notes, formula sheets, practice questions and PYQs are being rebuilt from openly licensed and independently written material.",
   alternates: { canonical: "/neet" },
 };
 
@@ -18,7 +18,7 @@ const focusAreas = [
   },
   {
     title: "Single-correct accuracy",
-    desc: "NEET's format punishes careless mistakes. Practice is built to tighten accuracy under time pressure.",
+    desc: "NEET's format punishes careless mistakes. New practice questions are being written to tighten accuracy under time pressure.",
   },
   {
     title: "High-yield chapter focus",
@@ -38,7 +38,7 @@ export default function NeetPage() {
       <PageHero
         eyebrow="NEET Track"
         title="Physics preparation focused entirely on NEET's exam pattern."
-        description="NEET physics is often the difference-maker between a good and a great score. Chapter-wise notes, formula sheets, daily practice, and previous year questions, all tuned for NEET."
+        description="NEET physics is often the difference-maker between a good and a great score. We're rebuilding chapter-wise notes, formula sheets, practice questions and previous year questions, all tuned for NEET. Chapters appear as they're reviewed."
       >
         <WhatsAppButton message="Hi Ajay Sir, I'm preparing for NEET and want to know more about your classes.">
           Talk to Ajay Sir about NEET prep

@@ -27,8 +27,8 @@
 //      assets/og-sources/sources.json exists in the build as a valid PNG,
 //      exactly 1200 × 630 and under 300 KB; every indexable page has
 //      og:image and twitter:image on the production origin pointing to a
-//      file that exists; every chapter and chapter-resource page uses its
-//      own chapter's image; and the homepage's social meta tags are
+//      file that exists; every chapter and chapter-resource page, noindexed
+//      or not, uses its own chapter's image (all 30 chapters must be covered); and the homepage's social meta tags are
 //      byte-for-byte unchanged from scripts/baseline/home-social.txt.
 //
 // Changing the baseline is intentional: run with --update-baseline and
@@ -39,6 +39,7 @@
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkPageOg, chapterCoverageFailures } from "./lib/og-check.mjs";
 
 const ORIGIN = "https://ajaysahuphysics.com";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -139,11 +140,6 @@ function isNoindex(html) {
 /** All og:* and twitter:* meta tags, in document order, as they appear in the HTML. */
 function socialTags(html) {
   return [...html.matchAll(/<meta (?:property|name)="(?:og|twitter):[^"]+"[^>]*\/?>/g)].map((m) => m[0]);
-}
-
-function metaContent(html, key) {
-  const m = html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`));
-  return m ? decodeEntities(m[1]) : null;
 }
 
 /** PNG signature + IHDR dimensions, read directly from the file header. */
@@ -314,30 +310,30 @@ for (const s of ogSources) {
   if (info.bytes >= OG_MAX_BYTES) fail("og", `${urlPath} is ${info.bytes} B, must be under ${OG_MAX_BYTES} B`);
 }
 
-// 6b. Every indexable page has og:image + twitter:image that resolve; chapter pages use their own image.
+// 6b. Every indexable page, and EVERY chapter page (overview and resource
+//     pages, noindexed or not), has og:image + twitter:image that resolve;
+//     chapter pages use their own chapter image (scripts/lib/og-check.mjs).
 let chapterPagesChecked = 0;
+const checkedOverviews = new Set();
 for (const [page, h] of html) {
-  if (NOT_FOUND_PAGES.has(page) || isNoindex(h)) continue;
-  const urlPath = pageToUrlPath(page);
-  const og = metaContent(h, "og:image");
-  const tw = metaContent(h, "twitter:image");
-  if (!og) { fail("og", `${urlPath}: missing og:image`); continue; }
-  if (!tw) fail("og", `${urlPath}: missing twitter:image`);
-  else if (tw !== og) fail("og", `${urlPath}: twitter:image (${tw}) differs from og:image (${og})`);
-  if (!og.startsWith(ORIGIN + "/")) { fail("og", `${urlPath}: og:image not on ${ORIGIN}: ${og}`); continue; }
-  const imgPath = og.slice(ORIGIN.length);
-  if (!resolveInternal(imgPath)) fail("og", `${urlPath}: og:image points to a missing file ${imgPath}`);
-  const chapter = urlPath.match(/^\/class-(11|12)\/([a-z0-9-]+)\//);
-  if (chapter) {
+  if (NOT_FOUND_PAGES.has(page)) continue;
+  const r = checkPageOg({
+    urlPath: pageToUrlPath(page),
+    html: h,
+    origin: ORIGIN,
+    ogWidth: OG_W,
+    ogHeight: OG_H,
+    expectedOg,
+    resolveInternal,
+  });
+  for (const f of r.failures) fail("og", f);
+  if (r.checked && r.chapter) {
     chapterPagesChecked++;
-    const expected = `/og/class-${chapter[1]}/${chapter[2]}.png`;
-    if (imgPath !== expected) fail("og", `${urlPath}: og:image ${imgPath}, expected the chapter image ${expected}`);
-    if (!expectedOg.has(expected)) fail("og", `${urlPath}: no sources.json entry for ${expected}`);
-    if (metaContent(h, "og:image:width") !== String(OG_W) || metaContent(h, "og:image:height") !== String(OG_H)) {
-      fail("og", `${urlPath}: og:image:width/height should be ${OG_W}/${OG_H}`);
-    }
+    if (!r.chapter.resource) checkedOverviews.add(`${r.chapter.cls}/${r.chapter.slug}`);
   }
 }
+// Every chapter with an OG image must have had its overview page checked.
+for (const f of chapterCoverageFailures(expectedOg.keys(), checkedOverviews)) fail("og", f);
 
 // 6c. Homepage social tags unchanged.
 const homeBaselinePath = path.join(BASELINE, "home-social.txt");
@@ -356,7 +352,7 @@ console.log(
   `verify-build: ${htmlPages.length} HTML files (${indexPages.length} pages), ` +
     `${sitemapUrls.length} sitemap URLs, ${brokenSeen.size} broken internal link(s) ` +
     `(${[...brokenSeen.keys()].filter((h) => knownBroken.has(h)).length} known), ` +
-    `${expectedOg.size} OG images, ${chapterPagesChecked} chapter pages checked for og:image.`
+    `${expectedOg.size} OG images, ${chapterPagesChecked} chapter pages checked for og:image (${checkedOverviews.size} chapter overviews, noindexed pages included).`
 );
 for (const n of notices) console.log(`  note  ${n}`);
 if (failures.length > 0) {

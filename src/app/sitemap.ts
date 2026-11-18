@@ -1,7 +1,12 @@
 import type { MetadataRoute } from "next";
 import { class11Chapters, class12Chapters, type Chapter } from "@/lib/chapters";
 import { siteConfig } from "@/lib/site-config";
-import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
+import {
+  RESOURCE_ORDER,
+  resourceRegistry,
+  isResourceIndexable,
+  chapterHasPublicResource,
+} from "@/lib/resource-registry";
 
 export const dynamic = "force-static";
 
@@ -14,11 +19,17 @@ const LAST_MODIFIED = new Date();
 
 function chapterResourceUrls(base: string, chapters: Chapter[]) {
   return chapters.flatMap((ch) => {
-    const overviewUrl = `${base}/class-${ch.cls}/${ch.slug}/`;
+    // Only indexable pages: a page that just shows a "being rebuilt" notice
+    // stays live for students but is left out of the sitemap. A chapter's
+    // overview is listed only while at least one of its resources is public
+    // (the overview pages use the same rule for noindex).
     const resourceUrls = RESOURCE_ORDER.filter((key) =>
-      resourceRegistry[key].hasData(ch.slug)
+      isResourceIndexable(resourceRegistry[key], ch.slug)
     ).map((key) => `${base}/class-${ch.cls}/${ch.slug}/${key}/`);
-    return [overviewUrl, ...resourceUrls];
+    const overviewUrls = chapterHasPublicResource(ch.slug)
+      ? [`${base}/class-${ch.cls}/${ch.slug}/`]
+      : [];
+    return [...overviewUrls, ...resourceUrls];
   });
 }
 

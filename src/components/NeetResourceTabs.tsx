@@ -7,6 +7,7 @@ import { hasNotes } from "@/lib/notes/slugs";
 import { hasDpp } from "@/lib/dpp/slugs";
 import { hasPyqFor } from "@/lib/pyq/availability";
 import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
+import { isChapterResourcePublic } from "@/lib/content-policy/publication";
 
 type ResourceKey = "notes" | "formula-sheet" | "dpp" | "pyq";
 type ClassFilter = "all" | "11" | "12";
@@ -26,9 +27,10 @@ const classFilters: { key: ClassFilter; label: string }[] = [
 
 function isAvailable(resource: ResourceKey, chapter: Chapter): boolean {
   const slug = chapter.slug;
-  if (resource === "notes") return hasNotes(slug);
-  if (resource === "dpp") return hasDpp(slug);
-  if (resource === "formula-sheet") return hasFormulaSheet(slug);
+  // Withheld resources show as "Coming soon" (central publication policy).
+  if (resource === "notes") return hasNotes(slug) && isChapterResourcePublic("notes", slug);
+  if (resource === "dpp") return hasDpp(slug) && isChapterResourcePublic("dpp", slug);
+  if (resource === "formula-sheet") return hasFormulaSheet(slug) && isChapterResourcePublic("formula-sheet", slug);
 
   // PYQ on the NEET page specifically means: does this chapter have at least
   // one NEET/AIPMT/AIIMS-style (untagged) question? JEE-only chapters with

@@ -47,12 +47,16 @@ export default function ChapterProgressCard({
   chapterName,
   path,
   availableChecklist,
+  linkedChecklist,
 }: {
   cls: "11" | "12";
   slug: string;
   chapterName: string;
   path: string;
   availableChecklist: ChecklistItemKey[];
+  /** Checklist items whose resource page is currently public. When given,
+   * "Continue" only links to those; the checklist itself is unchanged. */
+  linkedChecklist?: ChecklistItemKey[];
 }) {
   const checklistState = useSyncExternalStore(
     subscribeToChecklist,
@@ -129,14 +133,14 @@ export default function ChapterProgressCard({
               {nextStep.justCompleted && " → "}
               <span className="font-semibold">{nextStep.label}</span>
             </p>
-            {nextStep.kind === "resource" ? (
+            {nextStep.kind === "resource" && (!linkedChecklist || linkedChecklist.includes(nextStep.key)) ? (
               <Link
                 href={`${path}/${RESOURCE_URL_SEGMENT[nextStep.key]}`}
                 className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
               >
                 Continue &rarr;
               </Link>
-            ) : (
+            ) : nextStep.kind === "resource" ? null : (
               <a
                 href={`#${REVISION_ANCHOR_ID}`}
                 className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"

@@ -1,8 +1,9 @@
 // ─────────────────────────────────────────────────────────────────
 // JEE Notes — Availability Slugs (lightweight)
 //
-// This module lists ONLY the chapter slugs that have Cengage-sourced JEE
-// notes. It contains NO note content, so client components that merely
+// This module lists ONLY the chapter slugs that have a JEE notes file,
+// whether or not it is currently published (see
+// src/lib/content-policy/jee-publication.ts). It contains NO note content, so client components that merely
 // need to know "does this chapter have JEE notes?" can import this
 // instead of the full registry — keeping heavy notes content out of the
 // client bundle.

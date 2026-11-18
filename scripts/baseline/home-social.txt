@@ -1,5 +1,5 @@
 <meta property="og:title" content="Ajay Sahu Physics | Physics That Makes You Score"/>
-<meta property="og:description" content="Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants. Chapter-wise notes, formula sheets, daily practice problems, and previous year questions by Ajay Sahu."/>
+<meta property="og:description" content="Physics learning resources for Class 11, Class 12, JEE and NEET — being rebuilt with independently authored content and openly licensed sources."/>
 <meta property="og:url" content="https://ajaysahuphysics.com/"/>
 <meta property="og:site_name" content="Ajay Sahu Physics"/>
 <meta property="og:locale" content="en_IN"/>

@@ -17,6 +17,7 @@ import type { RevisionEntry } from "./revision";
 import type { Bookmark } from "./bookmarks";
 import { getRevisionDueInfo, bucketForDueInfo } from "./spaced-revision";
 import { getWeakChapters } from "./weak-chapters";
+import { isAvailableStudyPath } from "./content-policy/resource-links";
 
 export type PriorityItem = {
   cls: "11" | "12";
@@ -41,6 +42,8 @@ export function buildTodaysPriorities(
 
   const add = (key: string, path: string, reason: string) => {
     if (seen.has(key) || items.length >= limit) return;
+    // Never recommend a resource whose content is withheld.
+    if (!isAvailableStudyPath(path)) return;
     const ch = chapterMap.get(key);
     if (!ch) return;
     seen.add(key);

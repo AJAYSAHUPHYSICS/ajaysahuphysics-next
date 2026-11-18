@@ -6,6 +6,7 @@ import { hasDpp } from "./dpp/slugs";
 import { hasPyqFor } from "./pyq/availability";
 import { hasJeeNotes } from "./jee-notes/slugs";
 import { hasJeeDpp } from "./jee-dpp/slugs";
+import { isChapterResourcePublic } from "./content-policy/publication";
 
 // ─────────────────────────────────────────────────────────────────
 // Site-wide Search Index (lightweight, static)
@@ -43,17 +44,19 @@ export type SearchEntry = {
 function buildResources(cls: "11" | "12", slug: string): SearchResource[] {
   const base = `/class-${cls}/${slug}`;
   const resources: SearchResource[] = [];
-  if (hasNotes(slug)) resources.push({ key: "notes", label: "Notes", href: `${base}/notes` });
-  if (hasShortNotes(slug))
+  // Only resources whose content is public are offered (central publication
+  // policy); withheld ones keep their routes but are not advertised.
+  if (hasNotes(slug) && isChapterResourcePublic("notes", slug)) resources.push({ key: "notes", label: "Notes", href: `${base}/notes` });
+  if (hasShortNotes(slug) && isChapterResourcePublic("short-notes", slug))
     resources.push({ key: "short-notes", label: "Short Notes", href: `${base}/short-notes` });
-  if (hasFormulaSheet(slug))
+  if (hasFormulaSheet(slug) && isChapterResourcePublic("formula-sheet", slug))
     resources.push({ key: "formula-sheet", label: "Formula Sheet", href: `${base}/formula-sheet` });
-  if (hasDpp(slug)) resources.push({ key: "dpp", label: "DPP", href: `${base}/dpp` });
-  if (hasPyqFor(slug, "neet") || hasPyqFor(slug, "jee-main") || hasPyqFor(slug, "jee-advanced"))
+  if (hasDpp(slug) && isChapterResourcePublic("dpp", slug)) resources.push({ key: "dpp", label: "DPP", href: `${base}/dpp` });
+  if ((hasPyqFor(slug, "neet") || hasPyqFor(slug, "jee-main") || hasPyqFor(slug, "jee-advanced")) && isChapterResourcePublic("pyq", slug))
     resources.push({ key: "pyq", label: "PYQ", href: `${base}/pyq` });
-  if (hasJeeNotes(slug))
+  if (hasJeeNotes(slug) && isChapterResourcePublic("jee-notes", slug))
     resources.push({ key: "jee-notes", label: "JEE Notes", href: `${base}/jee-notes` });
-  if (hasJeeDpp(slug))
+  if (hasJeeDpp(slug) && isChapterResourcePublic("jee-dpp", slug))
     resources.push({ key: "jee-dpp", label: "JEE DPP", href: `${base}/jee-dpp` });
   return resources;
 }
