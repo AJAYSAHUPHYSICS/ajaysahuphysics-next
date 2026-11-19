@@ -19,7 +19,9 @@ export const A11Y_AUDIT = `(() => {
     const text = (el.textContent || "").trim().replace(/[ \\n\\t]+/g, " ").slice(0, 40);
     return el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + (text ? ' "' + text + '"' : "");
   };
+  // checkVisibility() also treats content inside a closed <details> (content-visibility) as hidden.
   const visible = (el) => {
+    if (el.checkVisibility) return el.checkVisibility({ visibilityProperty: true });
     const s = getComputedStyle(el);
     if (s.display === "none" || s.visibility === "hidden") return false;
     const r = el.getBoundingClientRect();

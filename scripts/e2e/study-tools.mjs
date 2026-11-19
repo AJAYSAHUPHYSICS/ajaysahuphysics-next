@@ -123,9 +123,9 @@ const actText = await ev("document.body.innerText");
 check("streak shown from store", /Longest streak[^0-9]*5 days/i.test(actText), actText.slice(actText.indexOf("Current streak"), actText.indexOf("Current streak") + 120).replace(/s+/g, " ") + " | stored " + JSON.stringify(await ls("atlas:study-streak")));
 check("calendar has 28 days", (await ev("document.querySelectorAll('ol[aria-label^=\"Activity per day\"] li').length")) === 28);
 
-// Accessibility basics on every study page (scripts/e2e/a11y-audit.mjs).
+// Accessibility basics on the study pages and the main public pages (scripts/e2e/a11y-audit.mjs).
 await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
-for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/"]) {
+for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/", "/", "/class-11/", "/class-12/", "/class-11/kinematics/", "/notes/", "/dpp/", "/formula-sheet/", "/pyq/", "/about/", "/contact/"]) {
   await go(p);
   const problems = (await ev(A11Y_AUDIT)) ?? [{ rule: "audit", detail: "did not run" }];
   check(`accessibility basics ${p}`, problems.length === 0, problems.slice(0, 12).map((x) => x.rule + ": " + x.detail).join(" | ") + (problems.length > 12 ? ` (+${problems.length - 12} more)` : ""));
