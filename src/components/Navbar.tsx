@@ -58,7 +58,7 @@ export default function Navbar() {
               </span>
             </Link>
 
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden xl:flex items-center gap-1">
               {primaryNav.map((link) => (
                 <Link
                   key={link.href}
@@ -77,7 +77,7 @@ export default function Navbar() {
               ))}
             </div>
 
-            <div className="hidden lg:flex items-center gap-2 pl-2">
+            <div className="hidden 2xl:flex items-center gap-2 pl-2">
               {[...examNav, ...classNav].map((link) => (
                 <Link
                   key={link.href}
@@ -98,7 +98,7 @@ export default function Navbar() {
                 aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}
-                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-navy hover:bg-navy/5 focus-visible:outline-2 focus-visible:outline-gold"
+                className="2xl:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-navy hover:bg-navy/5 focus-visible:outline-2 focus-visible:outline-gold"
               >
                 <svg
                   width="24"
@@ -121,7 +121,7 @@ export default function Navbar() {
         </div>
 
         {open && (
-          <div className="lg:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="2xl:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-4 sm:px-6 py-3 flex flex-col gap-1">
               <div className="sm:hidden pb-2 mb-1 border-b border-navy/10">
                 <AuthButton className="w-full flex items-center justify-center" />
