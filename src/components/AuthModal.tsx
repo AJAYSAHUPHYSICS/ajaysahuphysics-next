@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { MESSAGES, authRedirect, passwordProblems, requestOutcome, signInErrorMessage } from "@/lib/auth/auth-policy";
+import { CAPTCHA_MESSAGE, CAPTCHA_SITE_KEY, captchaOptions } from "@/lib/auth/captcha";
+import CaptchaWidget from "./CaptchaWidget";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -18,6 +20,9 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentMessage, setSentMessage] = useState<string | null>(null);
+  // Only used when CAPTCHA is configured (lib/auth/captcha.ts); tokens are single-use.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Focus management: move focus into the dialog, keep Tab inside it, and
@@ -69,20 +74,24 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
         return;
       }
     }
+    if (CAPTCHA_SITE_KEY && !captchaToken) {
+      setError(CAPTCHA_MESSAGE);
+      return;
+    }
     setLoading(true);
     const origin = typeof window !== "undefined" ? window.location.origin : undefined;
     try {
       if (mode === "login") {
-        const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        const { error: authError } = await supabase.auth.signInWithPassword({ email, password, options: captchaOptions(captchaToken) });
         if (authError) setError(signInErrorMessage(authError));
         else onClose();
       } else if (mode === "signup") {
-        const { error: authError } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: authRedirect("/auth/callback/", origin) } });
+        const { error: authError } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: authRedirect("/auth/callback/", origin), ...captchaOptions(captchaToken) } });
         const outcome = requestOutcome("signup", authError);
         if (outcome.ok) setSentMessage(outcome.message);
         else setError(outcome.message);
       } else {
-        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirect("/auth/reset-password/", origin) });
+        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirect("/auth/reset-password/", origin), ...captchaOptions(captchaToken) });
         const outcome = requestOutcome("reset", authError);
         if (outcome.ok) setSentMessage(outcome.message);
         else setError(outcome.message);
@@ -91,6 +100,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
       setError(MESSAGES.network);
     } finally {
       setLoading(false);
+      if (CAPTCHA_SITE_KEY) setCaptchaReset((n) => n + 1);
     }
   }
 
@@ -155,6 +165,8 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
                   ) : null}
                 </div>
               ) : null}
+
+              {CAPTCHA_SITE_KEY ? <CaptchaWidget siteKey={CAPTCHA_SITE_KEY} onToken={setCaptchaToken} resetSignal={captchaReset} /> : null}
 
               {error ? (
                 <p role="alert" className="text-sm text-red-700">

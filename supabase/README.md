@@ -35,3 +35,8 @@ Then, in the staging dashboard:
 - **Email confirmations:** on.
 - **Minimum password length:** 10.
 - **Scheduled sweep:** schedule `POST /functions/v1/delete-account?sweep=1` with the `x-atlas-sweep-secret` header, daily.
+- **CAPTCHA (optional, Cloudflare Turnstile):** do these **in this order**, because turning on bot protection before the site sends tokens blocks every sign-in:
+  1. Create a Turnstile widget for the site's domain (Cloudflare dashboard) to get a public site key and a secret.
+  2. Build the site with `NEXT_PUBLIC_TURNSTILE_SITE_KEY=<site key>`. The modal then shows the check, and the CSP step allows `https://challenges.cloudflare.com` (script and frame).
+  3. **Auth → Bot and abuse protection:** enable CAPTCHA, choose Turnstile, paste the **secret** (it lives only in Supabase, never in this repo).
+  Without a site key the build is unchanged: no widget, no third-party script.

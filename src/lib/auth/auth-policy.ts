@@ -22,6 +22,7 @@ export const MESSAGES = {
   network: "We couldn't reach the sign-in service. Check your connection and try again.",
   unavailable: "Sign-in isn't available right now. Please try again later.",
   generic: "Something went wrong. Please try again.",
+  captcha: "The security check didn't go through. Please complete it again and retry.",
 } as const;
 
 /**
@@ -29,15 +30,22 @@ export const MESSAGES = {
  * emails are registered (e.g. "Invalid login credentials", "Email not
  * confirmed" and "User not found" all become the same text).
  */
-export function signInErrorMessage(error: { status?: number; message?: string; name?: string } | null | undefined): string {
+type AuthErrorLike = { status?: number; message?: string; name?: string; code?: string } | null | undefined;
+
+/** A rejected CAPTCHA token. Same answer for every email, so it reveals nothing about accounts. */
+const isCaptchaError = (error: AuthErrorLike) => !!error && (error.code === "captcha_failed" || /captcha/i.test(error.message ?? ""));
+
+export function signInErrorMessage(error: AuthErrorLike): string {
   if (!error) return MESSAGES.signInFailed;
+  if (isCaptchaError(error)) return MESSAGES.captcha;
   if (error.status === 429 || /rate limit|too many/i.test(error.message ?? "")) return MESSAGES.rateLimited;
   if (error.name === "AuthRetryableFetchError" || /fetch|network/i.test(error.message ?? "")) return MESSAGES.network;
   return MESSAGES.signInFailed;
 }
 
-/** For sign-up and reset requests: only rate limits and network errors are shown; everything else reads as success. */
-export function requestOutcome(kind: "signup" | "reset", error: { status?: number; message?: string; name?: string } | null | undefined): { ok: boolean; message: string } {
+/** For sign-up and reset requests: only rate limits, network errors and CAPTCHA rejections are shown; everything else reads as success. */
+export function requestOutcome(kind: "signup" | "reset", error: AuthErrorLike): { ok: boolean; message: string } {
+  if (isCaptchaError(error)) return { ok: false, message: MESSAGES.captcha };
   if (error && (error.status === 429 || /rate limit|too many/i.test(error.message ?? ""))) return { ok: false, message: MESSAGES.rateLimited };
   if (error && (error.name === "AuthRetryableFetchError" || /fetch|network/i.test(error.message ?? ""))) return { ok: false, message: MESSAGES.network };
   return { ok: true, message: kind === "signup" ? MESSAGES.signUpSent : MESSAGES.resetSent };
