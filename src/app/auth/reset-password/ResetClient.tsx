@@ -49,7 +49,7 @@ export default function ResetClient() {
       {stage === "checking" ? <p className="text-slate">Checking your reset link…</p> : null}
       {stage === "blocked" ? (
         <>
-          <h2 className="font-display text-2xl text-navy">This reset link can&apos;t be used</h2>
+          <h1 className="font-display text-2xl text-navy">This reset link can&apos;t be used</h1>
           <p className="mt-3 text-slate leading-relaxed">
             {why === "other-browser" ? "Open the link in the same browser where you asked for it, or request a new link." : "It may have expired or already been used. Request a new link from “Forgot your password?” when you log in."}
           </p>
@@ -60,7 +60,7 @@ export default function ResetClient() {
       ) : null}
       {stage === "ready" ? (
         <form onSubmit={save} className="space-y-3">
-          <h2 className="font-display text-2xl text-navy">Choose a new password</h2>
+          <h1 className="font-display text-2xl text-navy">Choose a new password</h1>
           <p className="text-sm text-slate">At least 10 characters. A short phrase is easier to remember.</p>
           <label htmlFor="new-password" className="block text-sm font-semibold text-navy">New password</label>
           <input id="new-password" type="password" autoComplete="new-password" required minLength={10} maxLength={72} value={password} onChange={(e) => setPassword(e.target.value)} className={field} />
@@ -74,7 +74,7 @@ export default function ResetClient() {
       ) : null}
       {stage === "done" ? (
         <>
-          <h2 className="font-display text-2xl text-navy">Password updated</h2>
+          <h1 className="font-display text-2xl text-navy">Password updated</h1>
           <p className="mt-3 text-slate">You&apos;re signed in with your new password.</p>
           <Link href="/account" className="mt-6 inline-flex rounded-md bg-navy px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-light focus-visible:outline-2 focus-visible:outline-gold">
             Go to your account

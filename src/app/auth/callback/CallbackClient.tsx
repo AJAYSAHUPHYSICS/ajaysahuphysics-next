@@ -21,7 +21,7 @@ export default function CallbackClient() {
   const copy = COPY[result];
   return (
     <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9" aria-live="polite">
-      <h2 className="font-display text-2xl text-navy">{copy.title}</h2>
+      <h1 className="font-display text-2xl text-navy">{copy.title}</h1>
       <p className="mt-3 text-slate leading-relaxed">{copy.body}</p>
       {result !== "working" ? (
         <div className="mt-6 flex flex-wrap gap-2">
