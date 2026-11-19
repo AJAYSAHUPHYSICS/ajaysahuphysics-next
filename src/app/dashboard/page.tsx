@@ -7,6 +7,7 @@ import type { ChapterMeta } from "@/lib/chapter-meta";
 import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import PageHero from "@/components/PageHero";
 import DashboardClient from "@/components/DashboardClient";
+import StudyNav from "@/components/study/StudyNav";
 import { isLegacyContentPublic } from "@/lib/content-policy/publication";
 
 // A personal, client-populated page with no unique server-rendered
@@ -60,6 +61,7 @@ export default function DashboardPage() {
       />
       <section className="bg-ivory">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <StudyNav current="/dashboard" />
           <DashboardClient chapters={chapters} />
         </div>
       </section>
