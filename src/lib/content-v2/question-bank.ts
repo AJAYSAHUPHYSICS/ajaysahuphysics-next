@@ -12,6 +12,8 @@
 // No legacy PYQ is migrated into this bank.
 // ─────────────────────────────────────────────────────────────────
 
+import { isCalendarDate, isSameIdentity, normaliseIdentity } from "./chapter-package";
+
 export type Difficulty = "easy" | "medium" | "hard";
 export type ExamStyle = "board" | "neet" | "jee-main" | "jee-advanced";
 export type QuestionFormat =
@@ -118,9 +120,10 @@ function checkAnswer(id: string, format: QuestionFormat, options: string[] | und
 
 function checkReview(id: string, r: QuestionReview, author: string, errors: string[]) {
   if (r.status === "approved") {
-    if (blank(r.reviewer)) errors.push(`${id}: approved without a named reviewer`);
-    if (blank(r.date)) errors.push(`${id}: approval has no date`);
-    if (r.reviewer && r.reviewer.trim() === author.trim()) errors.push(`${id}: reviewer must be independent of the author`);
+    const reviewer = typeof r.reviewer === "string" ? r.reviewer : "";
+    if (normaliseIdentity(reviewer) === "") errors.push(`${id}: approved without a named reviewer`);
+    if (!isCalendarDate(r.date)) errors.push(`${id}: approval has no valid date (YYYY-MM-DD)`);
+    if (isSameIdentity(reviewer, author ?? "")) errors.push(`${id}: reviewer must be independent of the author`);
   }
 }
 
@@ -177,7 +180,8 @@ export function validateQuestionBank(bank: QuestionBank): string[] {
     checkAnswer(q.id, q.format, q.options, q.answer, errors);
     if (blank(q.solution.text) || blank(q.solution.author)) errors.push(`${q.id}: an independently written solution is required`);
     checkReview(q.id, q.solution.review, q.solution.author, errors);
-    if (q.authenticity.status === "verified" && (blank(q.authenticity.verifiedBy) || blank(q.authenticity.verifiedOn))) errors.push(`${q.id}: verification needs who and when`);
+    if (!isCalendarDate(q.source.retrievedOn)) errors.push(`${q.id}: source retrievedOn (YYYY-MM-DD) missing`);
+    if (q.authenticity.status === "verified" && (blank(q.authenticity.verifiedBy) || !isCalendarDate(q.authenticity.verifiedOn))) errors.push(`${q.id}: verification needs who and when (YYYY-MM-DD)`);
     if (q.rights.status === "cleared" && blank(q.rights.basis)) errors.push(`${q.id}: rights clearance needs a recorded basis`);
     if (q.status === "approved" && !isPyqPublishable(q)) errors.push(`${q.id}: approved PYQs must be verified, rights-cleared and have an approved solution`);
   }

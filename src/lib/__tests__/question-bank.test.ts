@@ -85,6 +85,23 @@ describe("question bank: genuine PYQs", () => {
     expect(validateQuestionBank(bank({ pyqs: [pyq({ rights: { status: "cleared" } })] })).join()).toMatch(/recorded basis/);
     expect(validateQuestionBank(bank({ pyqs: [pyq({ authenticity: { status: "verified" } })] })).join()).toMatch(/who and when/);
   });
+
+  it("rejects decorated and alias self-review, for originals and PYQ solutions (shared identity rule)", () => {
+    const self = { reviewer: "Ajay Sahu", date: "2026-11-19", status: "approved" as const };
+    expect(validateQuestionBank(bank({ originals: [original({ author: "AjaySahuPhysics (draft)", review: self })] })).join()).toMatch(/reviewer must be independent/);
+    expect(validateQuestionBank(bank({ originals: [original({ author: "ajaysahuphysics", review: { ...self, reviewer: "AjaySahuPhysics (editor)" } })] })).join()).toMatch(/reviewer must be independent/);
+    expect(validateQuestionBank(bank({ pyqs: [pyq({ solution: { text: "Independent solution.", author: "AjaySahuPhysics (draft)", review: self } })] })).join()).toMatch(/reviewer must be independent/);
+    expect(validateQuestionBank(bank({ originals: [original({ review: { ...self, reviewer: "( )" } })] })).join()).toMatch(/approved without a named reviewer/);
+    expect(validateQuestionBank(bank())).toEqual([]);
+  });
+
+  it("rejects impossible dates in approvals, retrieval and verification", () => {
+    const IMPOSSIBLE = "2026-02-30";
+    expect(validateQuestionBank(bank({ originals: [original({ review: { reviewer: "Independent Reviewer", date: IMPOSSIBLE, status: "approved" } })] })).join()).toMatch(/no valid date/);
+    const p = pyq();
+    expect(validateQuestionBank(bank({ pyqs: [pyq({ source: { ...p.source, retrievedOn: IMPOSSIBLE } })] })).join()).toMatch(/retrievedOn/);
+    expect(validateQuestionBank(bank({ pyqs: [pyq({ authenticity: { ...p.authenticity, verifiedOn: IMPOSSIBLE } })] })).join()).toMatch(/who and when/);
+  });
 });
 
 describe("DPP sets", () => {
