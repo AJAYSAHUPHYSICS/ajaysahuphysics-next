@@ -207,7 +207,22 @@ const LABEL_FOR_LEVEL: Record<Level, PracticeQuestion["label"][]> = {
 };
 
 const blank = (s: string | undefined) => !s || !s.trim();
-const isDate = (s: string | undefined) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? "") && !Number.isNaN(Date.parse(s ?? ""));
+
+/**
+ * A real calendar date written strictly as YYYY-MM-DD (no time, no spaces).
+ * Rejects impossible dates such as 2026-02-30, which Date.parse would silently
+ * roll over into the next month.
+ */
+export function isCalendarDate(s: string | undefined): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s ?? "");
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (y < 1000) return false;
+  const t = new Date(Date.UTC(y, mo - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === mo - 1 && t.getUTCDate() === d;
+}
+const isDate = isCalendarDate;
+
 function isHttpUrl(s: string | undefined): boolean {
   try {
     const u = new URL(s ?? "");
@@ -216,16 +231,55 @@ function isHttpUrl(s: string | undefined): boolean {
     return false;
   }
 }
-/** A site-served path: relative or root-relative, never a URL or protocol-relative (no hotlinking). */
-const isLocalPath = (s: string | undefined) => !blank(s) && !/^[a-z][a-z0-9+.-]*:/i.test(s ?? "") && !(s ?? "").startsWith("//");
+/**
+ * A diagram path served by the site itself: root-relative ("/…"), plain path
+ * segments of letters, digits, "_", "-" and "." (a segment can't start with
+ * "." or "-", so no "." / ".." traversal or hidden files), ending in an image
+ * extension. Anything else is rejected: external or protocol-relative URLs,
+ * any scheme (data:, javascript:), backslashes (browsers treat "\\" like "/"),
+ * whitespace, percent-encoding, queries and fragments.
+ */
+export function isSafeAssetPath(s: string | undefined): boolean {
+  return /^\/(?:[A-Za-z0-9_][A-Za-z0-9._-]*\/)*[A-Za-z0-9_][A-Za-z0-9._-]*\.(?:svg|png|jpe?g|webp|avif|gif)$/.test(s ?? "");
+}
+
+/**
+ * Names that identify the author side (AjaySahuPhysics itself). Any two of
+ * these are the same identity, so none of them can independently review work
+ * written under another. Compared after normaliseIdentity().
+ */
+export const AUTHOR_ALIASES: readonly string[] = ["AjaySahuPhysics", "Ajay Sahu Physics", "Ajay Sahu"];
+
+/**
+ * Identity key for comparing people: trailing parenthetical annotations such
+ * as "(draft)" or "(editor)" are removed, accents are folded, and only letters
+ * and digits are kept, lower-cased. "AjaySahuPhysics (draft)" and
+ * "ajay-sahu physics" both become "ajaysahuphysics".
+ */
+export function normaliseIdentity(name: string): string {
+  let s = name.trim();
+  while (/\([^()]*\)\s*$/.test(s)) s = s.replace(/\s*\([^()]*\)\s*$/, "").trim();
+  return s.normalize("NFKD").replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+}
+
+const ALIAS_KEYS = new Set(AUTHOR_ALIASES.map(normaliseIdentity));
+
+/** True when reviewer and author are (or may be) the same identity. */
+export function isSameIdentity(reviewer: string, author: string): boolean {
+  const r = normaliseIdentity(reviewer);
+  const a = normaliseIdentity(author);
+  if (r === "" || a === "") return false;
+  return r === a || (ALIAS_KEYS.has(r) && ALIAS_KEYS.has(a));
+}
 
 /** Checks an approval record: named reviewer, real date, independent of the author. */
 function reviewErrors(where: string, review: Review | undefined, author: string): string[] {
   if (review?.status !== "approved") return [];
   const errs: string[] = [];
-  if (blank(review.reviewer ?? undefined)) errs.push(`${where}: approved without a named reviewer`);
+  const reviewer = typeof review.reviewer === "string" ? review.reviewer : "";
+  if (normaliseIdentity(reviewer) === "") errs.push(`${where}: approved without a named reviewer`);
   if (!isDate(review.date)) errs.push(`${where}: approval has no valid date (YYYY-MM-DD)`);
-  if (review.reviewer && review.reviewer.trim().toLowerCase() === author.trim().toLowerCase()) errs.push(`${where}: reviewer must be independent of the author`);
+  if (isSameIdentity(reviewer, author)) errs.push(`${where}: reviewer must be independent of the author`);
   return errs;
 }
 
@@ -284,17 +338,20 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
 
   for (const n of pkg.notes) {
     if (blank(n.heading) || blank(n.body)) errors.push(`notes ${n.id}: heading and body are required`);
+    if ((n.points ?? []).some((pt) => blank(pt))) errors.push(`notes ${n.id}: empty point`);
     for (const f of n.figures ?? []) {
       if (blank(f.alt)) errors.push(`figure ${f.id}: alt text missing`);
-      if (!isLocalPath(f.src)) errors.push(`figure ${f.id}: src must be a site-served path (no external URLs or hotlinking)`);
+      if (!isSafeAssetPath(f.src)) errors.push(`figure ${f.id}: src must be a site-served path (root-relative "/…" image path; no external URLs, hotlinking, backslashes, whitespace or traversal)`);
     }
   }
   for (const f of pkg.formulaSheet) {
+    if (blank(f.label)) errors.push(`formula ${f.id}: label missing`);
     if (blank(f.expression)) errors.push(`formula ${f.id}: expression missing`);
     for (const v of f.variables) if (blank(v.unit)) errors.push(`formula ${f.id}: variable ${v.symbol} has no unit (use "dimensionless" where appropriate)`);
   }
   for (const e of pkg.solvedExamples) {
     if (blank(e.problem) || e.steps.length === 0 || blank(e.answer)) errors.push(`example ${e.id}: problem, steps and answer are required`);
+    if (e.steps.some((st) => blank(st))) errors.push(`example ${e.id}: empty solution step`);
     if (blank(e.answerUnit)) errors.push(`example ${e.id}: answer unit missing`);
     if (EXAM_YEAR_LABEL.test(e.problem) || PYQ_WORDING.test(e.problem)) errors.push(`example ${e.id}: solved examples must not be presented as PYQs`);
     if (e.difficulty !== undefined && !DIFFICULTIES.includes(e.difficulty)) errors.push(`example ${e.id}: difficulty "${e.difficulty}" is not easy, medium or hard`);
@@ -443,6 +500,6 @@ export function formulaSheetPublicationGaps(pkg: ChapterPackage): string[] {
     for (const v of f.variables) if (!v.dimension || !v.dimension.trim()) gaps.push(`formula ${f.id}: variable ${v.symbol} has no dimension`);
   }
   if (!pkg.version || !pkg.version.trim()) gaps.push("formula sheet: package version missing");
-  if (!pkg.lastUpdated || !/^\d{4}-\d{2}-\d{2}$/.test(pkg.lastUpdated)) gaps.push("formula sheet: lastUpdated (YYYY-MM-DD) missing");
+  if (!isCalendarDate(pkg.lastUpdated)) gaps.push("formula sheet: lastUpdated (YYYY-MM-DD) missing");
   return gaps;
 }

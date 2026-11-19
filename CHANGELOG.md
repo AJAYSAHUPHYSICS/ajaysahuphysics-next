@@ -1,8 +1,9 @@
 # Changelog
 
 All notable changes to AjaySahuPhysics.com are recorded here, grouped by
-phase branch. Dates are when the branch was completed, not when it was
-merged or deployed. Merging to `main` deploys to production.
+phase branch. `[Unreleased]` holds work not yet merged to `main`; each
+released heading names its pull request and the date it was merged.
+Merging to `main` deploys to production.
 
 ## [Unreleased]
 
@@ -14,10 +15,11 @@ No routes, page output, sitemap entries, localStorage keys or data formats chang
 - **Stricter publication rules for rebuilt chapter packages** (`src/lib/content-v2/chapter-package.ts`):
   - licence evidence must confirm that commercial use is permitted;
   - real http(s) source URLs;
-  - dated, case-insensitively independent approvals;
+  - every date (approvals, licence evidence, PYQ retrieval and verification, formula-sheet `lastUpdated`) must be a real calendar date in strict `YYYY-MM-DD`; impossible dates such as 2026-02-30 are rejected;
+  - approvals need a named reviewer independent of the author. Names are compared after removing trailing annotations such as "(draft)", punctuation, spacing, case and accents, and the site's own names (AjaySahuPhysics, Ajay Sahu Physics, Ajay Sahu) count as one identity. The same rule applies in the question bank (`question-bank.ts`);
   - a reviewed difficulty on questions and examples;
-  - site-served diagrams only, with unique IDs;
-  - no empty text blocks;
+  - diagrams only from safe, root-relative image paths on the site, with unique IDs. External and protocol-relative URLs, schemes, backslashes, whitespace, `.`/`..` segments, percent-encoding, queries and fragments are rejected;
+  - no blank learning outcomes, short notes, checklist items, experiment steps, note points, solved-example steps or formula labels;
   - complete PYQ verification and rights records;
   - an AI-assistance declaration on every block;
   - unique part titles.
@@ -34,17 +36,19 @@ No routes, page output, sitemap entries, localStorage keys or data formats chang
   - refuses an in-repository folder, unknown routes, two packages for one route, and drafts claiming "published";
   - prints publication blockers without draft text.
 
+## Released (merged to `main` and deployed)
+
 ### Phase 2A: content withholding (PR #4, merged and deployed 2026-11-19)
 
 All legacy learning resources are withheld pending provenance review, behind one central policy (`src/lib/content-policy/publication.ts`; every switch off). All 202 chapter resource routes still exist and show a rebuilding notice (`noindex`, removed from the sitemap). The 27 legacy notes PDFs were removed from `public/`. Post-build checks (`npm run test:build-output`, run in CI) fail if withheld text, a PDF or draft material reaches the static export. Student progress is preserved: keys and formats are unchanged, and PYQ mistake IDs keep each question's original position. The live site was verified after deployment.
 
-### Phase 1B: quick fixes (`phase-1b-fixes`; prepared, awaiting commits, push, CI and PR)
+### Phase 1B: quick fixes (`phase-1b-fixes`; PR #3, merged and deployed 2026-11-16)
 
 No URLs, page titles, canonicals, sitemap entries, localStorage keys or data formats changed (verified by `verify-build.mjs` against the unchanged baseline).
 
 #### Added
 - **Unit testing** (`f61732c`): Vitest **4.1.12** (exact pin; Vitest 5 needs Node ≥ 22.12, while CI runs Node 20) and an `npm test` script. CI now runs the tests automatically.
-- **Chapter social-preview images** (owner-approved; prepared, awaiting commit): 30 Open Graph images, `public/og/class-{11|12}/{slug}.png` (1200 × 630 PNG, 47–120 KB each).
+- **Chapter social-preview images** (owner-approved; `2310e52`): 30 Open Graph images, `public/og/class-{11|12}/{slug}.png` (1200 × 630 PNG, 47–120 KB each).
   - **Design:** navy grid, gold rule, chapter title in Source Serif 4, and a licensed Wikimedia Commons physics illustration on an ivory card in its original colours.
   - **Sources:** 26 public domain or CC0, 4 CC BY with an on-image credit.
   - **Records:** sources, licences and modifications are in `docs/ASSET_CREDITS.md`.
@@ -59,14 +63,14 @@ No URLs, page titles, canonicals, sitemap entries, localStorage keys or data for
 - `SECURITY_REVIEW.md` and `docs/ASSET_CREDITS.md`.
 
 #### Changed
-- **Chapter pages now have a share image** (prepared, awaiting commit): all 30 chapter overview pages and 172 chapter resource pages emit `og:image`/`twitter:image` (their chapter's image, 1200 × 630), plus `og:site_name` and `og:locale`. Before, Next.js's replace-not-merge behaviour dropped these. Titles, descriptions and canonicals are unchanged. **The homepage and all other pages are unchanged** (root layout untouched; homepage social tags locked in `scripts/baseline/home-social.txt`).
-- **`scripts/verify-build.mjs`** (prepared, awaiting commit) now also checks Open Graph images:
+- **Chapter pages now have a share image** (`2310e52`): all 30 chapter overview pages and 172 chapter resource pages emit `og:image`/`twitter:image` (their chapter's image, 1200 × 630), plus `og:site_name` and `og:locale`. Before, Next.js's replace-not-merge behaviour dropped these. Titles, descriptions and canonicals are unchanged. **The homepage and all other pages are unchanged** (root layout untouched; homepage social tags locked in `scripts/baseline/home-social.txt`).
+- **`scripts/verify-build.mjs`** (`2310e52`) now also checks Open Graph images:
   - all 30 exist as valid 1200 × 630 PNGs under 300 KB;
   - every indexable page has og:image and twitter:image on the production domain, pointing to an existing file;
   - every chapter page uses its own chapter's image;
   - the homepage social tags are unchanged.
-- **Login modal wording (P1-1)** (prepared, awaiting commit): it no longer promises cross-device sync that doesn't exist. Both the sign-up and login views now read: "Your progress is saved on this device; syncing across devices is coming soon." Headings, layout, styling, forms and auth logic are unchanged.
-- **Docs and config (P3-1)** (prepared, awaiting commit):
+- **Login modal wording (P1-1)** (`60cc8c0`): it no longer promises cross-device sync that doesn't exist. Both the sign-up and login views now read: "Your progress is saved on this device; syncing across devices is coming soon." Headings, layout, styling, forms and auth logic are unchanged.
+- **Docs and config (P3-1)** (`541d7a8`; the `engines` field shipped in `2310e52`):
   - the stale "PREVIEW PHASE" comment in `next.config.ts` is replaced by an accurate note; config logic unchanged;
   - README fonts corrected (Source Serif 4 / Source Sans 3), plus new tests and CI sections;
   - `package.json` gains `"engines": { "node": ">=20.9" }`.
@@ -76,7 +80,7 @@ No URLs, page titles, canonicals, sitemap entries, localStorage keys or data for
 - **Blocked-storage crash** (`0ec9b60`): the 10 localStorage reads that run during render now go through `safeGetItem()`, so pages show empty states instead of crashing when a browser blocks site data. The revision tracker's "mark round complete" no longer throws either. No keys or formats changed.
 - **Broken PDF links** (`c028683`): "Download PDF" appears only when the file exists, using a build-time check (`src/lib/notes-pdf.ts`). It's hidden on Class 12 Electromagnetic Induction, Wave Optics and Semiconductor Electronics, whose PDFs are missing (recorded in `docs/MISSING_ASSETS.md`). Restoring one only needs the file to be added.
 
-### Phase 1A: CI gate (`phase-1a-ci`, 2026-11-13)
+### Phase 1A: CI gate (`phase-1a-ci`; PR #2, merged and deployed 2026-11-13)
 
 **No application code, content, URLs or student data changed. The live site's build output is identical.**
 
@@ -94,7 +98,7 @@ No URLs, page titles, canonicals, sitemap entries, localStorage keys or data for
 #### Changed
 - `.github/workflows/deploy.yml`: the `build` and `deploy` jobs now run only when the ref is `main`. Before this change, the manual "Run workflow" button could publish any branch to production. Pushes to `main` deploy exactly as before.
 
-### Phase 0: Architecture audit (`phase-0-audit`, 2026-11-12)
+### Phase 0: Architecture audit (`phase-0-audit`, completed 2026-11-12; PR #1, merged and deployed 2026-11-13)
 
 #### Added
 - `ARCHITECTURE_AUDIT.md`, `IMPLEMENTATION_PLAN.md`.
