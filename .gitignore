@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local-only copy of retired legacy material. Never commit or serve it:
+# the preserved copies are kept in the owner's private archive.
+/legacy-content/

@@ -8,7 +8,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Class 11 Physics",
   description:
-    "Class 11 Physics chapters, notes, formula sheets, Practice Questions, and PYQs — covering mechanics, thermodynamics, oscillations, and waves.",
+    "Class 11 Physics chapters (mechanics, thermodynamics, oscillations, and waves). Notes, formula sheets, practice questions and PYQs are being rebuilt chapter by chapter.",
   alternates: { canonical: "/class-11" },
 };
 
@@ -24,7 +24,7 @@ export default function Class11Page() {
       <PageHero
         eyebrow="Class 11 Physics"
         title="The foundation chapters that decide how easy Class 12 feels."
-        description="Mechanics, thermodynamics, oscillations, and waves — covered chapter by chapter with notes, formula sheets, Practice Questions, and PYQs."
+        description="Mechanics, thermodynamics, oscillations, and waves. We're rebuilding notes, formula sheets, practice questions and PYQs for each chapter; they appear as they're reviewed."
       />
 
       <section className="bg-ivory">

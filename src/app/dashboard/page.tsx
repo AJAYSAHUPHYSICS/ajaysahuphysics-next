@@ -7,6 +7,7 @@ import type { ChapterMeta } from "@/lib/chapter-meta";
 import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 import PageHero from "@/components/PageHero";
 import DashboardClient from "@/components/DashboardClient";
+import { isLegacyContentPublic } from "@/lib/content-policy/publication";
 
 // A personal, client-populated page with no unique server-rendered
 // content per visitor — kept out of the crawl index the same way any
@@ -39,7 +40,13 @@ export default function DashboardPage() {
       name: ch.name,
       number: ch.number,
       availableChecklist,
-      relatedChapters: content?.relatedChapters.map((r) => ({ slug: r.slug, reason: r.reason })) ?? [],
+      // The related-chapter links stay; their explanations are legacy
+      // chapter guidance, withheld by the central publication policy.
+      relatedChapters:
+        content?.relatedChapters.map((r) => ({
+          slug: r.slug,
+          reason: isLegacyContentPublic("chapter-guidance") ? r.reason : "",
+        })) ?? [],
     };
   });
 

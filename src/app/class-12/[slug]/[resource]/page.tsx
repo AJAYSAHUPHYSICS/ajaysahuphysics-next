@@ -4,10 +4,12 @@ import { class12Chapters, getChapterBySlug } from "@/lib/chapters";
 import {
   RESOURCE_ORDER,
   resourceRegistry,
+  isResourceIndexable,
   type ResourceKey,
 } from "@/lib/resource-registry";
 import { JsonLd, breadcrumbJsonLd, learningResourceJsonLd } from "@/lib/jsonld";
 import { hasNotesPdf, notesPdfHref } from "@/lib/notes-pdf";
+import { isLegacyContentPublic } from "@/lib/content-policy/publication";
 import { chapterSocialMetadata } from "@/lib/social-metadata";
 import type { BookmarkType } from "@/lib/bookmarks";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -50,6 +52,9 @@ export async function generateMetadata({
     alternates: { canonical: path },
     // Resource pages reuse their chapter's Open Graph image.
     ...chapterSocialMetadata({ cls: "12", slug, chapterName: chapter.name, title, description, path }),
+    // Pages that only show a "being rebuilt" notice stay live (bookmarks,
+    // progress) but are kept out of search results and the sitemap.
+    ...(isResourceIndexable(def, slug) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 
@@ -67,6 +72,9 @@ export default async function Page({
   if (!content) notFound();
 
   const path = `/class-12/${slug}/${resource}`;
+  const isPublic = def.isPublic(slug);
+  // Legacy PDFs are withheld (and no longer shipped in public/).
+  const showPdf = isPublic && isLegacyContentPublic("notes-pdf") && hasNotesPdf("12", chapter.slug);
 
   return (
     <div>
@@ -78,6 +86,7 @@ export default async function Page({
           { name: def.label, path },
         ])}
       />
+      {isPublic && (
       <JsonLd
         data={learningResourceJsonLd({
           name: `${chapter.name} ${def.label}`,
@@ -88,6 +97,7 @@ export default async function Page({
           chapterName: chapter.name,
         })}
       />
+      )}
 
       <div className="mb-4">
         <Breadcrumbs
@@ -125,11 +135,11 @@ export default async function Page({
         />
       </div>
 
-      {resource === "notes" ? (
+      {resource === "notes" && isPublic ? (
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
           <p className="text-sm text-slate">Typed notes for {chapter.name}.</p>
           {/* Only link a PDF that exists (checked at build time); see docs/MISSING_ASSETS.md. */}
-          {hasNotesPdf("12", chapter.slug) ? (
+          {showPdf ? (
             <a
               href={notesPdfHref("12", chapter.slug)}
               download

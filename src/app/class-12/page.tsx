@@ -8,7 +8,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Class 12 Physics",
   description:
-    "Class 12 Physics chapters, notes, formula sheets, Practice Questions, and PYQs — covering electrostatics, current electricity, optics, and modern physics.",
+    "Class 12 Physics chapters (electrostatics, current electricity, optics, and modern physics). Notes, formula sheets, practice questions and PYQs are being rebuilt chapter by chapter.",
   alternates: { canonical: "/class-12" },
 };
 
@@ -24,7 +24,7 @@ export default function Class12Page() {
       <PageHero
         eyebrow="Class 12 Physics"
         title="The chapters that carry the most weight in JEE and NEET."
-        description="Electrostatics, current electricity, optics, and modern physics — covered chapter by chapter with notes, formula sheets, Practice Questions, and PYQs."
+        description="Electrostatics, current electricity, optics, and modern physics. We're rebuilding notes, formula sheets, practice questions and PYQs for each chapter; they appear as they're reviewed."
       />
 
       <section className="bg-ivory">

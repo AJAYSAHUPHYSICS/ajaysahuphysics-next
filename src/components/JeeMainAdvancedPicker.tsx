@@ -36,8 +36,8 @@ export default function JeeMainAdvancedPicker({
               choice === "jee-main" ? "text-white/80" : "text-slate"
             }`}
           >
-            Build speed and accuracy with focused practice and previous year
-            patterns.
+            Speed and accuracy across the full Class 11 and 12 syllabus.
+            Resources are being rebuilt and appear as they&apos;re reviewed.
           </p>
         </button>
 
@@ -62,8 +62,8 @@ export default function JeeMainAdvancedPicker({
               choice === "jee-advanced" ? "text-white/80" : "text-slate"
             }`}
           >
-            Sharpen multi-concept problem solving for the trickier,
-            higher-weightage Advanced topics.
+            Multi-concept problem solving for the trickier, higher-weightage
+            Advanced topics. Resources are being rebuilt.
           </p>
         </button>
       </div>

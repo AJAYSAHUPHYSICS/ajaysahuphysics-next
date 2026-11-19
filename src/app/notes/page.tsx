@@ -6,7 +6,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Notes",
   description:
-    "Chapter-wise typed physics notes for Class 11, Class 12, JEE Main, JEE Advanced, and NEET.",
+    "Chapter-wise physics notes for Class 11, Class 12, JEE and NEET, being rebuilt from openly licensed resources and independently written material.",
   alternates: { canonical: "/notes" },
 };
 
@@ -21,8 +21,8 @@ export default function NotesPage() {
       />
       <PageHero
         eyebrow="Notes Hub"
-        title="Typed, chapter-wise notes built for revision."
-        description="Every chapter from Class 11 and Class 12 physics, organized by exam. Pick a chapter below to download notes or get notified when they're ready."
+        title="Chapter-wise notes, being rebuilt."
+        description="We're rebuilding the notes for every Class 11 and Class 12 chapter from openly licensed educational resources and material written independently by AjaySahuPhysics. Chapters appear below as they're reviewed; the rest are marked Coming soon."
       />
       <section className="bg-ivory">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">

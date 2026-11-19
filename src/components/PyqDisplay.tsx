@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { ChapterPyq, PyqQuestion } from "@/lib/pyq/kinematics";
+import { pyqQuestionId } from "@/lib/content-policy/pyq-publication";
 import AddMistakeButton from "./AddMistakeButton";
 import TimedPracticeSession, { type TimedQuestion } from "./TimedPracticeSession";
 
@@ -17,6 +18,7 @@ const FILTER_LABEL: Record<Exclude<ExamFilter, null>, string> = {
 function QuestionCard({
   q,
   idx,
+  questionId,
   cls,
   slug,
   chapterName,
@@ -27,6 +29,8 @@ function QuestionCard({
 }: {
   q: PyqQuestion;
   idx: number;
+  /** Stable identifier saved with a mistake: the question's ORIGINAL position. */
+  questionId: string;
   cls: "11" | "12";
   slug: string;
   chapterName: string;
@@ -83,7 +87,7 @@ function QuestionCard({
             slug={slug}
             chapterName={chapterName}
             resourceType="pyq"
-            questionId={String(idx)}
+            questionId={questionId}
           />
         </div>
       ) : (
@@ -106,7 +110,21 @@ function matchesFilter(q: PyqQuestion, filter: Exclude<ExamFilter, null>) {
   return q.examType === filter;
 }
 
-export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: string }) {
+/**
+ * `questionIds[i]` is the identifier saved with a mistake for
+ * `pyq.questions[i]`. The registry passes each question's ORIGINAL position
+ * in the legacy chapter file, so filtering never shifts the references in
+ * students' mistake notebooks (see content-policy/pyq-publication).
+ */
+export default function PyqDisplay({
+  pyq,
+  slug,
+  questionIds,
+}: {
+  pyq: ChapterPyq;
+  slug: string;
+  questionIds?: readonly string[];
+}) {
   const searchParams = useSearchParams();
   const examParam = searchParams.get("exam");
   const initialExamFilter: ExamFilter =
@@ -190,7 +208,7 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
               <QuestionCard
                 key={`${q.exam}-${idx}`}
                 q={q}
-                idx={idx}
+                idx={idx} questionId={pyqQuestionId(questionIds, idx)}
                 {...cardProps}
                 revealed={revealed}
                 selected={selected}
@@ -229,7 +247,7 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
             <QuestionCard
               key={`${q.exam}-${idx}`}
               q={q}
-              idx={idx}
+              idx={idx} questionId={pyqQuestionId(questionIds, idx)}
               {...cardProps}
               revealed={revealed}
               selected={selected}
@@ -277,7 +295,7 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
                 <QuestionCard
                   key={`${q.exam}-${idx}`}
                   q={q}
-                  idx={idx}
+                  idx={idx} questionId={pyqQuestionId(questionIds, idx)}
                   {...cardProps}
                   revealed={revealed}
                   selected={selected}
@@ -302,7 +320,7 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
                 <QuestionCard
                   key={`${q.exam}-${idx}`}
                   q={q}
-                  idx={idx}
+                  idx={idx} questionId={pyqQuestionId(questionIds, idx)}
                   {...cardProps}
                   revealed={revealed}
                   selected={selected}
@@ -327,7 +345,7 @@ export default function PyqDisplay({ pyq, slug }: { pyq: ChapterPyq; slug: strin
                 <QuestionCard
                   key={`${q.exam}-${idx}`}
                   q={q}
-                  idx={idx}
+                  idx={idx} questionId={pyqQuestionId(questionIds, idx)}
                   {...cardProps}
                   revealed={revealed}
                   selected={selected}

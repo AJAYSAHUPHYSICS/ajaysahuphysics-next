@@ -20,12 +20,12 @@ export const metadata: Metadata = {
     template: "%s | Ajay Sahu Physics",
   },
   description:
-    "Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants. Chapter-wise notes, formula sheets, daily practice problems, and previous year questions by Ajay Sahu.",
+    "Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants by Ajay Sahu. Chapter-wise notes, formula sheets, practice questions and previous year questions are being rebuilt.",
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     title: "Ajay Sahu Physics | Physics That Makes You Score",
     description:
-      "Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants. Chapter-wise notes, formula sheets, daily practice problems, and previous year questions by Ajay Sahu.",
+      "Physics learning resources for Class 11, Class 12, JEE and NEET — being rebuilt with independently authored content and openly licensed sources.",
     url: siteConfig.url,
     siteName: "Ajay Sahu Physics",
     locale: "en_IN",

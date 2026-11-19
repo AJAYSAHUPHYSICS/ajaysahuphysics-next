@@ -4,6 +4,7 @@ import Link from "next/link";
 import { setMistakeResolved, type Mistake } from "@/lib/mistakes";
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import EmptyState from "./EmptyState";
+import { isAvailableStudyPath } from "@/lib/content-policy/resource-links";
 
 const DIFFICULTY_LABEL: Record<string, string> = { easy: "Easy", medium: "Medium", hard: "Hard" };
 
@@ -24,18 +25,34 @@ export default function ReattemptListCard({ items }: { items: Mistake[] }) {
 
   return (
     <ul className="space-y-2">
-      {items.map((m) => (
-        <li key={m.id} className="flex items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3">
-          <Link
-            href={`/class-${m.cls}/${m.slug}/${m.resourceType}`}
-            className="min-w-0 text-sm text-navy hover:text-gold-deep transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
-          >
+      {items.map((m) => {
+        const path = `/class-${m.cls}/${m.slug}/${m.resourceType}`;
+        const details = (
+          <>
             <span className="block font-semibold truncate">{m.conceptTag}</span>
             <span className="block text-xs text-slate/60 mt-0.5">
               {m.chapterName} &middot; {m.resourceType.toUpperCase()} &middot;{" "}
               {DIFFICULTY_LABEL[m.difficulty]} &middot; logged {formatRelativeTime(m.createdAt)}
             </span>
-          </Link>
+          </>
+        );
+        return (
+        <li key={m.id} className="flex items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3">
+          {/* The saved mistake is always shown; it only links back to its
+              questions while they are published (content is being rebuilt). */}
+          {isAvailableStudyPath(path) ? (
+            <Link
+              href={path}
+              className="min-w-0 text-sm text-navy hover:text-gold-deep transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded"
+            >
+              {details}
+            </Link>
+          ) : (
+            <div className="min-w-0 text-sm text-navy">
+              {details}
+              <span className="block text-xs text-slate/60 mt-0.5">Questions for this chapter are being rebuilt.</span>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => setMistakeResolved(m.id, true)}
@@ -44,7 +61,8 @@ export default function ReattemptListCard({ items }: { items: Mistake[] }) {
             Mark resolved
           </button>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

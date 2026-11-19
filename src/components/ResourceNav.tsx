@@ -44,6 +44,9 @@ export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
               className="shrink-0 px-4 py-2.5 rounded-md text-sm font-semibold whitespace-nowrap text-navy/30 cursor-not-allowed"
             >
               {item.label}
+              {/* "Coming soon" was only in the title tooltip, which screen
+                  readers announce unreliably and touch users never see. */}
+              <span className="sr-only"> (coming soon)</span>
             </span>
           );
         }

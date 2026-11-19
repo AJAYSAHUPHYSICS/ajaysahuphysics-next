@@ -7,6 +7,7 @@ import { hasJeeNotes } from "@/lib/jee-notes/slugs";
 import { hasJeeDpp } from "@/lib/jee-dpp/slugs";
 import { hasPyqFor } from "@/lib/pyq/availability";
 import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
+import { isChapterResourcePublic } from "@/lib/content-policy/publication";
 
 type ResourceKey = "notes" | "formula-sheet" | "dpp" | "pyq";
 type ClassFilter = "all" | "11" | "12";
@@ -18,20 +19,20 @@ const classFilters: { key: ClassFilter; label: string }[] = [
   { key: "12", label: "Class 12" },
 ];
 
-// JEE resources are deliberately kept separate from the general/NEET-track
-// Notes and Practice Questions (which mix in older Allen-module content for
-// some chapters). The JEE section here only ever shows content that came
-// from the Cengage JEE source material — jeeNotesRegistry and
-// jeeDppRegistry — never the general notesRegistry/dppRegistry.
+// The JEE hub's Notes and Practice Questions tabs point at the JEE-specific
+// resources (jee-notes / jee-dpp), never the general Notes and DPP. While
+// a chapter's resource is withheld under the central publication policy
+// (src/lib/content-policy/publication.ts), its card shows "Coming soon"
+// instead of linking to a page that only shows a notice.
 function isAvailable(
   resource: ResourceKey,
   examFilter: ExamFilter,
   chapter: Chapter
 ): boolean {
   const slug = chapter.slug;
-  if (resource === "notes") return hasJeeNotes(slug);
-  if (resource === "dpp") return hasJeeDpp(slug);
-  if (resource === "formula-sheet") return hasFormulaSheet(slug);
+  if (resource === "notes") return hasJeeNotes(slug) && isChapterResourcePublic("jee-notes", slug);
+  if (resource === "dpp") return hasJeeDpp(slug) && isChapterResourcePublic("jee-dpp", slug);
+  if (resource === "formula-sheet") return hasFormulaSheet(slug) && isChapterResourcePublic("formula-sheet", slug);
 
   return hasPyqFor(slug, examFilter);
 }

@@ -26,9 +26,10 @@ export default function Footer() {
               Ajay Sahu <span className="text-gold">Physics</span>
             </div>
             <p className="mt-3 text-sm text-white/60 leading-relaxed max-w-sm">
-              Physics that makes you score. Chapter-wise notes, formula
-              sheets, daily practice problems, and previous year questions
-              for JEE Main, JEE Advanced, and NEET aspirants.
+              Physics that makes you score. Coaching for JEE Main, JEE
+              Advanced, and NEET aspirants, with chapter-wise study resources
+              being rebuilt from openly licensed and independently written
+              material.
             </p>
             <div className="mt-5 gold-rule" />
             <a

@@ -6,7 +6,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Formula Sheet",
   description:
-    "Chapter-wise physics formula sheets for Class 11, Class 12, JEE Main, JEE Advanced, and NEET — every derived result in one place.",
+    "Chapter-wise physics formula sheets for Class 11, Class 12, JEE and NEET, being rebuilt with every formula checked and its sources recorded.",
   alternates: { canonical: "/formula-sheet" },
 };
 
@@ -21,8 +21,8 @@ export default function FormulaSheetPage() {
       />
       <PageHero
         eyebrow="Formula Sheet Hub"
-        title="Every formula, organized by chapter."
-        description="One-page formula sheets for fast last-minute revision, covering every chapter across JEE and NEET physics."
+        title="Formula sheets, organized by chapter."
+        description="We're rebuilding the formula sheets for every chapter, with each formula checked and its sources recorded. Chapters appear below as they're reviewed; the rest are marked Coming soon."
       />
       <section className="bg-ivory">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">

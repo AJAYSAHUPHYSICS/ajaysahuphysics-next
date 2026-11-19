@@ -35,6 +35,7 @@ import { getMistakes, subscribeToMistakes, type Mistake } from "@/lib/mistakes";
 import { computeChapterAccuracy } from "@/lib/chapter-accuracy";
 import { getTopConcepts } from "@/lib/concept-analysis";
 import { getReattemptList } from "@/lib/reattempt-list";
+import { isAvailableStudyPath } from "@/lib/content-policy/resource-links";
 import { buildMistakeInsights } from "@/lib/mistake-insights";
 import { buildDailyStudyPlan } from "@/lib/study-plan";
 import { buildWeeklyPlan } from "@/lib/weekly-plan";
@@ -289,8 +290,10 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     .slice(0, 4);
   const incompleteChapters = inProgress.length > 0 ? inProgress : notStarted;
 
-  const recommendedBookmarks = bookmarks.slice(0, 4);
-  const recommendedRecent = recentResources.slice(0, 4);
+  // Recommendations skip withheld resources; the Bookmarks and Recent
+  // activity sections still list everything the student saved or viewed.
+  const recommendedBookmarks = bookmarks.filter((b) => isAvailableStudyPath(b.path)).slice(0, 4);
+  const recommendedRecent = recentResources.filter((r) => isAvailableStudyPath(r.path)).slice(0, 4);
 
   const engagedSlugs = new Set([
     ...chaptersWithProgress.filter((c) => c.done > 0).map((c) => c.slug),

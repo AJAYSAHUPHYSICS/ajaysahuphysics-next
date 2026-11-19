@@ -5,7 +5,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import ResourceNav, { type ResourceNavItem } from "@/components/ResourceNav";
 import { class11Chapters, getChapterBySlug, getAdjacentChapters } from "@/lib/chapters";
-import { RESOURCE_ORDER, resourceRegistry } from "@/lib/resource-registry";
+import { RESOURCE_ORDER, resourceRegistry, isResourceLinked, chapterHasPublicResource } from "@/lib/resource-registry";
 
 type Params = { slug: string };
 
@@ -34,7 +34,8 @@ export default async function ClassElevenChapterLayout({
       return {
         key,
         label: def.label,
-        href: def.hasData(chapter.slug) ? `${basePath}/${key}` : null,
+        // Withheld resources show as "coming soon"; their routes stay live.
+        href: isResourceLinked(def, chapter.slug) ? `${basePath}/${key}` : null,
       };
     }),
     { key: "videos", label: "Videos", href: null },
@@ -58,9 +59,9 @@ export default async function ClassElevenChapterLayout({
             {chapter.name}
           </h1>
           <p className="mt-5 text-white/70 max-w-2xl text-base sm:text-lg leading-relaxed">
-            Overview, notes, short notes, formula sheet, daily practice
-            problems, previous year questions, and videos for this chapter —
-            all in one place.
+            {chapterHasPublicResource(chapter.slug)
+              ? "Overview, notes, short notes, formula sheet, daily practice problems, previous year questions, and videos for this chapter — all in one place."
+              : "Learning resources for this chapter are being rebuilt from openly licensed educational resources and independently written material."}
           </p>
         </div>
       </section>

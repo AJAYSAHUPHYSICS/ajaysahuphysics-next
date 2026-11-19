@@ -16,6 +16,8 @@
 // exam-type mix changes.
 // ─────────────────────────────────────────────────────────────────
 
+import { publicPyqAvailability } from "@/lib/content-policy/public-pyq-availability";
+
 export type PyqExamAvailability = {
   neet: boolean;
   jeeMain: boolean;
@@ -55,14 +57,22 @@ export const pyqAvailability: Readonly<Record<string, PyqExamAvailability>> = {
   "work-energy-and-power": { neet: true, jeeMain: true, jeeAdvanced: true },
 };
 
-/** True if this chapter has at least one PYQ for the given exam target. No question content loaded. */
+/**
+ * True if this chapter has at least one PUBLISHED PYQ for the given exam target.
+ * No question content loaded.
+ *
+ * Phase 2A: a chapter must also appear in `publicPyqAvailability` (the
+ * publication policy's view). `pyqAvailability` above still describes the
+ * legacy data, which is now withheld, so hubs and search don't advertise it.
+ */
 export function hasPyqFor(
   slug: string,
   exam: "neet" | "jee-main" | "jee-advanced"
 ): boolean {
   const entry = pyqAvailability[slug];
-  if (!entry) return false;
-  if (exam === "neet") return entry.neet;
-  if (exam === "jee-main") return entry.jeeMain;
-  return entry.jeeAdvanced;
+  const published = publicPyqAvailability[slug];
+  if (!entry || !published) return false;
+  if (exam === "neet") return entry.neet && published.neet;
+  if (exam === "jee-main") return entry.jeeMain && published.jeeMain;
+  return entry.jeeAdvanced && published.jeeAdvanced;
 }

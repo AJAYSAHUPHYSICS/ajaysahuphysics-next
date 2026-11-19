@@ -26,6 +26,7 @@ import { computeChapterProgress, studyStatus } from "./chapter-progress";
 import { getSubject } from "./chapter-subjects";
 import { TASK_DURATION_MINUTES, sumEstimatedMinutes } from "./study-time";
 import type { StudyTask, StudyTaskCategory } from "./study-plan-types";
+import { isAvailableStudyPath } from "./content-policy/resource-links";
 
 export type { StudyTask, StudyTaskCategory } from "./study-plan-types";
 
@@ -115,6 +116,8 @@ export function buildDailyStudyPlan(
   };
 
   const push = (ch: ChapterMeta, category: StudyTaskCategory, reason: string, path: string) => {
+    // Never plan a task on a resource whose content is withheld.
+    if (!isAvailableStudyPath(path)) return;
     const taskKey = `${ch.cls}:${ch.slug}:${category}`;
     if (seenTaskKeys.has(taskKey)) return;
     seenTaskKeys.add(taskKey);

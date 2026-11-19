@@ -7,6 +7,7 @@ import { hasNotes } from "@/lib/notes/slugs";
 import { hasDpp } from "@/lib/dpp/slugs";
 import { hasPyqFor } from "@/lib/pyq/availability";
 import { hasFormulaSheet } from "@/lib/formula-sheet/slugs";
+import { isChapterResourcePublic } from "@/lib/content-policy/publication";
 
 type TabKey = "jee-main" | "jee-advanced" | "neet";
 type ClassFilter = "all" | "11" | "12";
@@ -30,9 +31,10 @@ function isAvailableFor(
   chapter: Chapter
 ): boolean {
   const slug = chapter.slug;
-  if (resourceType === "notes") return hasNotes(slug);
-  if (resourceType === "dpp") return hasDpp(slug);
-  if (resourceType === "formula-sheet") return hasFormulaSheet(slug);
+  // Withheld resources show as "Coming soon" (central publication policy).
+  if (resourceType === "notes") return hasNotes(slug) && isChapterResourcePublic("notes", slug);
+  if (resourceType === "dpp") return hasDpp(slug) && isChapterResourcePublic("dpp", slug);
+  if (resourceType === "formula-sheet") return hasFormulaSheet(slug) && isChapterResourcePublic("formula-sheet", slug);
 
   // resourceType === "pyq" — availability depends on which exam tab is active,
   // since PYQ is the one resource genuinely split by exam type.
