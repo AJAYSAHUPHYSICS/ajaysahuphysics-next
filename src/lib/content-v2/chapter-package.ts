@@ -310,12 +310,16 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
   // Parts (e.g. Kinematics: Motion in a Straight Line / Motion in a Plane).
   if (pkg.parts) {
     const partIds = new Set<string>();
+    const partTitles = new Set<string>();
     const owner = new Map<string, string>();
     for (const part of pkg.parts) {
       if (!ID_FORMAT.test(part.id)) errors.push(`part id "${part.id}" is not lowercase-hyphenated`);
       if (partIds.has(part.id)) errors.push(`duplicate part id ${part.id}`);
       partIds.add(part.id);
       if (blank(part.title)) errors.push(`part ${part.id}: title missing`);
+      const titleKey = (part.title ?? "").trim().toLowerCase();
+      if (titleKey && partTitles.has(titleKey)) errors.push(`part ${part.id}: duplicate part title "${part.title}"`);
+      partTitles.add(titleKey);
       if (part.sectionIds.length === 0) errors.push(`part ${part.id}: no sections`);
       for (const sid of part.sectionIds) {
         if (!noteIds.has(sid)) errors.push(`part ${part.id}: section "${sid}" does not exist`);

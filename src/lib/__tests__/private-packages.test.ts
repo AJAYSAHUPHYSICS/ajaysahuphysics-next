@@ -62,10 +62,15 @@ describe.skipIf(!DIR)("private draft packages (local only)", () => {
     expect(found.length, `no ChapterPackage exports found in ${dir}`).toBeGreaterThan(0);
 
     const ids = new Set<string>();
+    const routes = new Map<string, string>();
     for (const { file, name, pkg } of found) {
       const where = `${path.basename(file)} › ${name} (${pkg.id})`;
       expect(ids.has(pkg.id), `${where}: duplicate package id`).toBe(false);
       ids.add(pkg.id);
+      // One package per existing route (e.g. Kinematics: one package, two parts).
+      const route = `${pkg.cls}/${pkg.slug}`;
+      expect(routes.get(route), `${where}: a second package for route ${route} (one package per route)`).toBeUndefined();
+      routes.set(route, pkg.id);
       expect(validateChapterPackage(pkg), `${where}: rule violations at status "${pkg.status}"`).toEqual([]);
       expect(allChapters.some((c) => c.cls === pkg.cls && c.slug === pkg.slug), `${where}: no existing route for class ${pkg.cls} / ${pkg.slug}`).toBe(true);
       expect(pkg.status, `${where}: a private draft must not claim "published"`).not.toBe("published");

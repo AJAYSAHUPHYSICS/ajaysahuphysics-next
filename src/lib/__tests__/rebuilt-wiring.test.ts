@@ -173,6 +173,13 @@ describe("Kinematics shape: one route, one package, two parts (synthetic)", () =
     expect(validateChapterPackage({ ...k, parts: [{ ...a, sectionIds: [...a.sectionIds, "k-nope"] }, b] }).join()).toMatch(/does not exist/);
   });
 
+  it("rejects two parts with the same title (no duplicated part inside the one package)", () => {
+    const k = syntheticKinematics();
+    const [a, b] = k.parts!;
+    expect(validateChapterPackage({ ...k, parts: [a, { ...b, title: " motion in a straight line " }] }).join()).toMatch(/duplicate part title/);
+    expect(validateChapterPackage(k)).toEqual([]);
+  });
+
   it("a Kinematics package still in review is not servable for any resource", () => {
     for (const r of RESOURCES) expect(resolveServablePackage(true, kin, r)).toBeNull();
   });
