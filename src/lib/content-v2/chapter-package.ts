@@ -28,8 +28,12 @@ export type RegistrySource = {
   status: "verified" | "pending" | "reference-only" | "rejected";
   /** Attribution text exactly as it must be shown (TASL). */
   attribution: string;
-  /** Where and when the licence was read, quoted verbatim. Required to publish. */
-  evidence?: { url: string; verifiedOn: string; licenceText: string };
+  /**
+   * Where and when the licence was read, quoted verbatim, and the reviewer's
+   * confirmation that commercial use is permitted. Required to publish; never
+   * filled in without actually reading the licence page.
+   */
+  evidence?: { url: string; verifiedOn: string; licenceText: string; commercialUse?: "permitted" | "not-permitted" | "unclear" };
 };
 
 /**
@@ -56,7 +60,11 @@ export type Provenance = {
 };
 
 export type Level = "board" | "neet" | "jee-main" | "jee-advanced";
+/** Reviewed editorial difficulty (optional while drafting, required to publish examples and questions). */
+export type Difficulty = "easy" | "medium" | "hard";
+export const DIFFICULTIES: readonly Difficulty[] = ["easy", "medium", "hard"];
 
+/** A diagram. `src` is a path served by the site itself (no hotlinking). */
 export type Figure = { id: string; src: string; alt: string; provenance: Provenance };
 
 export type Overview = { summary: string; learningOutcomes: string[]; provenance: Provenance };
@@ -116,6 +124,7 @@ export type SolvedExample = {
   answerUnit: string;
   /** Formula IDs the solution uses (from formulaSheet[]). */
   formulaRefs?: string[];
+  difficulty?: Difficulty;
   provenance: Provenance;
 };
 /** DPP / exam-style practice. `number` is stable forever (saved mistakes use it); retire, never reuse. */
@@ -129,6 +138,7 @@ export type PracticeQuestion = {
   options: string[];
   correctIndex: number;
   solution: string;
+  difficulty?: Difficulty;
   provenance: Provenance;
 };
 export type Experiment = { id: string; title: string; aim: string; method: string[]; simulation?: { registryId: string; url: string }; provenance: Provenance };
@@ -197,6 +207,27 @@ const LABEL_FOR_LEVEL: Record<Level, PracticeQuestion["label"][]> = {
 };
 
 const blank = (s: string | undefined) => !s || !s.trim();
+const isDate = (s: string | undefined) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? "") && !Number.isNaN(Date.parse(s ?? ""));
+function isHttpUrl(s: string | undefined): boolean {
+  try {
+    const u = new URL(s ?? "");
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+/** A site-served path: relative or root-relative, never a URL or protocol-relative (no hotlinking). */
+const isLocalPath = (s: string | undefined) => !blank(s) && !/^[a-z][a-z0-9+.-]*:/i.test(s ?? "") && !(s ?? "").startsWith("//");
+
+/** Checks an approval record: named reviewer, real date, independent of the author. */
+function reviewErrors(where: string, review: Review | undefined, author: string): string[] {
+  if (review?.status !== "approved") return [];
+  const errs: string[] = [];
+  if (blank(review.reviewer ?? undefined)) errs.push(`${where}: approved without a named reviewer`);
+  if (!isDate(review.date)) errs.push(`${where}: approval has no valid date (YYYY-MM-DD)`);
+  if (review.reviewer && review.reviewer.trim().toLowerCase() === author.trim().toLowerCase()) errs.push(`${where}: reviewer must be independent of the author`);
+  return errs;
+}
 
 /** Returns every rule violation (empty = valid). `allowShareAlike` needs the owner's written approval. */
 export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAlike?: boolean } = {}): string[] {
@@ -213,9 +244,13 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
     if (s.licence === "CC-BY-SA-4.0" && !opts.allowShareAlike) errors.push(`source ${s.id} is ShareAlike: needs owner approval`);
     if (blank(s.attribution)) errors.push(`source ${s.id} has no attribution text`);
     if (blank(s.url)) errors.push(`source ${s.id} has no URL`);
+    else if (!isHttpUrl(s.url)) errors.push(`source ${s.id}: URL is not a valid http(s) URL`);
+    if (blank(s.title)) errors.push(`source ${s.id} has no title`);
+    if (s.evidence?.commercialUse && s.evidence.commercialUse !== "permitted") errors.push(`source ${s.id}: commercial use is "${s.evidence.commercialUse}", only sources that permit commercial use may be used`);
     if (publishing) {
       const e = s.evidence;
-      if (!e || blank(e.url) || blank(e.licenceText) || !/^\d{4}-\d{2}-\d{2}$/.test(e.verifiedOn ?? "")) errors.push(`source ${s.id}: licence evidence (url, verifiedOn YYYY-MM-DD, licenceText) is required to publish`);
+      if (!e || !isHttpUrl(e.url) || blank(e.licenceText) || !isDate(e.verifiedOn)) errors.push(`source ${s.id}: licence evidence (url, verifiedOn YYYY-MM-DD, licenceText) is required to publish`);
+      if (e?.commercialUse !== "permitted") errors.push(`source ${s.id}: commercial use must be confirmed as permitted in the licence evidence to publish`);
     }
   }
 
@@ -235,21 +270,24 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
     if (p.origin === "adapted" && blank(p.changes)) errors.push(`${where}: adapted content must describe its changes`);
     for (const id of p.sources) if (!sources.has(id)) errors.push(`${where}: unknown source ${id}`);
     if (blank(p.author)) errors.push(`${where}: author missing`);
-    if (p.review?.status === "approved") {
-      if (blank(p.review.reviewer ?? undefined)) errors.push(`${where}: approved without a named reviewer`);
-      if (blank(p.review.date)) errors.push(`${where}: approval has no date`);
-      if (p.review.reviewer && p.review.reviewer.trim() === p.author.trim()) errors.push(`${where}: reviewer must be independent of the author`);
-    }
+    if (publishing && typeof p.aiAssisted !== "boolean") errors.push(`${where}: AI-assistance must be declared (true/false)`);
+    errors.push(...reviewErrors(where, p.review, p.author ?? ""));
     if (publishing && p.review?.status !== "approved") errors.push(`${where}: not approved by a reviewer`);
   }
 
   if (blank(pkg.overview.summary)) errors.push("overview summary missing");
   if (pkg.overview.learningOutcomes.length === 0) errors.push("overview has no learning outcomes");
+  if (pkg.overview.learningOutcomes.some((o) => blank(o))) errors.push("overview has an empty learning outcome");
   if (pkg.revisionChecklist.length === 0) errors.push("revision checklist is empty");
+  for (const r of pkg.revisionChecklist) if (blank(r.text)) errors.push(`revision ${r.id}: text missing`);
+  for (const n of pkg.shortNotes) if (blank(n.text)) errors.push(`short note ${n.id}: text missing`);
 
   for (const n of pkg.notes) {
     if (blank(n.heading) || blank(n.body)) errors.push(`notes ${n.id}: heading and body are required`);
-    for (const f of n.figures ?? []) if (blank(f.alt)) errors.push(`figure ${f.id}: alt text missing`);
+    for (const f of n.figures ?? []) {
+      if (blank(f.alt)) errors.push(`figure ${f.id}: alt text missing`);
+      if (!isLocalPath(f.src)) errors.push(`figure ${f.id}: src must be a site-served path (no external URLs or hotlinking)`);
+    }
   }
   for (const f of pkg.formulaSheet) {
     if (blank(f.expression)) errors.push(`formula ${f.id}: expression missing`);
@@ -259,6 +297,8 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
     if (blank(e.problem) || e.steps.length === 0 || blank(e.answer)) errors.push(`example ${e.id}: problem, steps and answer are required`);
     if (blank(e.answerUnit)) errors.push(`example ${e.id}: answer unit missing`);
     if (EXAM_YEAR_LABEL.test(e.problem) || PYQ_WORDING.test(e.problem)) errors.push(`example ${e.id}: solved examples must not be presented as PYQs`);
+    if (e.difficulty !== undefined && !DIFFICULTIES.includes(e.difficulty)) errors.push(`example ${e.id}: difficulty "${e.difficulty}" is not easy, medium or hard`);
+    if (publishing && e.difficulty === undefined) errors.push(`example ${e.id}: difficulty missing (reviewed editorial field, required to publish)`);
   }
   const formulaIds = new Set(pkg.formulaSheet.map((f) => f.id));
   const noteIds = new Set(pkg.notes.map((n) => n.id));
@@ -297,18 +337,22 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
       grouped.set(fid, g.id);
     }
   }
-  for (const fid of pkg.quickRevisionFormulaIds ?? []) if (!formulaIds.has(fid)) errors.push(`quick-revision formula "${fid}" does not exist`);
+  const quick = pkg.quickRevisionFormulaIds ?? [];
+  for (const fid of quick) if (!formulaIds.has(fid)) errors.push(`quick-revision formula "${fid}" does not exist`);
+  if (new Set(quick).size !== quick.length) errors.push("quick-revision strip lists a formula twice");
   if (publishing && pkg.formulaSheet.length > 0) {
     for (const e of formulaSheetPublicationGaps(pkg)) errors.push(e);
   }
 
   for (const e of pkg.experiments) {
+    if (blank(e.title) || blank(e.aim) || e.method.length === 0 || e.method.some((m) => blank(m))) errors.push(`experiment ${e.id}: title, aim and every method step are required`);
     if (e.simulation && !sources.has(e.simulation.registryId)) errors.push(`experiment ${e.id}: simulation source not in package sources`);
+    if (e.simulation && !isHttpUrl(e.simulation.url)) errors.push(`experiment ${e.id}: simulation URL is not a valid http(s) URL`);
   }
 
   const ids = new Set<string>();
   const all = [
-    ...pkg.notes, ...pkg.shortNotes, ...pkg.formulaSheet, ...pkg.solvedExamples, ...pkg.dpp,
+    ...pkg.notes, ...pkg.notes.flatMap((n) => n.figures ?? []), ...pkg.shortNotes, ...pkg.formulaSheet, ...pkg.solvedExamples, ...pkg.dpp,
     ...pkg.examPractice, ...pkg.experiments, ...pkg.revisionChecklist, ...pkg.pyqs,
   ];
   for (const b of all) {
@@ -333,6 +377,8 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
       if (EXAM_YEAR_LABEL.test(q.question) || EXAM_YEAR_LABEL.test(q.label)) errors.push(`${q.id}: practice questions must not carry an exam/year label`);
       if (PYQ_WORDING.test(q.question) || PYQ_WORDING.test(q.label)) errors.push(`${q.id}: practice questions must not be presented as PYQs`);
       if (!LABEL_FOR_LEVEL[q.level].includes(q.label)) errors.push(`${q.id}: label "${q.label}" doesn't match level "${q.level}"`);
+      if (q.difficulty !== undefined && !DIFFICULTIES.includes(q.difficulty)) errors.push(`${q.id}: difficulty "${q.difficulty}" is not easy, medium or hard`);
+      if (publishing && q.difficulty === undefined) errors.push(`${q.id}: difficulty missing (reviewed editorial field, required to publish)`);
       const key = q.question.trim().toLowerCase().replace(/\s+/g, " ");
       if (seenQuestions.has(key)) errors.push(`${q.id}: duplicate question text`);
       seenQuestions.add(key);
@@ -348,6 +394,11 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
     }
     if (host && !OFFICIAL_PYQ_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`))) errors.push(`pyq ${q.id}: source is not an official exam domain`);
     if (!/^[0-9a-f]{64}$/.test(q.source.fileSha256)) errors.push(`pyq ${q.id}: official file SHA-256 missing`);
+    if (!isDate(q.source.retrievedOn)) errors.push(`pyq ${q.id}: source retrievedOn (YYYY-MM-DD) missing`);
+    if (q.verification.status === "verified" && (blank(q.verification.by) || !isDate(q.verification.on))) errors.push(`pyq ${q.id}: verification must name who verified it and when (YYYY-MM-DD)`);
+    if (q.rights.status === "cleared" && blank(q.rights.basis)) errors.push(`pyq ${q.id}: rights clearance must record its basis`);
+    if (blank(q.solution.author) || blank(q.solution.text)) errors.push(`pyq ${q.id}: solution text and author are required`);
+    errors.push(...reviewErrors(`pyq ${q.id} solution`, q.solution.review, q.solution.author ?? ""));
     if (publishing && q.verification.status !== "verified") errors.push(`pyq ${q.id}: not verified against the official paper`);
     if (publishing && q.rights.status !== "cleared") errors.push(`pyq ${q.id}: reproduction rights not cleared`);
     if (publishing && q.solution.review?.status !== "approved") errors.push(`pyq ${q.id}: solution not reviewed`);
@@ -355,6 +406,17 @@ export function validateChapterPackage(pkg: ChapterPackage, opts: { allowShareAl
 
   if (publishing && pkg.syllabus.checkedAgainst.length === 0) errors.push("syllabus mapping not checked against an official document");
   return errors;
+}
+
+/**
+ * Everything that would block publication if this package were marked
+ * "published" now: the full publication rule set, run on a copy (the
+ * package itself is never changed). Used to track a private draft's
+ * progress through review. Empty = every publication rule is met; actual
+ * publication still needs the reviewed registry change and the switch.
+ */
+export function publicationReadiness(pkg: ChapterPackage, opts: { allowShareAlike?: boolean } = {}): string[] {
+  return validateChapterPackage({ ...pkg, status: "published" }, opts);
 }
 
 /**
