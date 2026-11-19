@@ -16,6 +16,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { A11Y_AUDIT } from "./a11y-audit.mjs";
 
 const OUT = path.resolve(process.argv[2] ?? "out");
 const PROFILE = process.argv[3] ?? fs.mkdtempSync(path.join(os.tmpdir(), "atlas-e2e-"));
@@ -121,6 +122,14 @@ await go("/dashboard/activity/");
 const actText = await ev("document.body.innerText");
 check("streak shown from store", /Longest streak[^0-9]*5 days/i.test(actText), actText.slice(actText.indexOf("Current streak"), actText.indexOf("Current streak") + 120).replace(/s+/g, " ") + " | stored " + JSON.stringify(await ls("atlas:study-streak")));
 check("calendar has 28 days", (await ev("document.querySelectorAll('ol[aria-label^=\"Activity per day\"] li').length")) === 28);
+
+// Accessibility basics on every study page (scripts/e2e/a11y-audit.mjs).
+await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
+for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/"]) {
+  await go(p);
+  const problems = (await ev(A11Y_AUDIT)) ?? [{ rule: "audit", detail: "did not run" }];
+  check(`accessibility basics ${p}`, problems.length === 0, problems.slice(0, 12).map((x) => x.rule + ": " + x.detail).join(" | ") + (problems.length > 12 ? ` (+${problems.length - 12} more)` : ""));
+}
 
 // Responsive: no horizontal scroll at phone / tablet / desktop widths.
 for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800], [1366, 768], [1536, 864]]) {

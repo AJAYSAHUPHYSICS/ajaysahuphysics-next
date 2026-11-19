@@ -37,7 +37,7 @@ function RankedGroup({
 
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+      <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
       {chapters.length === 0 ? (
         <p className="text-xs text-slate/50">Not enough data yet.</p>
       ) : (

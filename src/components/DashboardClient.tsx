@@ -355,7 +355,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
         {!hasAnyActivity && (
           <Link
             href="#all-chapters"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-navy bg-gold hover:bg-gold-deep rounded-md px-4 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-white"
+            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-navy bg-gold hover:bg-gold-deep hover:text-white rounded-md px-4 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-white"
           >
             Browse chapters &rarr;
           </Link>
@@ -364,13 +364,13 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 1/4 — Exam Readiness Score */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Exam Readiness</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Exam Readiness</h2>
         <ExamReadinessCard readiness={readiness} />
       </div>
 
       {/* M16 Task 7 — Productivity Score */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Productivity Score</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Productivity Score</h2>
         <p className="text-sm text-slate mb-5">
           One score combining completion, revision, accuracy, and consistency.
         </p>
@@ -379,7 +379,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M15 Task 1/2/3/5/8 — Daily Study Plan */}
       <div id="study-plan" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Study Plan</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Today&apos;s Study Plan</h2>
         <p className="text-sm text-slate mb-5">
           Up to 8 tasks, ranked by urgency and mixed across subjects, each linking straight
           to what you need to do.
@@ -389,7 +389,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M16 Task 1 — Study Goals */}
       <div id="study-goals" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Study Goals</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Study Goals</h2>
         <p className="text-sm text-slate mb-5">
           Track any of these and get a target date, daily/weekly targets, and coaching below.
         </p>
@@ -399,12 +399,12 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
       {/* M16 Task 3/4 — Daily & Weekly Targets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Targets</h3>
+          <h2 className="font-display text-xl text-navy mb-1">Today&apos;s Targets</h2>
           <p className="text-sm text-slate mb-5">Based on your tracked goals and today&apos;s study plan.</p>
           <DailyTargetsCard targets={dailyTargets} />
         </div>
         <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">This Week&apos;s Targets</h3>
+          <h2 className="font-display text-xl text-navy mb-1">This Week&apos;s Targets</h2>
           <p className="text-sm text-slate mb-5">A rolling 7-day target based on your recent pace.</p>
           <WeeklyTargetsCard targets={weeklyTargets} />
         </div>
@@ -412,7 +412,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M16 Task 8 — Smart Recommendations */}
       <div className="rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Smart Recommendations</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Smart Recommendations</h2>
         <p className="text-sm text-slate mb-5">Coaching based on your goal pace and revision schedule.</p>
         <SmartRecommendationsCard recommendations={goalRecommendations} />
       </div>
@@ -430,7 +430,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 6 — Recommended Today */}
       <div id="recommended-today" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Recommended Today</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Recommended Today</h2>
         <p className="text-sm text-slate mb-5">
           Up to 5 chapters worth your time today, in priority order: overdue revisions first,
           then weak chapters, unfinished practice, and bookmarks.
@@ -454,7 +454,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* Stats */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Your progress</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Your progress</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
           <Stat value={chaptersCompleted} label="Chapters completed" />
           <Stat value={resourcesCompleted} label="Resources completed" />
@@ -471,25 +471,25 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 7 — Milestones */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Milestones</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Milestones</h2>
         <MilestonesCard milestones={milestones} />
       </div>
 
       {/* M16 Task 6 — Achievements */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Achievements</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Achievements</h2>
         <AchievementsCard achievements={achievementsList} />
       </div>
 
       {/* M14 Task 3 — Mistake Notebook */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Mistake Notebook</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Mistake Notebook</h2>
         <MistakeNotebookCard mistakes={mistakes} />
       </div>
 
       {/* M14 Task 4 — Chapter Performance */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Chapter Performance</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Chapter Performance</h2>
         <p className="text-sm text-slate mb-5">
           Accuracy per chapter, based on practice done and mistakes logged.
         </p>
@@ -499,14 +499,14 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {/* M14 Task 5 — Concept Analysis */}
         <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Concept Analysis</h3>
+          <h2 className="font-display text-xl text-navy mb-1">Concept Analysis</h2>
           <p className="text-sm text-slate mb-5">Concepts needing the most revision.</p>
           <ConceptAnalysisCard concepts={topConcepts} />
         </div>
 
         {/* M14 Task 6/7 — Practice Again */}
         <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Practice Again</h3>
+          <h2 className="font-display text-xl text-navy mb-1">Practice Again</h2>
           <p className="text-sm text-slate mb-5">Unresolved mistakes, oldest and hardest first.</p>
           <ReattemptListCard items={reattemptList} />
         </div>
@@ -514,7 +514,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* Task 2 — Today's Activity */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Today&apos;s Activity</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Today&apos;s Activity</h2>
         {hasTodayActivity ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
@@ -545,13 +545,13 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 5 — Weekly Progress (last 7 days) */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Weekly Progress</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Weekly Progress</h2>
         <WeeklyProgress events={weeklyEvents} />
       </div>
 
       {/* Task 1 — Continue Studying */}
       <div id="continue-studying" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-4">Continue Studying</h3>
+        <h2 className="font-display text-xl text-navy mb-4">Continue Studying</h2>
         {continueStudying.length > 0 ? (
           <ul className="space-y-2">
             {continueStudying.map((r) => (
@@ -584,13 +584,13 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M12 Task 3 — Revision Health */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Revision Health</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Revision Health</h2>
         <RevisionHealthCard health={health} />
       </div>
 
       {/* M12 Task 1 — Revision Timeline */}
       <div id="revision-timeline" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Revision Timeline</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Revision Timeline</h2>
         <p className="text-sm text-slate mb-5">
           Chapters grouped by when they&apos;re next due, based on a 1 / 7 / 30-day revision
           schedule after each round.
@@ -600,7 +600,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M15 Task 6 — Weekly Plan */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Weekly Plan</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Weekly Plan</h2>
         <p className="text-sm text-slate mb-5">
           A 7-day look ahead — computed fresh each time, nothing saved.
         </p>
@@ -610,7 +610,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
       {/* Task 4/6 — Resource completion chart */}
       {resourceBreakdown.some((r) => r.total > 0) && (
         <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-5">Resource completion</h3>
+          <h2 className="font-display text-xl text-navy mb-5">Resource completion</h2>
           <div className="space-y-4">
             {resourceBreakdown
               .filter((r) => r.total > 0)
@@ -639,14 +639,14 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 3 — Resource Gaps */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Resource Gaps</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Resource Gaps</h2>
         <p className="text-sm text-slate mb-5">Work remaining across every resource type and revision.</p>
         <ResourceGapsCard gaps={resourceGaps} />
       </div>
 
       {/* M16 Task 5 — Progress Forecast */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Progress Forecast</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Progress Forecast</h2>
         <p className="text-sm text-slate mb-5">
           Estimated days remaining at your current pace, for chapters and each resource type.
         </p>
@@ -655,7 +655,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* Task 2 (M10) — Weak chapters */}
       <div id="weak-chapters" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Needs attention</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Needs attention</h2>
         <p className="text-sm text-slate mb-5">
           Chapters that are incomplete, haven&apos;t been revised, or still have unsolved PYQs.
         </p>
@@ -678,13 +678,13 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M13 Task 2 — Strength Analysis */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Strength Analysis</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Strength Analysis</h2>
         <StrengthAnalysis analysis={strength} />
       </div>
 
       {/* Task 3 — Today's revision plan */}
       <div id="todays-revision" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Today&apos;s revision plan</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Today&apos;s revision plan</h2>
         <p className="text-sm text-slate mb-5">
           A short list worth revising today, based on due revisions, bookmarks, recent
           activity, and unfinished chapters.
@@ -725,7 +725,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M12 Task 4 — Mastered Library */}
       <div id="mastered-chapters" className="scroll-mt-24 rounded-lg border border-green-200 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Mastered Chapters</h3>
+        <h2 className="font-display text-xl text-navy mb-1">Mastered Chapters</h2>
         <p className="text-sm text-slate mb-5">
           Every resource completed, all 3 revision rounds done.
         </p>
@@ -734,14 +734,14 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* M12 Task 5 — Revision History */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Revision History</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Revision History</h2>
         <RevisionHistory log={activityLog} />
       </div>
 
       {/* Bookmarked Resources */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
         <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
-          <h3 className="font-display text-xl text-navy">Bookmarked Resources</h3>
+          <h2 className="font-display text-xl text-navy">Bookmarked Resources</h2>
           {bookmarks.length > 0 && (
             <Link
               href={bookmarks[0].path}
@@ -794,7 +794,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* Recent Activity */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-4">Recent activity</h3>
+        <h2 className="font-display text-xl text-navy mb-4">Recent activity</h2>
         {recentResources.length > 0 ? (
           <ul className="space-y-2">
             {recentResources.slice(0, 5).map((r) => (
@@ -824,7 +824,7 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
 
       {/* Smart Recommendations */}
       <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Recommended for you</h3>
+        <h2 className="font-display text-xl text-navy mb-5">Recommended for you</h2>
 
         {incompleteChapters.length === 0 &&
         recommendedBookmarks.length === 0 &&
@@ -933,7 +933,7 @@ function WeakGroup({
   if (entries.length === 0) {
     return (
       <div>
-        <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+        <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
         <p className="text-xs text-slate/50">None — nice work.</p>
       </div>
     );
@@ -941,9 +941,9 @@ function WeakGroup({
 
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">
+      <h3 className="font-semibold text-navy text-sm mb-2.5">
         {title} <span className="text-slate/50 font-normal">({entries.length})</span>
-      </h4>
+      </h3>
       <ul className="space-y-2">
         {entries.slice(0, 5).map((e) => (
           <li key={`${e.cls}-${e.slug}`}>
@@ -964,7 +964,7 @@ function WeakGroup({
 function RecommendationGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+      <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
       <ul className="space-y-2">{children}</ul>
     </div>
   );
