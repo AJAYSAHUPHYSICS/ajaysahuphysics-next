@@ -1,42 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
+import { useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
+import { useSession } from "@/lib/auth/use-session";
 import AuthModal from "./AuthModal";
 
+/**
+ * Navbar account control. Signing out never touches the progress saved on
+ * this device (bookmarks, checklist, mistakes, revision, goals, streak).
+ */
 export default function AuthButton({ className = "" }: { className?: string }) {
-  const [session, setSession] = useState<Session | null>(null);
-  // If there's no client at all, there's nothing to check — start already
-  // "checked" rather than setting state synchronously inside an effect.
-  const [checked, setChecked] = useState(() => !supabase);
+  const state = useSession();
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setChecked(true);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
   // Avoids a flash of "Login" before the session check resolves on mount.
-  if (!checked) return null;
+  if (state.status === "loading") return null;
 
-  if (session) {
+  if (state.status === "signed-in") {
     return (
-      <button
-        type="button"
-        onClick={() => supabase?.auth.signOut()}
-        title={session.user.email ?? undefined}
-        className={`text-xs font-semibold text-navy/70 hover:text-navy transition-colors px-2.5 py-1.5 rounded-md border border-navy/15 hover:border-gold ${className}`}
-      >
-        Log out
-      </button>
+      <span className={`inline-flex items-center gap-1.5 ${className}`}>
+        <Link
+          href="/account"
+          title={state.session.user.email ?? undefined}
+          className="text-xs font-semibold text-navy/80 hover:text-navy transition-colors px-2.5 py-1.5 rounded-md border border-navy/15 hover:border-gold focus-visible:outline-2 focus-visible:outline-gold"
+        >
+          Account
+        </Link>
+        <button
+          type="button"
+          onClick={() => supabase?.auth.signOut()}
+          className="text-xs font-semibold text-navy/70 hover:text-navy transition-colors px-2.5 py-1.5 rounded-md border border-navy/15 hover:border-gold focus-visible:outline-2 focus-visible:outline-gold"
+        >
+          Log out
+        </button>
+      </span>
     );
   }
 
