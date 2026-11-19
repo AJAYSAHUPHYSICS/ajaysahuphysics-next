@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { serializeJsonForScript } from "@/lib/jsonld";
-import { buildPolicy, executableInlineScripts, injectCsp, sha256 } from "../../../scripts/inject-csp.mjs";
+import { TURNSTILE_ORIGIN, buildPolicy, executableInlineScripts, injectCsp, sha256 } from "../../../scripts/inject-csp.mjs";
 
 // Security baseline (Phase 2B-1): JSON-LD escaping and the post-build CSP injector.
 
@@ -62,5 +62,27 @@ describe("CSP injector", () => {
       else process.env.NEXT_PUBLIC_SUPABASE_URL = prev;
     }
     expect(buildPolicy([])).toMatch(/connect-src 'self' https:\/\/\*\.supabase\.co /);
+  });
+});
+
+describe("optional CAPTCHA origin", () => {
+  it("allows Cloudflare Turnstile (script + frame) only when a CAPTCHA site key is set", () => {
+    const prev = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    try {
+      delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+      expect(buildPolicy([])).not.toContain(TURNSTILE_ORIGIN);
+      expect(buildPolicy([])).toContain("frame-src 'none'");
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "not a key";
+      expect(buildPolicy([])).not.toContain(TURNSTILE_ORIGIN);
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+      const directives = Object.fromEntries(buildPolicy(["abc"]).split("; ").map((d) => [d.split(" ")[0], d.split(" ").slice(1)]));
+      expect(directives["frame-src"]).toEqual([TURNSTILE_ORIGIN]);
+      expect(directives["script-src"]).toContain(TURNSTILE_ORIGIN);
+      expect(directives["script-src"].join(" ")).not.toMatch(/unsafe/);
+      expect(directives["object-src"]).toEqual(["'none'"]);
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+      else process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = prev;
+    }
   });
 });

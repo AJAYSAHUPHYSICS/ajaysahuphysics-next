@@ -38,17 +38,25 @@ function supabaseOrigin() {
 }
 
 const GOOGLE_TAG = "https://*.googletagmanager.com";
+
+/**
+ * Cloudflare Turnstile (optional CAPTCHA, src/lib/auth/captcha.ts). Allowed
+ * only when a site key is set for the build; otherwise frame-src stays 'none'.
+ */
+export const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
+export const captchaEnabled = () => /^[0-9A-Za-z_-]{10,100}$/.test((process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "").trim());
 const GOOGLE_ANALYTICS = ["https://*.google-analytics.com", "https://*.analytics.google.com"];
 
 export function buildPolicy(scriptHashes) {
+  const captcha = captchaEnabled() ? [TURNSTILE_ORIGIN] : [];
   const directives = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", ...scriptHashes.map((h) => `'sha256-${h}'`), GOOGLE_TAG],
+    "script-src": ["'self'", ...scriptHashes.map((h) => `'sha256-${h}'`), GOOGLE_TAG, ...captcha],
     "style-src": ["'self'", "'unsafe-inline'"],
     "img-src": ["'self'", "data:", GOOGLE_TAG, ...GOOGLE_ANALYTICS],
     "font-src": ["'self'"],
     "connect-src": ["'self'", supabaseOrigin(), GOOGLE_TAG, ...GOOGLE_ANALYTICS],
-    "frame-src": ["'none'"],
+    "frame-src": captcha.length ? captcha : ["'none'"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],

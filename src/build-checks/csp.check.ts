@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { executableInlineScripts, sha256 } from "../../scripts/inject-csp.mjs";
+import { TURNSTILE_ORIGIN, captchaEnabled, executableInlineScripts, sha256 } from "../../scripts/inject-csp.mjs";
 
 // ─────────────────────────────────────────────────────────────────
 // Post-build check: every exported page carries a strict Content Security
@@ -58,7 +58,8 @@ describe("static export: Content Security Policy", () => {
       const p = policyOf(readFileSync(f, "utf8"))!;
       expect(p["object-src"]).toEqual(["'none'"]);
       expect(p["base-uri"]).toEqual(["'self'"]);
-      expect(p["frame-src"]).toEqual(["'none'"]);
+      // Framing is off, except Cloudflare's CAPTCHA frame when a Turnstile site key was set for the build.
+      expect(p["frame-src"]).toEqual(captchaEnabled() ? [TURNSTILE_ORIGIN] : ["'none'"]);
       expect(p["form-action"]).toEqual(["'self'"]);
       expect(p["default-src"]).toEqual(["'self'"]);
       expect(p).toHaveProperty("upgrade-insecure-requests");
