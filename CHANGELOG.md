@@ -6,6 +6,38 @@ merged or deployed. Merging to `main` deploys to production.
 
 ## [Unreleased]
 
+### Phase 2A completion (`phase-2a-content-foundation`; local commits, not pushed)
+
+No routes, page output, sitemap entries, localStorage keys or data formats changed. Every publication switch is still off.
+
+#### Changed
+- **Stricter publication rules for rebuilt chapter packages** (`src/lib/content-v2/chapter-package.ts`):
+  - licence evidence must confirm that commercial use is permitted;
+  - real http(s) source URLs;
+  - dated, case-insensitively independent approvals;
+  - a reviewed difficulty on questions and examples;
+  - site-served diagrams only, with unique IDs;
+  - no empty text blocks;
+  - complete PYQ verification and rights records;
+  - an AI-assistance declaration on every block;
+  - unique part titles.
+- `publicationReadiness(pkg)` lists every remaining publication blocker for a draft without changing it.
+
+#### Added
+- **Student-data compatibility tests** (`student-data-compat.test.ts`):
+  - the exact set of 11 `atlas:*` keys and the module that owns each;
+  - content-policy and rebuilt-content code never touches storage;
+  - reading progress keeps its stored format;
+  - saved mistakes for withheld chapters are returned unchanged.
+- **Opt-in private-draft check** (`private-packages.test.ts`, skipped unless `ATLAS_PRIVATE_PACKAGES_DIR` is set):
+  - validates draft packages kept outside the repository;
+  - refuses an in-repository folder, unknown routes, two packages for one route, and drafts claiming "published";
+  - prints publication blockers without draft text.
+
+### Phase 2A: content withholding (PR #4, merged and deployed 2026-11-19)
+
+All legacy learning resources are withheld pending provenance review, behind one central policy (`src/lib/content-policy/publication.ts`; every switch off). All 202 chapter resource routes still exist and show a rebuilding notice (`noindex`, removed from the sitemap). The 27 legacy notes PDFs were removed from `public/`. Post-build checks (`npm run test:build-output`, run in CI) fail if withheld text, a PDF or draft material reaches the static export. Student progress is preserved: keys and formats are unchanged, and PYQ mistake IDs keep each question's original position. The live site was verified after deployment.
+
 ### Phase 1B: quick fixes (`phase-1b-fixes`; prepared, awaiting commits, push, CI and PR)
 
 No URLs, page titles, canonicals, sitemap entries, localStorage keys or data formats changed (verified by `verify-build.mjs` against the unchanged baseline).
