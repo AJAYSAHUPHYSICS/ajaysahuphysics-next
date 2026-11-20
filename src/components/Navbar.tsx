@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { primaryNav, examNav, classNav } from "@/lib/site-config";
 import GlobalSearch from "./GlobalSearch";
 import ReadingProgressBar from "./ReadingProgressBar";
@@ -11,8 +11,22 @@ import AuthButton from "./AuthButton";
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+
+  // Escape closes the mobile menu and returns focus to its button
+  // (ignored while a dialog such as the login window is open).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || document.querySelector("[role=dialog]")) return;
+      setOpen(false);
+      menuButton.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -97,6 +111,8 @@ export default function Navbar() {
                 type="button"
                 aria-label={open ? "Close menu" : "Open menu"}
                 aria-expanded={open}
+                aria-controls="mobile-menu"
+                ref={menuButton}
                 onClick={() => setOpen((v) => !v)}
                 className="2xl:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-navy hover:bg-navy/5 focus-visible:outline-2 focus-visible:outline-gold"
               >
@@ -121,7 +137,7 @@ export default function Navbar() {
         </div>
 
         {open && (
-          <div className="2xl:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div id="mobile-menu" className="2xl:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-4 sm:px-6 py-3 flex flex-col gap-1">
               <div className="sm:hidden pb-2 mb-1 border-b border-navy/10">
                 <AuthButton className="w-full flex items-center justify-center" />
