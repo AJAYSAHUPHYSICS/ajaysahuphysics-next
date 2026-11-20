@@ -118,3 +118,24 @@ describe("DPP sets", () => {
     expect(validateQuestionBank(bank({ originals: [original(), original()] })).join()).toMatch(/duplicate id/);
   });
 });
+
+describe("duplicate question text", () => {
+  const second = (question: string, over: Partial<OriginalQuestion> = {}) => original({ id: "q-c11-units-0002", question, ...over });
+
+  it("rejects two live originals with the same text, ignoring case and spacing", () => {
+    expect(validateQuestionBank(bank({ originals: [original(), second("  placeholder   QUESTION? ")] })).join()).toMatch(/q-c11-units-0002: same question text as q-c11-units-0001/);
+  });
+
+  it("allows a retired original to share text with its replacement", () => {
+    expect(validateQuestionBank(bank({ originals: [original(), second("Placeholder question?", { status: "retired" })] }))).toEqual([]);
+  });
+
+  it("rejects an original that reuses a PYQ's text", () => {
+    expect(validateQuestionBank(bank({ originals: [original({ question: "Placeholder" })] })).join()).toMatch(/must not reuse the text of PYQ pyq-neet-2024-x1-q12/);
+  });
+
+  it("allows the same question in two genuine papers (exams repeat questions)", () => {
+    const repeat = pyq({ id: "pyq-neet-2025-x1-q3", year: 2025, officialQuestionNumber: 3 });
+    expect(validateQuestionBank(bank({ pyqs: [pyq(), repeat] }))).toEqual([]);
+  });
+});
