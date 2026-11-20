@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase-client";
 import { useSession } from "@/lib/auth/use-session";
-import AuthModal from "./AuthModal";
+import { loadSupabase } from "@/lib/supabase-loader";
+
+// The dialog (and the Supabase client it imports) loads only when opened,
+// so signed-out visitors don't download either on every page.
+const AuthModal = dynamic(() => import("./AuthModal"), { ssr: false });
 
 /**
  * Navbar account control. Signing out never touches the progress saved on
@@ -29,7 +33,7 @@ export default function AuthButton({ className = "" }: { className?: string }) {
         </Link>
         <button
           type="button"
-          onClick={() => supabase?.auth.signOut()}
+          onClick={() => loadSupabase().then((sb) => sb?.auth.signOut())}
           className="text-xs font-semibold text-navy/70 hover:text-navy transition-colors px-2.5 py-1.5 rounded-md border border-navy/15 hover:border-gold focus-visible:outline-2 focus-visible:outline-gold"
         >
           Log out

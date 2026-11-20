@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { SUPABASE_READY_EVENT } from "./supabase-loader";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -22,3 +23,7 @@ export const supabase: SupabaseClient | null =
         auth: { flowType: "pkce", detectSessionInUrl: false, persistSession: true, autoRefreshToken: true },
       })
     : null;
+
+// Tells already-mounted session hooks (useSession) that the client exists now,
+// e.g. after the login dialog loaded it on a page that started signed out.
+if (supabase && typeof window !== "undefined") window.dispatchEvent(new Event(SUPABASE_READY_EVENT));
