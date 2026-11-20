@@ -66,10 +66,12 @@ describe("consent gate (enforced in the database)", () => {
     await as("authenticated", A);
     await db.query("insert into public.profiles (class_level) values (11)");
     expect(await fails(insertBookmark, bookmark("11:kinematics:chapter"))).toMatch(/row-level security/);
-    expect(await fails("update public.profiles set sync_enabled = true where user_id = $1", [A])).toMatch(/only change through their functions/);
+    // Column privileges refuse protected columns outright (the trigger is a second layer).
+    expect(await fails("update public.profiles set sync_enabled = true where user_id = $1", [A])).toMatch(/permission denied/);
     // Even an INSERT can't smuggle sync_enabled = true.
     await as("authenticated", B);
-    await db.query("insert into public.profiles (class_level, sync_enabled) values (12, true)");
+    expect(await fails("insert into public.profiles (class_level, sync_enabled) values (12, true)")).toMatch(/permission denied/);
+    await db.query("insert into public.profiles (class_level) values (12)");
     expect((await rows<{ sync_enabled: boolean }>("select sync_enabled from public.profiles"))[0].sync_enabled).toBe(false);
   });
 
@@ -108,9 +110,18 @@ describe("consent gate (enforced in the database)", () => {
     await db.query("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', true, 'parent-verified')", [B]);
     await as("authenticated", B);
     expect(await enable()).toBe("enabled");
-    // Restore: minors switch back off for the rest of the suite.
+    expect(await fails("insert into public.goals (goal_type, activated_at) values ('minor-allowed', now())")).toBe("");
+    // Minors switch back off: B's writes stop at once, although B already enabled sync.
     await as("service_role");
     await db.query("update public.app_config set value = 'false' where key = 'minor_sync_permitted'");
+    await as("authenticated", B);
+    expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed).toBe(false);
+    expect(await fails("insert into public.goals (goal_type, activated_at) values ('minor-blocked', now())")).toMatch(/row-level security/);
+    // For the rest of the suite B is an adult (the adult switch is on).
+    await db.query("update public.profiles set age_band = '18-plus'");
+    // Tidy up as the owner (students can't delete rows).
+    await as("postgres");
+    await db.query("delete from public.goals where user_id = $1", [B]);
   });
 
   it("declaring under-18 switches an adult's sync off immediately", async () => {
