@@ -25,8 +25,14 @@ const server = http.createServer((req, res) => {
 }).listen(8769);
 const BASE = "http://localhost:8769";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const chrome = spawn(process.env.CHROME_PATH ?? ({ win32: "C:/Program Files/Google/Chrome/Application/chrome.exe", darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" }[process.platform] ?? "google-chrome"), ["--headless=new", "--disable-gpu", "--no-first-run", `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), "atlas-kb-"))}`, "--remote-debugging-port=9338", "about:blank"], { stdio: "ignore" });
-await sleep(1500);
+// CI runners (recent Ubuntu) restrict the unprivileged user namespaces Chrome's
+// sandbox needs, so Chrome exits at start. These scripts load only the local
+// static build, so the sandbox is turned off in CI only.
+const CI_FLAGS = process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
+let chromeErr = "";
+const chrome = spawn(process.env.CHROME_PATH ?? ({ win32: "C:/Program Files/Google/Chrome/Application/chrome.exe", darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" }[process.platform] ?? "google-chrome"), ["--headless=new", "--disable-gpu", "--no-first-run", ...CI_FLAGS, `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), "atlas-kb-"))}`, "--remote-debugging-port=9338", "about:blank"], { stdio: ["ignore", "ignore", "pipe"] });
+chrome.stderr.on("data", (d) => (chromeErr += d));
+for (let i = 0; i < 120; i++) { try { await (await fetch("http://127.0.0.1:9338/json/version")).json(); break; } catch { if (i === 119) { console.error("Chrome did not start: " + chromeErr.slice(-800)); process.exit(1); } await sleep(250); } }
 const t = (await (await fetch("http://127.0.0.1:9338/json/list")).json()).find((x) => x.type === "page");
 const ws = new WebSocket(t.webSocketDebuggerUrl);
 await new Promise((r) => (ws.onopen = r));
