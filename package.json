@@ -14,6 +14,7 @@
     "test:build-output": "vitest run --config vitest.build.config.ts",
     "staging:check": "node scripts/staging/staging-env.mjs check",
     "test:staging": "node scripts/staging/staging-env.mjs run",
+    "test:staging:browser": "node scripts/staging/staging-env.mjs check && node scripts/staging/browser-journey.mjs",
     "og:fonts": "node scripts/fetch-og-fonts.mjs",
     "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs"
   },

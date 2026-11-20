@@ -112,6 +112,30 @@ npm run test:staging
 - It deletes every account it creates.
 - Evidence goes to `staging-evidence/<run>.json` (git-ignored), with keys and tokens redacted.
 
+### 8. Browser journey against staging
+With `npm run dev` running (staging values in `.env.development.local`, step 6):
+```
+npm run test:staging:browser
+```
+It creates one synthetic account (admin API, no email) and drives the real UI in headless Chrome:
+- the wrong-password message, login, and the session restored on reload;
+- the account page, account export, and sync shown as unavailable;
+- logout keeping device progress;
+- deleting the account from the UI: the server user is gone and device progress is kept;
+- the account page at phone width.
+
+The account is removed at the end, even after a failure.
+
+### Staging verification record
+| Date | Item | Result |
+|---|---|---|
+| 2026-11-21 | Migrations `20261120000000`, `20261121000000` applied to `wtuifivaxnhdnfwjsayk` (after dry runs) | Applied; history matches local |
+| 2026-11-21 | Catalog check (read-only `db query`) | 11 tables with RLS, owned by `postgres`; 11 functions with `search_path=""`; grants as designed (students: 5 functions; profiles 4 columns; service_role read-only plus app_config value and consents insert) |
+| 2026-11-21 | `db advisors` | No errors. 5 WARN `authenticated_security_definer_function_executable` (intentional entry points, each scoped to `auth.uid()`); INFO only otherwise |
+| 2026-11-21 | `npm run test:staging` | 23/23 passed |
+| 2026-11-21 | `npm run test:staging:browser` | 15/15 passed; 0 console errors; 0 failed requests |
+| 2026-11-21 | End state | 0 users and 0 student rows; switches `false` |
+
 ### Manual staging checks (needs a real inbox)
 Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:
 1. Sign up: the confirmation email arrives; its link opens `/auth/callback/`, signs you in, and the code disappears from the address bar.
