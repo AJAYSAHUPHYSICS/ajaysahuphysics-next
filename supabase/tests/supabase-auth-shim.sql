@@ -18,6 +18,10 @@ $$;
 
 grant usage on schema public, auth to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
--- The service role can do everything (as on Supabase).
-alter default privileges in schema public grant all on tables to service_role;
-alter default privileges in schema public grant all on sequences to service_role;
+-- Default privileges as OBSERVED on a current Supabase project (staging,
+-- 2026-11-21, pg_default_acl for role postgres in schema public): new tables
+-- give anon, authenticated and service_role only TRUNCATE, REFERENCES and
+-- TRIGGER (plus MAINTAIN), with no SELECT/INSERT/UPDATE/DELETE. An earlier
+-- version of this shim granted service_role everything, which hid a
+-- missing-grant defect that only real Supabase revealed.
+alter default privileges in schema public grant truncate, references, trigger on tables to anon, authenticated, service_role;

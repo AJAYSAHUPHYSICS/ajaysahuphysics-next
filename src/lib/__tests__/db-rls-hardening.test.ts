@@ -201,6 +201,27 @@ describe("M-3: no sync during a pending deletion, even with a re-created profile
   });
 });
 
+describe("server role (service_role): least privilege (migration 20261121000000)", () => {
+  const TABLES = ["app_config", "profiles", "consents", "bookmarks", "checklist_items", "revision_rounds", "mistakes", "goals", "streaks", "deletion_requests", "deletion_log"];
+  it("can read every Atlas table, but can't update, delete or truncate student data directly", async () => {
+    await as("postgres");
+    for (const t of TABLES) {
+      const priv = async (p: string) => one<boolean>(`select has_table_privilege('service_role', 'public.${t}', '${p}')`);
+      expect(await priv("select"), `${t} select`).toBe(true);
+      expect(await priv("delete"), `${t} delete`).toBe(false);
+      expect(await priv("truncate"), `${t} truncate`).toBe(false);
+      if (t !== "app_config") expect(await priv("update"), `${t} update`).toBe(false);
+      if (t !== "consents") expect(await priv("insert"), `${t} insert`).toBe(false);
+    }
+    await as("service_role");
+    expect(await fails("delete from public.goals")).toMatch(/permission denied/);
+    expect(await fails("update public.mistakes set note = 'x'")).toMatch(/permission denied/);
+    expect(await fails("truncate public.bookmarks")).toMatch(/permission denied/);
+    expect(await fails("update public.app_config set key = 'consent_version' where key = 'adult_sync_permitted'")).toMatch(/permission denied/); // only the value column
+    expect(await fails("select count(*) from public.deletion_requests")).toBe("");
+  });
+});
+
 describe("L-2, L-3, L-5", () => {
   it("L-2: consent history is capped per student", async () => {
     await as("authenticated", S);
