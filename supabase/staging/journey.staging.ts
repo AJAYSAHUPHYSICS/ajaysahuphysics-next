@@ -245,8 +245,50 @@ describe("server-side validation and limits", () => {
     const rows = Array.from({ length: 50 }, (_, i) => ({ goal_type: `cap-test-${i}`, activated_at: new Date().toISOString() }));
     expect((await B.client.from("goals").insert(rows)).error).toBeNull();
     expect((await B.client.from("goals").insert({ goal_type: "cap-test-50", activated_at: new Date().toISOString() })).error).toBeTruthy();
-    await admin.from("goals").delete().eq("user_id", B.id).like("goal_type", "cap-test-%");
-    record("row cap", true);
+    // At the limit, re-uploading (upserting) existing rows and tombstoning still work (audit M-1).
+    const again = rows.map((r, i) => ({ ...r, deleted_at: i === 0 ? new Date().toISOString() : null }));
+    const up = await B.client.from("goals").upsert(again, { onConflict: "user_id,goal_type" });
+    expect(up.error).toBeNull();
+    expect(await count("goals", B.id)).toBe(50);
+    // The server key can't delete student rows directly (least privilege); purge_user_data removes them at the end.
+    const del = await admin.from("goals").delete().eq("user_id", B.id).like("goal_type", "cap-test-%");
+    expect(del.error).toBeTruthy();
+    record("row cap + upsert at limit", true, { serverDeleteRefused: del.error?.code });
+  });
+});
+
+describe("live gate (audit H-1): checked on every write", () => {
+  // A third synthetic student, so A's and B's sync expectations stay exact.
+  let C: Student;
+  const goal = (g: string) => C.client.from("goals").insert({ goal_type: g, activated_at: new Date().toISOString() });
+  beforeAll(async () => {
+    C = await makeStudent("c");
+    await optIn(C);
+    expect((await C.client.rpc("enable_sync")).data).toBe("enabled");
+  });
+
+  it("the owner's kill switch stops an already-enabled student at once", async () => {
+    expect((await goal("before-kill")).error).toBeNull();
+    expect((await admin.from("app_config").update({ value: "false" }).eq("key", "adult_sync_permitted")).error).toBeNull();
+    expect((await goal("during-kill")).error).toBeTruthy();
+    expect((await admin.from("app_config").update({ value: "true" }).eq("key", "adult_sync_permitted")).error).toBeNull();
+    expect((await goal("after-kill")).error).toBeNull();
+    record("kill switch", true);
+  });
+
+  it("withdrawing cloud-sync consent blocks writes until consent is given again", async () => {
+    expect((await C.client.from("consents").insert({ kind: "cloud-sync", version: consentVersion, granted: false })).error).toBeNull();
+    expect((await goal("after-withdrawal")).error).toBeTruthy();
+    expect((await C.client.from("consents").insert({ kind: "cloud-sync", version: consentVersion, granted: true })).error).toBeNull();
+    expect((await goal("after-regrant")).error).toBeNull();
+    record("consent withdrawal", true);
+  });
+
+  it("protected profile columns can't be written by the student", async () => {
+    for (const patch of [{ sync_enabled: false }, { deletion_requested_at: new Date().toISOString() }, { created_at: new Date().toISOString() }]) {
+      expect((await C.client.from("profiles").update(patch).eq("user_id", C.id)).error, JSON.stringify(patch)).toBeTruthy();
+    }
+    record("protected profile columns", true);
   });
 });
 
