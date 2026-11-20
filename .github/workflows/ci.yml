@@ -63,3 +63,14 @@ jobs:
       # and no PDF in the export. See src/build-checks/.
       - name: Check build output for withheld legacy content
         run: npm run test:build-output
+
+      # Browser end-to-end checks against the build above, in the runner's
+      # preinstalled Google Chrome (no new dependency):
+      #   - study tools with existing storage formats;
+      #   - accessibility basics on study and public pages; phone overflow;
+      #   - keyboard: skip link, visible focus, login dialog, mobile menu.
+      # Uses only synthetic local data; no network services or secrets.
+      - name: End-to-end and keyboard checks (headless Chrome)
+        run: npm run test:e2e
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
