@@ -30,7 +30,7 @@ import type { Storage } from "@/lib/sync/adapters";
 import { readMeta, syncOnce, type RemoteStore } from "@/lib/sync/engine";
 import { LOCAL_ONLY_KEYS } from "@/lib/sync/policy";
 import { supabaseRemote } from "@/lib/sync/supabase-remote";
-import { redact, stagingTarget } from "./guard";
+import { redact, stagingTarget } from "./guard.mjs";
 
 const T = stagingTarget(process.env);
 const RUN = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14) + "-" + randomBytes(2).toString("hex");

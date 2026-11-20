@@ -46,3 +46,7 @@ next-env.d.ts
 
 # staging verification evidence (synthetic accounts; kept local)
 /staging-evidence/
+
+# Supabase CLI local state (project link, branches); never commit
+/supabase/.temp/
+/supabase/.branches/

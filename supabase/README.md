@@ -22,40 +22,76 @@
 - the under-18 rules hold;
 - limits, constraints, export, an idempotent deletion request, and a retry-safe purge.
 
-## Applying to staging (owner action, with the Supabase CLI)
+## Staging setup (owner actions, in order)
+The staging project is **`ajaysahuphysics-staging`** (Tokyo, `ap-northeast-1`, Free plan).
+- **Synthetic data only.** Tokyo is fine for staging. The **production** region is a legal question (L-11).
+- **Free-plan projects pause after a period of inactivity.** Restore the project from the dashboard if the suite can't connect.
+
+All CLI commands use the pinned CLI `npx supabase@2.122.1` (2.x line; the deploy flags below are verified against it). **Never run any of them against the production project.**
+
+### 1. Local secrets file (no network)
+1. Copy `supabase/staging/staging.env.example` to **`.env.staging.local`** in the repository root.
+   - It is git-ignored (`.env*`), and Next.js never loads it.
+2. In your editor, fill it from the **staging** dashboard (Project Settings → API Keys).
+   - The **publishable** key (`sb_publishable_…`) goes in `STAGING_SUPABASE_PUBLISHABLE_KEY`; the **secret** key (`sb_secret_…`) goes in `STAGING_SUPABASE_SECRET_KEY`.
+   - Legacy `anon` / `service_role` keys are also accepted, but Supabase is deprecating them by the end of 2026.
+3. Never paste keys into a chat, an issue, a PR, a commit or a GitHub secret.
+
+### 2. Check the setup (no network)
 ```
-supabase link --project-ref <STAGING_REF>
-supabase db push                 # applies migrations/ to STAGING
-supabase functions deploy delete-account
-supabase secrets set ATLAS_DELETION_SWEEP_SECRET=<random 32+ chars>
+npm run staging:check
+```
+It prints the target ref and the key **kinds**, never the values. It refuses when any of these is wrong:
+- the file isn't ignored, or it is tracked;
+- the target is production or unconfirmed;
+- the keys are swapped or of the wrong kind;
+- a legacy key belongs to another project;
+- any env file Next.js loads (`.env`, `.env.local`, `.env.development*`, `.env.production*`) contains a secret key.
+
+### 3. Link the CLI to staging (read-only so far)
+```
+npx supabase@2.122.1 login                                  # browser sign-in; the token stays in your user profile, not the repo
+npx supabase@2.122.1 link --project-ref <staging-ref>       # asks for the STAGING database password; writes supabase/.temp/ (git-ignored)
+npx supabase@2.122.1 db push --dry-run                      # lists the migration it WOULD apply; applies nothing
+```
+If the CLI asks for a `config.toml`, run `npx supabase@2.122.1 init` once and choose **no** to the IDE prompts. Review the generated `supabase/config.toml` before committing it.
+
+### 4. Apply the migration (needs the owner's go-ahead)
+```
+npx supabase@2.122.1 db push                                # applies supabase/migrations/ to the LINKED STAGING project
 ```
 
-Then, in the staging dashboard:
-- **Auth → URL configuration:** add `https://<staging site>/auth/callback/` and `/auth/reset-password/` to the redirect allow-list.
+### 5. Deploy the deletion function (staging)
+```
+npx supabase@2.122.1 functions deploy delete-account --project-ref <staging-ref> --no-verify-jwt --use-api
+npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_DELETION_SWEEP_SECRET=<random 32+ characters>
+npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_ALLOWED_ORIGINS=http://localhost:3000
+```
+- **`--no-verify-jwt`:** the platform's gateway check only understands legacy JWT keys, and it would block the sweep. The function verifies every user request itself with the Auth server, and checks the sweep secret in constant time.
+- **`--use-api`:** builds the function on Supabase's side, so no Docker is needed.
+- **Server key:** the function uses the project's secret key (`SUPABASE_SECRET_KEYS`), with the legacy service-role key as a fallback. Both are injected by Supabase; no key is set by hand.
+- **`ATLAS_ALLOWED_ORIGINS`:** staging only, so the account page on `npm run dev` can call the function. Production allows only `https://ajaysahuphysics.com`.
+
+### 6. Staging Auth settings (dashboard)
+- **Auth → URL configuration:**
+  - site URL `http://localhost:3000`;
+  - redirect URLs `http://localhost:3000/auth/callback/` and `http://localhost:3000/auth/reset-password/`.
 - **Email confirmations:** on.
 - **Minimum password length:** 10.
-- **Scheduled sweep:** schedule `POST /functions/v1/delete-account?sweep=1` with the `x-atlas-sweep-secret` header, daily.
-- **CAPTCHA (optional, Cloudflare Turnstile):** do these **in this order**, because turning on bot protection before the site sends tokens blocks every sign-in:
-  1. Create a Turnstile widget for the site's domain (Cloudflare dashboard) to get a public site key and a secret.
-  2. Build the site with `NEXT_PUBLIC_TURNSTILE_SITE_KEY=<site key>`. The modal then shows the check, and the CSP step allows `https://challenges.cloudflare.com` (script and frame).
-  3. **Auth → Bot and abuse protection:** enable CAPTCHA, choose Turnstile, paste the **secret** (it lives only in Supabase, never in this repo).
-  Without a site key the build is unchanged: no widget, no third-party script.
+- **For browser checks:** create `.env.development.local` (git-ignored; loaded by `npm run dev` only, never by `npm run build`) with:
+  ```
+  NEXT_PUBLIC_SUPABASE_URL=https://<staging-ref>.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_…            # the PUBLISHABLE key; never the secret key
+  ```
+  Then run `npm run staging:check`; it refuses if a secret key ever lands in such a file.
+- **Scheduled sweep (optional for staging):** a daily `POST /functions/v1/delete-account?sweep=1` with the `x-atlas-sweep-secret` header.
+- **CAPTCHA (optional):** enable Turnstile with Cloudflare's **test** secret `1x0000000000000000000000000000000AA`, and set `STAGING_TURNSTILE_TEST_TOKEN=XXXX.DUMMY.TOKEN.XXXX` in `.env.staging.local`.
+  - For production the order matters: put the site key in the build first, then turn on bot protection in Supabase, otherwise every sign-in is blocked.
 
-## Creating the staging project (owner, once)
-1. In the Supabase dashboard, create a **new** project named `ajaysahuphysics-staging`.
-   - **Region:** South Asia (Mumbai), if your plan offers it. The production region choice is a legal question (L-11).
-   - Use a new database password, kept in your password manager.
-   - **Never** reuse or copy the production project.
-2. **Project Settings → API:** note the project URL (`https://<staging-ref>.supabase.co`), the **anon/publishable** key and the **service-role/secret** key.
-   - Keep the service-role key only in your local shell or a password manager: never in a file in this repo, a PR, a chat or CI.
-3. Apply the migration and deploy the function with the commands under "Applying to staging" above.
-4. **Auth → URL configuration (staging):**
-   - site URL `http://localhost:3000`;
-   - redirect URLs `http://localhost:3000/auth/callback/` and `http://localhost:3000/auth/reset-password/`;
-   - minimum password length 10, and email confirmations on.
-5. **Optional, staging CAPTCHA:** enable Turnstile with Cloudflare's **test** secret `1x0000000000000000000000000000000AA` (always passes), then set `STAGING_TURNSTILE_TEST_TOKEN=XXXX.DUMMY.TOKEN.XXXX` for the suite.
-
-## Staging verification suite (`npm run test:staging`)
+### 7. Run the staging suite
+```
+npm run test:staging
+```
 `supabase/staging/journey.staging.ts` runs the student journey against the **staging** project with two **synthetic** accounts. It is never part of `npm test` or CI.
 
 **What it covers:**
@@ -70,25 +106,14 @@ Then, in the staging dashboard:
 - the sweep secret;
 - the other account staying unaffected.
 
-```
-# in a local shell only (values never committed or pasted anywhere)
-export STAGING_SUPABASE_URL=https://<staging-ref>.supabase.co
-export STAGING_CONFIRM_REF=<staging-ref>          # repeat the ref to confirm the target
-export STAGING_SUPABASE_ANON_KEY=<staging anon key>
-export STAGING_SUPABASE_SERVICE_ROLE_KEY=<staging service-role key>
-export STAGING_SWEEP_SECRET=<staging sweep secret>          # optional
-export STAGING_TURNSTILE_TEST_TOKEN=XXXX.DUMMY.TOKEN.XXXX   # only if staging CAPTCHA uses the test secret
-npm run test:staging
-```
-
 **Safety:**
-- `supabase/staging/guard.ts` refuses the production project and any target that isn't explicitly confirmed.
+- `supabase/staging/guard.mjs` refuses the production project, unconfirmed targets, and swapped or foreign keys.
 - For the run, the suite sets `adult_sync_permitted='true'` **in staging only**, and restores the previous value at the end.
 - It deletes every account it creates.
 - Evidence goes to `staging-evidence/<run>.json` (git-ignored), with keys and tokens redacted.
 
 ### Manual staging checks (needs a real inbox)
-Use a test inbox you control, on `npm run dev`, with `.env.local` holding **staging** values only. Do these with that inbox:
+Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:
 1. Sign up: the confirmation email arrives; its link opens `/auth/callback/`, signs you in, and the code disappears from the address bar.
 2. Open the same link again: you see the "link can't be used" message, not an error page.
 3. Open the link in another browser: you see the "open it in the browser where you signed up" message.

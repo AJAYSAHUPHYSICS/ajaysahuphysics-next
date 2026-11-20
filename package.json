@@ -12,7 +12,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:build-output": "vitest run --config vitest.build.config.ts",
-    "test:staging": "vitest run --config vitest.staging.config.ts",
+    "staging:check": "node scripts/staging/staging-env.mjs check",
+    "test:staging": "node scripts/staging/staging-env.mjs run",
     "og:fonts": "node scripts/fetch-og-fonts.mjs",
     "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs"
   },
