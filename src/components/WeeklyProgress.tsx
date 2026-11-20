@@ -19,7 +19,7 @@ export default function WeeklyProgress({ events }: { events: ActivityEvent[] }) 
         title="No activity in the last 7 days"
         description="Study activity from the past week — resources completed, revisions, chapters visited — will show up here."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

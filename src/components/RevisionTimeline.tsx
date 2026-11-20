@@ -69,7 +69,7 @@ export default function RevisionTimeline({
         title="Your revision timeline is empty"
         description="Complete a chapter's resources and mark a revision round — this timeline will group your chapters by when they're next due."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

@@ -18,7 +18,7 @@ export default function ReattemptListCard({ items }: { items: Mistake[] }) {
         title="Nothing to practice again"
         description="Every logged mistake is resolved right now. New mistakes you log will show up here, oldest and hardest first."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

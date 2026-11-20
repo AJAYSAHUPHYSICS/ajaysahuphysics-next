@@ -11,7 +11,7 @@ export default function StrengthAnalysis({ analysis }: { analysis: StrengthAnaly
         title="Not enough data yet"
         description="Start a chapter's resources and this will rank your strongest and weakest chapters by completion."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
