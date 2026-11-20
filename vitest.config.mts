@@ -15,5 +15,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // Some suites do real work (PGlite Postgres, whole-tree scans, child
+    // processes in throwaway git repos). Under a parallel run the 5 s
+    // default produced occasional timeouts, so tests get 20 s; no assertion
+    // depends on speed.
+    testTimeout: 20_000,
   },
 });
