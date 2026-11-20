@@ -74,3 +74,6 @@ jobs:
         run: npm run test:e2e
         env:
           CHROME_PATH: /usr/bin/google-chrome
+          # The scripts use Node's built-in WebSocket client, which Node 20
+          # (the CI version) still keeps behind this flag; Node 22+ has it on.
+          NODE_OPTIONS: --experimental-websocket
