@@ -131,7 +131,7 @@ check("calendar has 28 days", (await ev("document.querySelectorAll('ol[aria-labe
 
 // Accessibility basics on the study pages and the main public pages (scripts/e2e/a11y-audit.mjs).
 await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
-for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/", "/", "/class-11/", "/class-12/", "/class-11/kinematics/", "/notes/", "/dpp/", "/formula-sheet/", "/pyq/", "/about/", "/contact/"]) {
+for (const p of ["/dashboard/", "/dashboard/progress/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/", "/", "/class-11/", "/class-12/", "/class-11/kinematics/", "/notes/", "/dpp/", "/formula-sheet/", "/pyq/", "/about/", "/contact/"]) {
   await go(p);
   const problems = (await ev(A11Y_AUDIT)) ?? [{ rule: "audit", detail: "did not run" }];
   check(`accessibility basics ${p}`, problems.length === 0, problems.slice(0, 12).map((x) => x.rule + ": " + x.detail).join(" | ") + (problems.length > 12 ? ` (+${problems.length - 12} more)` : ""));
@@ -140,7 +140,7 @@ for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/",
 // Responsive: no horizontal scroll at phone / tablet / desktop widths.
 for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800], [1366, 768], [1536, 864]]) {
   await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: w < 600 });
-  for (const p of ["/dashboard/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/"]) {
+  for (const p of ["/dashboard/", "/dashboard/progress/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/"]) {
     await go(p);
     const over = await ev("document.documentElement.scrollWidth - document.documentElement.clientWidth");
     const widest = over > 1 ? await ev(`(() => { let w = null, max = 0; for (const el of document.querySelectorAll("body *")) { const r = el.getBoundingClientRect(); if (r.right > max) { max = r.right; w = el.tagName + "." + String(el.className).slice(0, 60); } } return w + " right=" + Math.round(max); })()`) : "";

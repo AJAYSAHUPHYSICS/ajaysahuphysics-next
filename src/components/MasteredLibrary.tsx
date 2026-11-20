@@ -37,7 +37,7 @@ export default function MasteredLibrary({
         title="No mastered chapters yet"
         description="A chapter is Mastered once every resource (Notes, Formula Sheet, DPP, PYQ) and all 3 revision rounds are complete. Keep going!"
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
