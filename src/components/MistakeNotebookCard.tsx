@@ -18,7 +18,7 @@ export default function MistakeNotebookCard({ mistakes }: { mistakes: Mistake[] 
         title="No mistakes logged yet"
         description="Got a DPP or PYQ question wrong? Add it to your Mistake Notebook from the answer reveal — this is where you'll track and revisit them."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

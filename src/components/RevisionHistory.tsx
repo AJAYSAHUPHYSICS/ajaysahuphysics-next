@@ -18,7 +18,7 @@ export default function RevisionHistory({ log }: { log: ActivityEvent[] }) {
         title="No revision history yet"
         description="Mark a revision round complete on any chapter and it'll show up here, grouped by when you revised it."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
