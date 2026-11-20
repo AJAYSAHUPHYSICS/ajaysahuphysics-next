@@ -39,6 +39,9 @@ function supabaseOrigin() {
 
 const GOOGLE_TAG = "https://*.googletagmanager.com";
 
+/** Same rule as src/lib/analytics-config.ts: off only for an explicit off/false/0. */
+export const analyticsEnabled = () => !["off", "false", "0"].includes((process.env.NEXT_PUBLIC_ANALYTICS ?? "").trim().toLowerCase());
+
 /**
  * Cloudflare Turnstile (optional CAPTCHA, src/lib/auth/captcha.ts). Allowed
  * only when a site key is set for the build; otherwise frame-src stays 'none'.
@@ -49,13 +52,15 @@ const GOOGLE_ANALYTICS = ["https://*.google-analytics.com", "https://*.analytics
 
 export function buildPolicy(scriptHashes) {
   const captcha = captchaEnabled() ? [TURNSTILE_ORIGIN] : [];
+  const tag = analyticsEnabled() ? [GOOGLE_TAG] : [];
+  const ga = analyticsEnabled() ? [GOOGLE_TAG, ...GOOGLE_ANALYTICS] : [];
   const directives = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", ...scriptHashes.map((h) => `'sha256-${h}'`), GOOGLE_TAG, ...captcha],
+    "script-src": ["'self'", ...scriptHashes.map((h) => `'sha256-${h}'`), ...tag, ...captcha],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", GOOGLE_TAG, ...GOOGLE_ANALYTICS],
+    "img-src": ["'self'", "data:", ...ga],
     "font-src": ["'self'"],
-    "connect-src": ["'self'", supabaseOrigin(), GOOGLE_TAG, ...GOOGLE_ANALYTICS],
+    "connect-src": ["'self'", supabaseOrigin(), ...ga],
     "frame-src": captcha.length ? captcha : ["'none'"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],

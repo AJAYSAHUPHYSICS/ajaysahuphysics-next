@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { analyticsEnabled } from "@/lib/analytics-config";
 import { serializeJsonForScript } from "@/lib/jsonld";
 import { TURNSTILE_ORIGIN, buildPolicy, executableInlineScripts, injectCsp, sha256 } from "../../../scripts/inject-csp.mjs";
 
@@ -83,6 +84,29 @@ describe("optional CAPTCHA origin", () => {
     } finally {
       if (prev === undefined) delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
       else process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = prev;
+    }
+  });
+});
+
+describe("analytics switch (NEXT_PUBLIC_ANALYTICS)", () => {
+  it("is on unless explicitly switched off, so production behaviour is unchanged by default", () => {
+    for (const v of [undefined, "", "on", "true", "1", "yes", " anything "]) expect(analyticsEnabled(v)).toBe(true);
+    for (const v of ["off", "OFF", " false ", "0"]) expect(analyticsEnabled(v)).toBe(false);
+  });
+
+  it("removes every Google origin from the CSP when off, and keeps them when on", () => {
+    const prev = process.env.NEXT_PUBLIC_ANALYTICS;
+    try {
+      delete process.env.NEXT_PUBLIC_ANALYTICS;
+      expect(buildPolicy([])).toContain("https://*.googletagmanager.com");
+      process.env.NEXT_PUBLIC_ANALYTICS = "off";
+      const p = buildPolicy(["abc"]);
+      expect(p).not.toMatch(/google/);
+      expect(p).toContain("script-src 'self' 'sha256-abc'");
+      expect(p).toContain("connect-src 'self' https://");
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_ANALYTICS;
+      else process.env.NEXT_PUBLIC_ANALYTICS = prev;
     }
   });
 });

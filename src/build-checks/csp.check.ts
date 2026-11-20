@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { TURNSTILE_ORIGIN, captchaEnabled, executableInlineScripts, sha256 } from "../../scripts/inject-csp.mjs";
+import { TURNSTILE_ORIGIN, analyticsEnabled, captchaEnabled, executableInlineScripts, sha256 } from "../../scripts/inject-csp.mjs";
 
 // ─────────────────────────────────────────────────────────────────
 // Post-build check: every exported page carries a strict Content Security
@@ -66,10 +66,15 @@ describe("static export: Content Security Policy", () => {
     }
   });
 
-  it("GA4 is bootstrapped from a static file with the same measurement ID (no inline GA code)", () => {
+  it.skipIf(!analyticsEnabled())("GA4 is bootstrapped from a static file with the same measurement ID (no inline GA code)", () => {
     const init = readFileSync(path.join(OUT, "ga-init.js"), "utf8");
     const home = readFileSync(path.join(OUT, "index.html"), "utf8");
     expect(init).toMatch(/gtag\("config", "G-3R7SSPSTKT"\)/);
     for (const s of executableInlineScripts(home) as string[]) expect(s).not.toMatch(/gtag\(/);
+  });
+
+  // Build-time analytics switch (src/lib/analytics-config.ts): with it off, no page loads or allows GA.
+  it.skipIf(analyticsEnabled())("with NEXT_PUBLIC_ANALYTICS=off, no page references Google Analytics", () => {
+    for (const f of pages()) expect(readFileSync(f, "utf8")).not.toMatch(/googletagmanager|ga-init\.js|google-analytics/);
   });
 });

@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { ANALYTICS_ENABLED } from "@/lib/analytics-config";
 
 const GA_MEASUREMENT_ID = "G-3R7SSPSTKT";
 
@@ -6,7 +7,8 @@ const GA_MEASUREMENT_ID = "G-3R7SSPSTKT";
 // Content Security Policy needs no 'unsafe-inline' for scripts. Keep the
 // measurement ID there in sync with this one (a build check verifies it).
 export default function Analytics() {
-  if (!GA_MEASUREMENT_ID) return null;
+  // NEXT_PUBLIC_ANALYTICS=off at build time removes GA entirely (lib/analytics-config.ts).
+  if (!GA_MEASUREMENT_ID || !ANALYTICS_ENABLED) return null;
 
   return (
     <>
