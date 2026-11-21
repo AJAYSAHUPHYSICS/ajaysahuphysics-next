@@ -67,6 +67,38 @@ Provenance, licences and modifications: [docs/ASSET_CREDITS.md](docs/ASSET_CREDI
 - **Storage hardening (B-2):** localStorage reads that could throw (blocked storage, some in-app browsers) now go through `safeGetItem()`. No keys or data formats changed (106 tests).
 - **Analytics privacy (S-5):** the GA4 `search` event **no longer contains the student's typed query**. It sends the top result's chapter slug, the result count and a length bucket (`1-3`/`4-10`/`11+`). Searches already sent to GA4 before this change stay there unless the owner files a GA4 data-deletion request.
 
+## 6a. Content Security Policy (Phase 2B-1)
+
+GitHub Pages can't send response headers, so every exported page now carries a `<meta http-equiv="Content-Security-Policy">`. It's inserted after the build by `scripts/inject-csp.mjs` (npm `postbuild`), directly after `<meta charset>`, before any script.
+
+**Policy:**
+- `script-src`: `'self'`, the SHA-256 of **each page's own inline Next.js bootstrap scripts**, and `https://*.googletagmanager.com`. No `'unsafe-inline'`, no `'unsafe-eval'`.
+- `connect-src`: `'self'`, the configured Supabase project origin (or `https://*.supabase.co` when no project is configured) and the GA4 endpoints.
+- `img-src`: `'self'`, `data:` and GA4.
+- `style-src`: `'self' 'unsafe-inline'`, because React writes inline style attributes.
+- `font-src 'self'` (fonts are self-hosted).
+- `default-src`, `base-uri`, `form-action`, `manifest-src` and `worker-src`: `'self'`.
+- `object-src` and `frame-src`: `'none'`.
+- `upgrade-insecure-requests`.
+
+**Supporting changes:**
+- **GA4 bootstrap** moved from an inline `next/script` into `public/ga-init.js` (same measurement ID, same behaviour).
+- **JSON-LD** is serialised with `serializeJsonForScript` (`src/lib/jsonld.tsx`), which escapes `<`, U+2028 and U+2029, so a value containing `</script>` can't break out of the data block.
+
+**Verification:**
+- `src/build-checks/csp.check.ts` (CI, after the build) checks that every page:
+  - has exactly one policy, placed before any script;
+  - hash-lists every inline script;
+  - never allows inline or eval'd scripts.
+- In headless Chrome against the built site:
+  - 18 pages, including client-side navigation, the 404 page and GA4 loading: **0 CSP violations, 0 console errors**;
+  - an injected un-hashed inline script **was blocked** (positive control).
+
+**Limits of a meta-tag policy:**
+- `frame-ancestors` (clickjacking), `report-uri` and `sandbox` are ignored in `<meta>`.
+- `X-Frame-Options` and `X-Content-Type-Options` still need a host that can send headers (see the hosting comparison).
+- `style-src 'unsafe-inline'` remains.
+
 ## 7. Open items
 
 | Item | Plan |
@@ -74,5 +106,5 @@ Provenance, licences and modifications: [docs/ASSET_CREDITS.md](docs/ASSET_CREDI
 | `next` and three transitive advisories | Phase 1C (`next@16.4.6`) |
 | CI/deploy run Node 20, which is end-of-life | Phase 1C (Node 22), owner-deferred |
 | Dev-toolchain advisories | Separate later PR |
-| No security headers (GitHub Pages limitation) | Phase 5 |
+| No HTTP security headers (GitHub Pages limitation): CSP now delivered by meta tag (§6a); `frame-ancestors`, `X-Frame-Options`, `X-Content-Type-Options` still need a header-capable host | Hosting decision (Phase 2 hosting comparison) |
 | RLS / database security | Phase 4 (after DPDP review) |
