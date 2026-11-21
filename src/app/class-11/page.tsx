@@ -37,6 +37,7 @@ export default function Class11Page() {
               <span className="text-gold-deep group-open:hidden">Show all &rarr;</span>
             </summary>
             <div className="mt-6">
+              <h2 className="sr-only">All Class 11 chapters</h2>
               <ChapterGrid
                 chapters={class11Chapters}
                 resourceLabel="chapter"

@@ -34,7 +34,7 @@ export default function MistakeNotebookCard({ mistakes }: { mistakes: Mistake[] 
         <Stat value={resolved.length} label="Resolved" />
       </div>
 
-      <h4 className="font-semibold text-navy text-sm mb-2.5">Latest mistakes</h4>
+      <h3 className="font-semibold text-navy text-sm mb-2.5">Latest mistakes</h3>
       <ul className="space-y-2">
         {mistakes.slice(0, 5).map((m) => (
           <li key={m.id} className="flex items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3">

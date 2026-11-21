@@ -25,6 +25,17 @@ export const subscribeToMistakes = subscribe;
 
 export type MistakeResourceType = "dpp" | "pyq";
 
+/** Why the question went wrong (optional; older records have none). */
+export type MistakeCategory = "conceptual" | "calculation" | "formula" | "reading" | "silly";
+export const MISTAKE_CATEGORIES: { key: MistakeCategory; label: string }[] = [
+  { key: "conceptual", label: "Conceptual error" },
+  { key: "calculation", label: "Calculation error" },
+  { key: "formula", label: "Formula error" },
+  { key: "reading", label: "Reading error" },
+  { key: "silly", label: "Silly mistake" },
+];
+const isCategory = (v: unknown): v is MistakeCategory => MISTAKE_CATEGORIES.some((c) => c.key === v);
+
 export type Mistake = {
   id: string;
   cls: "11" | "12";
@@ -37,6 +48,8 @@ export type Mistake = {
   conceptTag: string;
   difficulty: Difficulty;
   note: string;
+  /** Optional; added in Phase 2B. Absent on older records (they stay valid). */
+  category?: MistakeCategory;
   createdAt: number;
   /** Null while unresolved. Set once, never cleared automatically. */
   resolvedAt: number | null;
@@ -123,4 +136,22 @@ export function setMistakeResolved(id: string, resolved: boolean): void {
     recordActivity();
     logActivity({ type: "mistake-resolved", cls: target.cls, slug: target.slug, label: target.conceptTag });
   }
+}
+
+/**
+ * Edits a mistake's own note or category. Nothing else changes (id,
+ * question, dates and resolution stay as they were), and an unknown
+ * category is ignored rather than stored.
+ */
+export function updateMistake(id: string, patch: { note?: string; category?: MistakeCategory | null }): void {
+  if (typeof window === "undefined") return;
+  const next = readAll().map((m) => {
+    if (m.id !== id) return m;
+    const updated: Mistake = { ...m };
+    if (typeof patch.note === "string") updated.note = patch.note.slice(0, 2000);
+    if (patch.category === null) delete updated.category;
+    else if (isCategory(patch.category)) updated.category = patch.category;
+    return updated;
+  });
+  writeAll(next);
 }

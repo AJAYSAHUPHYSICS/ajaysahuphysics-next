@@ -6,7 +6,7 @@
   --navy-deep: #071530;
   --gold: #c9a84c;
   --gold-light: #ddc480;
-  --gold-deep: #a8862f;
+  --gold-deep: #86691f; /* darkened from #a8862f: text meets WCAG AA (4.88:1 on ivory, 5.18:1 on white) */
   --ivory: #faf8f3;
   --white: #ffffff;
   --ink: #1a2333;

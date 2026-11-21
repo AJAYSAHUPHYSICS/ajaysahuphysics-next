@@ -147,7 +147,7 @@ export default function AboutPage() {
                 key={p.title}
                 className="bg-white rounded-lg border border-navy/10 p-6"
               >
-                <span className="font-display text-3xl text-gold">
+                <span className="font-display text-3xl text-gold-deep">
                   0{i + 1}
                 </span>
                 <h3 className="mt-3 font-semibold text-navy">{p.title}</h3>

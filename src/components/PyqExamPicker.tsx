@@ -61,26 +61,27 @@ export default function PyqExamPicker() {
             key={e.key}
             type="button"
             onClick={() => setChoice(e.key)}
-            className={`text-left rounded-lg border p-7 transition-all ${
+            aria-pressed={choice === e.key}
+            className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
               choice === e.key
                 ? "border-navy bg-navy text-white shadow-lg"
                 : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
             }`}
           >
-            <h3
-              className={`font-display text-2xl ${
+            <span
+              className={`block font-display text-2xl ${
                 choice === e.key ? "text-white" : "text-navy"
               }`}
             >
               {e.label}
-            </h3>
-            <p
-              className={`mt-3 text-sm leading-relaxed ${
+            </span>
+            <span
+              className={`block mt-3 text-sm leading-relaxed ${
                 choice === e.key ? "text-white/80" : "text-slate"
               }`}
             >
               {e.desc}
-            </p>
+            </span>
           </button>
         ))}
       </div>
