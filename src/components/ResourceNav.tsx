@@ -30,9 +30,12 @@ export default function ResourceNav({ items }: { items: ResourceNavItem[] }) {
   const current = normalize(pathname ?? "");
 
   return (
+    // `relative` makes the nav the containing block of the sr-only "(coming soon)"
+    // labels (position: absolute). Without it they escape this scroll container
+    // and widen the whole page on phones (horizontal scroll of ~550-620 px).
     <nav
       aria-label="Chapter resources"
-      className="flex gap-1 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
+      className="relative flex gap-1 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap scrollbar-none"
     >
       {items.map((item) => {
         if (!item.href) {

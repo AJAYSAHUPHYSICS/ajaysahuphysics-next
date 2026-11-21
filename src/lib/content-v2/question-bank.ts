@@ -186,6 +186,23 @@ export function validateQuestionBank(bank: QuestionBank): string[] {
     if (q.status === "approved" && !isPyqPublishable(q)) errors.push(`${q.id}: approved PYQs must be verified, rights-cleared and have an approved solution`);
   }
 
+  // Duplicate question text. The legacy banks had copies (e.g. one question
+  // in two chapters), which the ID rules can't catch. Two live originals
+  // must not share a text, and an original must not reuse a PYQ's text.
+  // Two PYQs may: real exams do repeat questions across years.
+  const textKey = (s: string) => s.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
+  const pyqByText = new Map(bank.pyqs.filter((q) => !blank(q.question)).map((q) => [textKey(q.question), q.id]));
+  const originalByText = new Map<string, string>();
+  for (const q of bank.originals) {
+    if (q.status === "retired" || blank(q.question)) continue;
+    const k = textKey(q.question);
+    const other = originalByText.get(k);
+    if (other) errors.push(`${q.id}: same question text as ${other}`);
+    else originalByText.set(k, q.id);
+    const copied = pyqByText.get(k);
+    if (copied) errors.push(`${q.id}: an original question must not reuse the text of PYQ ${copied}`);
+  }
+
   const originals = new Map(bank.originals.map((q) => [q.id, q]));
   const pyqIds = new Set(bank.pyqs.map((q) => q.id));
   for (const set of bank.dppSets) {

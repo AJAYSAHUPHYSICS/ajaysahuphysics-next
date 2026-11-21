@@ -47,7 +47,9 @@ describe("hub marketing copy", () => {
     const { metadata: root } = await import("@/app/layout");
     expect(availabilityClaims(String(root.description))).toEqual([]);
     expect(String(root.description)).toMatch(/being rebuilt/);
-  });
+    // Importing the root layout pulls in every component (~1 s alone); under a
+    // parallel full run it could exceed the 5 s default, so it gets 30 s.
+  }, 30_000);
 
   it("uses the approved site-wide og:description (owner-approved), and the baseline matches", async () => {
     const { metadata: root } = await import("@/app/layout");
@@ -58,7 +60,7 @@ describe("hub marketing copy", () => {
     // Everything else in the social baseline is unchanged.
     expect(baseline).toContain(`<meta property="og:image" content="https://ajaysahuphysics.com/og-image.png"/>`);
     expect(baseline).toContain(`<meta name="twitter:description" content="Premium physics coaching for JEE Main, JEE Advanced, and NEET aspirants."/>`);
-  });
+  }, 30_000);
 
 
   it("the Videos page makes no availability claim", () => {
