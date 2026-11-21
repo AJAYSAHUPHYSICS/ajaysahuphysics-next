@@ -10,7 +10,7 @@ export default function ConceptAnalysisCard({ concepts }: { concepts: ConceptSta
         title="No concepts tracked yet"
         description="Every mistake you log gets a concept tag — once you've logged a few, the concepts needing the most revision will show up here."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

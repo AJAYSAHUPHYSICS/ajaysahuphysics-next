@@ -11,7 +11,7 @@ export default function RecommendedToday({ items }: { items: PriorityItem[] }) {
         title="Nothing urgent today"
         description="No overdue revisions, weak chapters, or unfinished practice right now. Great place to start something new."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
