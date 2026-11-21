@@ -657,7 +657,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
           {/* Smart Recommendations */}
           <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
             <h2 className="font-display text-xl text-navy mb-5">Recommended for you</h2>
-    
+
             {incompleteChapters.length === 0 &&
             recommendedBookmarks.length === 0 &&
             recommendedRecent.length === 0 &&
@@ -683,7 +683,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
                     ))}
                   </RecommendationGroup>
                 )}
-    
+
                 {relatedRecommendations.length > 0 && (
                   <RecommendationGroup title="Related chapters">
                     {relatedRecommendations.map((rel) => {
@@ -700,7 +700,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
                     })}
                   </RecommendationGroup>
                 )}
-    
+
                 {recommendedBookmarks.length > 0 && (
                   <RecommendationGroup title="From your bookmarks">
                     {recommendedBookmarks.map((b) => (
@@ -708,7 +708,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
                     ))}
                   </RecommendationGroup>
                 )}
-    
+
                 {recommendedRecent.length > 0 && (
                   <RecommendationGroup title="Pick up a recent resource">
                     {recommendedRecent.map((r) => (
@@ -794,7 +794,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
             </p>
             <ChapterAccuracyList accuracies={chapterAccuracies} />
           </div>
-    
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {/* M14 Task 5 — Concept Analysis */}
             <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
@@ -802,7 +802,7 @@ export default function DashboardClient({ chapters, view = "overview" }: { chapt
               <p className="text-sm text-slate mb-5">Concepts needing the most revision.</p>
               <ConceptAnalysisCard concepts={topConcepts} />
             </div>
-    
+
             {/* M14 Task 6/7 — Practice Again */}
             <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
               <h2 className="font-display text-xl text-navy mb-1">Practice Again</h2>
