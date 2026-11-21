@@ -42,17 +42,36 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+/**
+ * Phase 2B adds ONE key, written only when a cloud sync actually runs (never
+ * while CLOUD_SYNC_ENABLED is false). It holds the device↔account link and
+ * merge fingerprints; the 11 study keys keep their formats.
+ */
+const SYNC_META = { "atlas:sync-meta": "lib/sync/policy.ts" };
+/** The sync layer (policy + adapters) names existing keys to classify and adapt them; that is not a new definition. */
+const SYNC_DIR = "lib/sync/";
+
 describe("localStorage keys are unchanged", () => {
-  it("application code defines exactly the 11 known atlas:* keys, each in its own module", () => {
+  it("application code defines exactly the 11 known atlas:* keys (plus the sync-meta key), each in its own module", () => {
     const found = new Map<string, string[]>();
     for (const f of sourceFiles(SRC)) {
+      const rel = path.relative(SRC, f).split(path.sep).join("/");
       for (const m of readFileSync(f, "utf8").matchAll(/["'`](atlas:[a-z0-9:-]+)["'`]/g)) {
-        const rel = path.relative(SRC, f).split(path.sep).join("/");
+        if (rel.startsWith(SYNC_DIR) && m[1] in FROZEN_KEYS) continue;
         found.set(m[1], [...(found.get(m[1]) ?? []), rel]);
       }
     }
-    expect([...found.keys()].sort()).toEqual(Object.keys(FROZEN_KEYS).sort());
-    for (const [key, owner] of Object.entries(FROZEN_KEYS)) expect(found.get(key), key).toEqual([owner]);
+    const expected = { ...FROZEN_KEYS, ...SYNC_META };
+    expect([...found.keys()].sort()).toEqual(Object.keys(expected).sort());
+    for (const [key, owner] of Object.entries(expected)) expect(found.get(key), key).toEqual([owner]);
+  });
+
+  it("the sync policy classifies every existing key exactly once as synced or local-only", async () => {
+    const { SYNCED_KEYS, LOCAL_ONLY_KEYS } = await import("@/lib/sync/policy");
+    const all = [...SYNCED_KEYS, ...LOCAL_ONLY_KEYS];
+    expect(new Set(all).size).toBe(all.length);
+    expect([...all].sort()).toEqual(Object.keys(FROZEN_KEYS).sort());
+    expect([...LOCAL_ONLY_KEYS].sort()).toEqual(["atlas:activity-log", "atlas:reading-progress", "atlas:recent-searches", "atlas:recently-viewed", "atlas:recently-viewed-resources"]);
   });
 
   it("content-policy, rebuilt-content and build-check code never touches localStorage", () => {
