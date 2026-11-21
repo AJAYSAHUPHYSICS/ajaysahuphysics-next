@@ -1,18 +1,28 @@
 // Supabase Edge Function (Deno): account deletion.
-// Deploy to STAGING first: `supabase functions deploy delete-account`.
-// Secrets (set in Supabase, never in GitHub): SUPABASE_URL,
-// SUPABASE_SERVICE_ROLE_KEY (provided by the platform) and
-// ATLAS_DELETION_SWEEP_SECRET (for the scheduled sweep).
+// Deploy to STAGING first:
+//   supabase functions deploy delete-account --no-verify-jwt
+// --no-verify-jwt: the platform's gateway check only understands legacy JWT
+// keys, and it would block the scheduled sweep (which carries no user
+// token). Authorisation happens here instead: every user request is
+// verified with the Auth server (auth.getUser), and the sweep needs the
+// sweep secret (constant-time compare). A request with neither gets 401.
+//
+// Provided by the platform: SUPABASE_URL, SUPABASE_SECRET_KEYS (preferred)
+// and the legacy SUPABASE_SERVICE_ROLE_KEY (fallback; see runtime-config.ts).
+// Set by the owner (Supabase secrets, never in GitHub):
+//   ATLAS_DELETION_SWEEP_SECRET   for the scheduled sweep
+//   ATLAS_ALLOWED_ORIGINS         staging only, e.g. http://localhost:3000
 //
 // POST /functions/v1/delete-account            Authorization: Bearer <user JWT>
 // POST /functions/v1/delete-account?sweep=1    x-atlas-sweep-secret: <secret>
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { deleteOwnAccount, sweep, type Deps } from "./handler.ts";
+import { allowedOrigins, corsHeaders, serverKeyFrom } from "./runtime-config.ts";
 
 const url = Deno.env.get("SUPABASE_URL")!;
-const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const serverKey = serverKeyFrom((name) => Deno.env.get(name));
 const sweepSecret = Deno.env.get("ATLAS_DELETION_SWEEP_SECRET") ?? "";
-const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+const admin = createClient(url, serverKey.key, { auth: { persistSession: false, autoRefreshToken: false } });
 
 function safeEqual(a: string, b: string): boolean {
   if (!a || !b || a.length !== b.length) return false;
@@ -47,13 +57,10 @@ const deps: Deps = {
   now: () => Date.now(),
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "https://ajaysahuphysics.com",
-  "Access-Control-Allow-Headers": "authorization, content-type, x-client-info, apikey",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const ORIGINS = allowedOrigins(Deno.env.get("ATLAS_ALLOWED_ORIGINS"));
 
 Deno.serve(async (req) => {
+  const CORS = corsHeaders(req.headers.get("origin"), ORIGINS);
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return new Response(null, { status: 405, headers: CORS });
   const isSweep = new URL(req.url).searchParams.get("sweep") === "1";
