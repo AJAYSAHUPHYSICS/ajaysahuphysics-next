@@ -139,7 +139,8 @@ export default function Navbar() {
         {open && (
           <div id="mobile-menu" className="2xl:hidden border-t border-navy/10 bg-white max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-4 sm:px-6 py-3 flex flex-col gap-1">
-              <div className="sm:hidden pb-2 mb-1 border-b border-navy/10">
+              {/* empty:hidden: no stray divider while the account control renders nothing (H1). */}
+              <div className="sm:hidden pb-2 mb-1 border-b border-navy/10 empty:hidden">
                 <AuthButton className="w-full flex items-center justify-center" />
               </div>
               {primaryNav.map((link) => (
