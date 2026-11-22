@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useSession } from "@/lib/auth/use-session";
 import AuthModal from "@/components/AuthModal";
 import { downloadJson, exportDeviceData, removeDeviceData } from "@/lib/account/local-data";
-import { DELETION_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError } from "@/lib/account/deletion-availability";
+import { DELETION_NOTE, RATE_LIMITED_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError, isRateLimitedError } from "@/lib/account/deletion-availability";
 import { CLOUD_SYNC_ENABLED } from "@/lib/sync/policy";
 import { readMeta, syncOnce, type SyncResult } from "@/lib/sync/engine";
 import { supabaseRemote } from "@/lib/sync/supabase-remote";
@@ -120,6 +120,7 @@ export default function AccountClient() {
         setDeletionEnabled(false);
         return setNotice(DELETION_NOTE["not-available-yet"]);
       }
+      if (isRateLimitedError(req.error)) return setNotice(RATE_LIMITED_NOTE);
       return setNotice("We couldn't record your deletion request. Please try again, or contact us to delete your account.");
     }
     const { data, error } = await supabase.functions.invoke("delete-account", { method: "POST" });
@@ -127,6 +128,8 @@ export default function AccountClient() {
     if (!error && (data as { status?: string })?.status === "deleted") {
       await supabase.auth.signOut();
       setNotice("Your account and the data stored with it have been deleted. Progress saved in this browser is still here; use “Remove this device's progress” if you want it gone too.");
+    } else if (isRateLimitedError(error as { message?: string; context?: { status?: number } } | null)) {
+      setNotice("Your deletion request is recorded and uploads have stopped. " + RATE_LIMITED_NOTE);
     } else {
       setNotice("Your deletion request is recorded and uploads have stopped. We'll finish deleting your account; if you can still sign in after a few days, please contact us from the Contact page.");
     }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { DELETION_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError } from "@/lib/account/deletion-availability";
+import { DELETION_NOTE, RATE_LIMITED_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError, isRateLimitedError } from "@/lib/account/deletion-availability";
 
 // Audit F4: the delete control is usable only after BOTH server checks have
 // answered true. "Not yet known" (null) is a disabled state.
@@ -46,6 +46,14 @@ describe("account deletion availability (F4, F5)", () => {
     expect(isDeletionDisabledError({ message: "deletion-disabled" })).toBe(true);
     expect(isDeletionDisabledError({ message: "network error" })).toBe(false);
     expect(isDeletionDisabledError(null)).toBe(false);
+  });
+
+  it("recognises a rate-limit refusal from either path, and tells the student what to do", () => {
+    expect(isRateLimitedError({ message: "rate-limited" })).toBe(true);
+    expect(isRateLimitedError({ message: "Edge Function returned a non-2xx status code", context: { status: 429 } })).toBe(true);
+    expect(isRateLimitedError({ message: "x", context: { status: 503 } })).toBe(false);
+    expect(isRateLimitedError(null)).toBe(false);
+    expect(RATE_LIMITED_NOTE).toMatch(/wait a few minutes.*Contact page/);
   });
 
   it("the account page uses these rules for the button and the request (no separate inline condition)", () => {

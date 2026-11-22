@@ -14,6 +14,10 @@
 //      with a deletion-log row; a planted pending request older than the
 //      grace window is completed by the real sweep script; calling the
 //      function without a request is refused.
+//   R. rate limits with real parallel calls: 10 requests give exactly 5
+//      accepted; 10 function calls give exactly 6 through and 4 x 429 with
+//      Retry-After; support-assisted deletion of a rate-limited student
+//      works; parallel deletion of one account never gives a 5xx.
 //   C. gate closed again with a request still outstanding: the sweep
 //      alert fires, the function is rejected, and the documented operator
 //      procedure (purge_user_data + delete the auth user) completes it,
@@ -144,6 +148,31 @@ try {
   check("B: function without a recorded request refused (409)", f2.status === 409 && f2.body?.error === "request-deletion-first", `${f2.status} ${JSON.stringify(f2.body)}`);
   check("B: that account still exists", await exists(W.id));
   check("B: W's request accepted while open", !(await W.c.rpc("request_account_deletion")).error);
+
+  // ── R. Rate limits, with real parallel calls (gate open) ─────
+  const R = await user("r");
+  const rq = await Promise.all(Array.from({ length: 10 }, () => R.c.rpc("request_account_deletion")));
+  const rqOk = rq.filter((x) => !x.error).length;
+  const rqLimited = rq.filter((x) => /rate-limited/.test(x.error?.message ?? "")).length;
+  check("R: 10 parallel requests: exactly 5 accepted, 5 rate-limited, nothing else", rqOk === 5 && rqLimited === 5, `ok=${rqOk} limited=${rqLimited}`);
+  check("R: still exactly one deletion request recorded", (await requests(R.id)) === 1);
+  const S = await user("s");
+  const fs10 = await Promise.all(Array.from({ length: 10 }, async () => {
+    const res = await fetch(FN, { method: "POST", headers: { authorization: `Bearer ${S.token}`, apikey: T.anonKey } });
+    return { status: res.status, retry: res.headers.get("retry-after"), body: await res.json().catch(() => null) };
+  }));
+  const s409 = fs10.filter((x) => x.status === 409).length, s429 = fs10.filter((x) => x.status === 429);
+  check("R: 10 parallel function calls: exactly 6 reach the handler (409), 4 are 429", s409 === 6 && s429.length === 4, fs10.map((x) => x.status).join(","));
+  check("R: a 429 carries Retry-After and retryAfterSeconds (1..600)", s429.length > 0 && s429.every((x) => Number(x.retry) >= 1 && Number(x.retry) <= 600 && x.body?.retryAfterSeconds === Number(x.retry)), s429.map((x) => x.retry).join(","));
+  const { error: spe } = await admin.rpc("purge_user_data", { target: S.id });
+  const { error: sde } = await admin.auth.admin.deleteUser(S.id);
+  check("R: support-assisted deletion of a rate-limited student works (operator procedure)", !spe && !sde && !(await exists(S.id)) && (await logged(S.id)) >= 1, (spe ?? sde)?.message ?? "");
+  const fR = await callFn(R.token);
+  check("R: the request limit doesn't block the function: R deleted", fR.status === 200 && fR.body?.status === "deleted" && !(await exists(R.id)), `${fR.status}`);
+  const Q = await user("q");
+  check("R: Q's request accepted", !(await Q.c.rpc("request_account_deletion")).error);
+  const fq = await Promise.all(Array.from({ length: 5 }, () => callFn(Q.token)));
+  check("R: 5 parallel deletions of one account: no 5xx, account gone, logged", fq.every((x) => x.status < 500) && fq.some((x) => x.status === 200 && x.body?.status === "deleted") && !(await exists(Q.id)) && (await logged(Q.id)) >= 1, fq.map((x) => x.status).join(","));
 
   // ── C. Gate closed again, with W's request outstanding ───────
   await setGate("false");

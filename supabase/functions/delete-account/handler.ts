@@ -23,6 +23,11 @@
 //     (fail closed). There are no exemptions for any account.
 //   * Database errors are reported, never treated as "nothing to do"
 //     (audit F6): a failed sweep query is a 500, so the scheduler alerts.
+//   * Rate limit (audit F6, gap 3): the user path is limited per verified
+//     user (public.deletion_rate_wait, 6 calls per 10 minutes) after the
+//     token and gate checks: 429 "rate-limited" with retryAfterSeconds. A
+//     limiter error is a 503 (fail closed). The sweep (sweep secret) and the
+//     operator procedure are not limited.
 //   * The sweep reports "stale": requests still pending after the alert
 //     threshold. The scheduler fails (alerts) when stale or pending > 0,
 //     and when the gate is off while requests are outstanding.
@@ -31,6 +36,8 @@
 export type Deps = {
   /** public.account_deletion_enabled(); throws if it can't be read. */
   deletionEnabled(): Promise<boolean>;
+  /** public.deletion_rate_wait(userId, 'function'): 0 = allowed (and counted), else seconds to wait. Throws on error. */
+  rateWait(userId: string): Promise<number>;
   /** Verifies a user access token; returns the user id or null. */
   verifyUser(accessToken: string): Promise<string | null>;
   /** When the user recorded their deletion request, or null. Throws on a database error. */
@@ -68,6 +75,14 @@ export async function deleteOwnAccount(deps: Deps, authorization: string | null)
   const g = await gate(deps);
   if (g === "off") return DISABLED;
   if (g === "unreadable") return UNAVAILABLE;
+  let wait: number;
+  try {
+    wait = await deps.rateWait(userId);
+  } catch {
+    return UNAVAILABLE;
+  }
+  if (!Number.isFinite(wait) || wait < 0) return UNAVAILABLE;
+  if (wait > 0) return { status: 429, body: { error: "rate-limited", retryAfterSeconds: Math.ceil(wait) } };
   let requested: string | null;
   try {
     requested = await deps.requestedAt(userId);

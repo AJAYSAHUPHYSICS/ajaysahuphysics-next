@@ -35,6 +35,31 @@ describe("deletion sweep: alert rules", () => {
   });
 });
 
+describe("deletion sweep: alerts are actionable", () => {
+  it("every failure says what to do next, and never includes ids, emails or secrets", () => {
+    const cases: Array<[number, unknown, RegExp]> = [
+      [200, { processed: 1, completed: 0, pending: 1, stale: 0 }, /Edge Functions → delete-account → Logs/],
+      [200, { processed: 0, completed: 0, pending: 0, stale: 1 }, /operator procedure \(docs\/PHASE_2_RELEASE\.md section 9, C\.3 step 5\)/],
+      [403, { error: "deletion-disabled", pendingRequests: 1 }, /Don't open the gate to clear them/],
+      [401, { error: "forbidden" }, /ATLAS_DELETION_SWEEP_SECRET doesn't match/],
+      [404, null, /isn't deployed at ATLAS_SWEEP_URL/],
+      [500, { error: "sweep-query-failed" }, /database query failed/],
+      [503, { error: "deletion-unavailable" }, /account_deletion_enabled/],
+      [418, null, /Check the function logs/],
+    ];
+    for (const [status, body, next] of cases) {
+      const out = evaluate(status, body);
+      expect(out.code, String(status)).toBe(1);
+      expect(out.message, String(status)).toMatch(next);
+      expect(out.message).not.toMatch(/@|[0-9a-f]{8}-[0-9a-f]{4}-|sb_secret_/);
+    }
+  });
+
+  it("stale takes priority over pending in the message", () => {
+    expect(evaluate(200, { processed: 2, completed: 0, pending: 2, stale: 1 }).message).toMatch(/more than 72 hours/);
+  });
+});
+
 describe("deletion sweep: configuration", () => {
   it("accepts only a Supabase function URL and a real secret, and never echoes the secret", () => {
     expect(checkConfig({ ATLAS_SWEEP_URL: URL_OK, ATLAS_DELETION_SWEEP_SECRET: "s".repeat(32) }).ok).toBe(true);

@@ -33,6 +33,13 @@ export const DELETION_NOTE: Record<Exclude<DeletionAvailability, "available">, s
   "not-available-yet": "Account deletion from this page isn't available yet. To delete your account now, contact us from the Contact page.",
 };
 
+export const RATE_LIMITED_NOTE = "Too many attempts in a short time. Please wait a few minutes and try again, or contact us from the Contact page.";
+
+/** True when the server's rate limit refused the call: the request RPC's error, or the function's HTTP 429. */
+export function isRateLimitedError(error: { message?: string; context?: { status?: number } } | null | undefined): boolean {
+  return !!error && (/rate-limited/.test(error.message ?? "") || error.context?.status === 429);
+}
+
 /** True when request_account_deletion() was refused because the gate is off. */
 export function isDeletionDisabledError(error: { message?: string } | null | undefined): boolean {
   return !!error && /deletion-disabled/.test(error.message ?? "");

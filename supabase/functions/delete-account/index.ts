@@ -40,6 +40,11 @@ const deps: Deps = {
     if (error) throw new Error(error.message);
     return data === true;
   },
+  async rateWait(userId) {
+    const { data, error } = await admin.rpc("deletion_rate_wait", { target: userId, act: "function" });
+    if (error) throw new Error(error.message);
+    return Number(data);
+  },
   async verifyUser(token) {
     const { data, error } = await admin.auth.getUser(token);
     return error || !data.user ? null : data.user.id;
@@ -76,5 +81,6 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(null, { status: 405, headers: CORS });
   const isSweep = new URL(req.url).searchParams.get("sweep") === "1";
   const out = isSweep ? await sweep(deps, req.headers.get("x-atlas-sweep-secret")) : await deleteOwnAccount(deps, req.headers.get("authorization"));
-  return new Response(JSON.stringify(out.body), { status: out.status, headers: { ...CORS, "content-type": "application/json" } });
+  const retry = typeof out.body.retryAfterSeconds === "number" ? { "retry-after": String(out.body.retryAfterSeconds) } : {};
+  return new Response(JSON.stringify(out.body), { status: out.status, headers: { ...CORS, ...retry, "content-type": "application/json" } });
 });
