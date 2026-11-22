@@ -54,7 +54,7 @@ npx supabase@2.122.1 login                                  # browser sign-in; t
 npx supabase@2.122.1 link --project-ref <staging-ref>       # asks for the STAGING database password; writes supabase/.temp/ (git-ignored)
 npx supabase@2.122.1 db push --dry-run                      # lists the migration it WOULD apply; applies nothing
 ```
-If the CLI asks for a `config.toml`, run `npx supabase@2.122.1 init` once and choose **no** to the IDE prompts. Review the generated `supabase/config.toml` before committing it.
+`supabase/config.toml` is committed and holds only the function's `verify_jwt = false` pin (audit F6). Don't regenerate it with `supabase init`, and **never run `supabase config push`**: the file holds no Auth or API settings on purpose, so a push could reset the remote project's settings to CLI defaults.
 
 ### 4. Apply the migration (needs the owner's go-ahead)
 ```
@@ -67,7 +67,7 @@ npx supabase@2.122.1 functions deploy delete-account --project-ref <staging-ref>
 npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_DELETION_SWEEP_SECRET=<random 32+ characters>
 npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_ALLOWED_ORIGINS=http://localhost:3000
 ```
-- **`--no-verify-jwt`:** the platform's gateway check only understands legacy JWT keys, and it would block the sweep. The function verifies every user request itself with the Auth server, and checks the sweep secret in constant time.
+- **`--no-verify-jwt`:** also pinned in `supabase/config.toml`, so a deploy without the flag is still correct (verified on staging 2026-11-22: `verify_jwt: false` with the flag omitted). The platform's gateway check only understands legacy JWT keys, and it would block the sweep. The function verifies every user request itself with the Auth server, and checks the sweep secret in constant time.
 - **`--use-api`:** builds the function on Supabase's side, so no Docker is needed.
 - **Server key:** the function uses the project's secret key (`SUPABASE_SECRET_KEYS`), with the legacy service-role key as a fallback. Both are injected by Supabase; no key is set by hand.
 - **`ATLAS_ALLOWED_ORIGINS`:** staging only, so the account page on `npm run dev` can call the function. Production allows only `https://ajaysahuphysics.com`.
@@ -84,7 +84,7 @@ npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_ALLOWED_ORIGI
   NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_…            # the PUBLISHABLE key; never the secret key
   ```
   Then run `npm run staging:check`; it refuses if a secret key ever lands in such a file.
-- **Scheduled sweep (optional for staging):** a daily `POST /functions/v1/delete-account?sweep=1` with the `x-atlas-sweep-secret` header.
+- **Scheduled sweep:** `.github/workflows/deletion-sweep.yml` (hourly) runs `scripts/deletion-sweep.mjs`. It is inert until the repository variable `ATLAS_DELETION_SWEEP_ENABLED` is `true`, and it needs `vars.ATLAS_SWEEP_URL` (the function URL) and `secrets.ATLAS_DELETION_SWEEP_SECRET`. A failed run is the alert: pending or stale requests, requests outstanding while the gate is off, or any error. Against staging, run the script by hand with those two values in the environment.
 - **CAPTCHA (optional):** enable Turnstile with Cloudflare's **test** secret `1x0000000000000000000000000000000AA`, and set `STAGING_TURNSTILE_TEST_TOKEN=XXXX.DUMMY.TOKEN.XXXX` in `.env.staging.local`.
   - For production the order matters: put the site key in the build first, then turn on bot protection in Supabase, otherwise every sign-in is blocked.
 
@@ -126,6 +126,17 @@ It creates one synthetic account (admin API, no email) and drives the real UI in
 
 The account is removed at the end, even after a failure.
 
+### 9. Deletion gate (audit F5)
+Account deletion is gated server-side by `app_config` `account_deletion_enabled` (migration `20261122000000`, created `'false'`). While it is off, `request_account_deletion()`, the function's user path and the sweep all refuse; a missing or unreadable gate counts as off. There are no exemptions, including for test accounts. Open or close it in the SQL editor of the intended project only, with the owner's approval:
+```
+update public.app_config set value = 'true', updated_at = now() where key = 'account_deletion_enabled';   -- 'false' to close
+```
+Staging check (staging linked, gate `'false'` at the start):
+```
+npm run test:staging:deletion-gate
+```
+It opens the staging gate for the run and always closes it again. It removes every synthetic account, and never writes the sync switches. Note: the deletion section of `npm run test:staging` needs the gate open, and that suite hasn't been run against the gated schema.
+
 ### Staging verification record
 | Date | Item | Result |
 |---|---|---|
@@ -135,6 +146,11 @@ The account is removed at the end, even after a failure.
 | 2026-11-21 | `npm run test:staging` | 23/23 passed |
 | 2026-11-21 | `npm run test:staging:browser` | 15/15 passed; 0 console errors; 0 failed requests |
 | 2026-11-21 | End state | 0 users and 0 student rows; switches `false` |
+| 2026-11-22 | Migration `20261122000000` applied (after a dry run listing only it) | Applied; history matches local |
+| 2026-11-22 | Gated `delete-account` deployed without `--no-verify-jwt` | `verify_jwt: false` from `config.toml` |
+| 2026-11-22 | `npm run test:staging:deletion-gate` | 30/30: gate off (request, function and sweep rejected; nothing recorded), gate open (API deletion with a deletion-log row; planted request swept), gate closed again (alert fires; operator procedure completes the outstanding request) |
+| 2026-11-22 | Account page, production-configured build | Gate off: button disabled with DELETE typed, note shown, 8/8. Gate open for the run: browser journey 15/15, 0 CSP violations |
+| 2026-11-22 | End state | 0 users and 0 rows; deletion gate and sync switches `'false'` |
 
 ### Manual staging checks (needs a real inbox)
 Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:

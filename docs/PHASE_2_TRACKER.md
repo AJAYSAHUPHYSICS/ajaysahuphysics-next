@@ -2,7 +2,7 @@
 
 The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-21.
 
-The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`.
+The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5 and F6 describes the code **before** the deletion-gate fix, so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
 
 ## How to read this
 | Priority | Meaning |
@@ -26,9 +26,9 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 | F1 | High | P0 | #12 RESOLVED (superseded by #13) · #10 OPEN | Merging #10 | Owner (at merge time) |
 | F2 | Medium | P0 | VERIFIED for `main` at `2734e98` · OPEN for #7 and #10 | Merging #7 and #10 | Owner (at merge time) |
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
-| F4 | Medium | P1 | OPEN (code fix and test required) · missing-database handling VERIFIED | Enabling account deletion | Engineering |
-| F5 | High | P0 | OPEN (deletion gate and scheduler not started) | Production database migrations and enabling account deletion | Engineering, then owner |
-| F6 | Low | P2 | VERIFIED (auth and CORS) · 3 fixes OPEN | Nothing | Engineering |
+| F4 | Medium | P1 | FIXED on `phase-2b-deletion-gate` (local, not pushed) · tests pass · staging VERIFIED | Enabling account deletion | Engineering, then owner (PR) |
+| F5 | High | P0 | Gate and scheduler BUILT on `phase-2b-deletion-gate` (local) · staging stage 1 VERIFIED · production stages OPEN | Production database migrations and enabling account deletion | Owner (PR, scheduler settings, staged production steps) |
+| F6 | Low | P2 | Gaps 1 and 2 FIXED on `phase-2b-deletion-gate` (local) · gap 3 (rate limiting) OPEN | Nothing | Engineering |
 | F7 | Medium | P1 | OPEN · OWNER DECISION | Switching analytics off; CAPTCHA | Engineering (PR), owner (approval) |
 | F8 | Medium | P2 | OPEN · OWNER DECISION (hosting) | Nothing | Engineering (interim), owner (hosting) |
 | F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · live login check after #7 OPEN | Nothing before merging #7 | Engineering |
@@ -148,7 +148,11 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - the owner's explicit approval to open the gate is recorded;
   - **production (gate open), end to end:** the controlled test with the dedicated disposable account has passed while the workflow and alerts were monitored, and the result is recorded. Only from this point may production deletion be described as tested end to end. If the test fails, the gate is closed immediately and the investigation is recorded. Every request accepted while the gate was open is then completed by an authorized operator through a documented, auditable procedure, with deletion of the account and its data verified, the deletion log confirmed, and the outcome recorded without secrets or personal data.
 
-  Current state: none of these has been done. Production deletion has **not** been tested.
+  **Progress (2026-11-22), on local branch `phase-2b-deletion-gate`, not pushed:**
+  - **Built:** migration `20261122000000` (gate, created `'false'`, fails closed); gated `request_account_deletion()`; function user path and sweep gated (403 off, 503 unreadable); the hourly `deletion-sweep.yml` workflow, inert until `vars.ATLAS_DELETION_SWEEP_ENABLED` is `'true'`, with the alert as its exit code.
+  - **Tests:** PGlite gate tests, 10 (all fail without the migration); handler tests, 13 (9 fail with the old handler); availability and sweep tests. On `main` + the branch: unit 583 passed and 1 skipped, E2E 69/69, keyboard 24/24.
+  - **Staging, gate open (stage 1):** `npm run test:staging:deletion-gate` 30/30, covering rejection while off, deletion with a log row, a planted request swept by the real script, the alert firing with the gate closed while a request is outstanding, and the operator procedure. Account page: 8/8 with the gate off, browser journey 15/15 with it open. Staging was left with the gate off, sync off, and 0 users.
+  - **Still open:** the owner's PR review and merge; the scheduler variables and secret; production stages 2 to 5. Production deletion has **not** been tested.
 
 ### F6 · Deletion function: correct authentication, three small gaps
 - **Severity:** Low. **Priority:** P2. **Status:** VERIFIED (authentication and CORS) · 3 fixes OPEN.
