@@ -18,53 +18,55 @@ export default function JeeMainAdvancedPicker({
         <button
           type="button"
           onClick={() => setChoice("jee-main")}
+          aria-pressed={choice === "jee-main"}
           className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee-main"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
           }`}
         >
-          <h3
-            className={`font-display text-2xl ${
+          <span
+            className={`block font-display text-2xl ${
               choice === "jee-main" ? "text-white" : "text-navy"
             }`}
           >
             JEE Main
-          </h3>
-          <p
-            className={`mt-3 text-sm leading-relaxed ${
+          </span>
+          <span
+            className={`block mt-3 text-sm leading-relaxed ${
               choice === "jee-main" ? "text-white/80" : "text-slate"
             }`}
           >
             Speed and accuracy across the full Class 11 and 12 syllabus.
             Resources are being rebuilt and appear as they&apos;re reviewed.
-          </p>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setChoice("jee-advanced")}
+          aria-pressed={choice === "jee-advanced"}
           className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee-advanced"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
           }`}
         >
-          <h3
-            className={`font-display text-2xl ${
+          <span
+            className={`block font-display text-2xl ${
               choice === "jee-advanced" ? "text-white" : "text-navy"
             }`}
           >
             JEE Advanced
-          </h3>
-          <p
-            className={`mt-3 text-sm leading-relaxed ${
+          </span>
+          <span
+            className={`block mt-3 text-sm leading-relaxed ${
               choice === "jee-advanced" ? "text-white/80" : "text-slate"
             }`}
           >
             Multi-concept problem solving for the trickier, higher-weightage
             Advanced topics. Resources are being rebuilt.
-          </p>
+          </span>
         </button>
       </div>
 
