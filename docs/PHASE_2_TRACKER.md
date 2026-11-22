@@ -10,7 +10,7 @@ The status of every pre-release audit finding (F1 to F13) for the Phase 2 studen
   - The deletion gate is opened only by `test:staging:deletion-gate`, during its own run.
   - In production, none of these objects exists yet.
 - No production Supabase or Auth change.
-- The safe staging check is `npm run test:staging:release` (63/63). Its only `app_config` write is a signed-in student's attempt, which must be denied. `npm run test:staging` is not used, because it enables sync.
+- The safe staging check is `npm run test:staging:release` (63/63). The check makes one deliberate authenticated student-side UPDATE attempt against `app_config`. The server must deny it. No successful `app_config` modification occurs, and the script's server key never writes to `app_config`. `npm run test:staging` is not used, because it enables sync.
 
 The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5, F6 and F11 describes the code **before** the deletion-gate fix (#15), so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
 
@@ -351,7 +351,13 @@ Record:
    1. F12 (legal), then F10 (inventory) and a backup;
    2. the release stack merged and deployed (it has the F4 fix and follows the gate);
    3. the function deployed before the migrations;
-   4. **all four** migrations together: the gate (`20261122000000`) and the rate limits (`20261122010000`) come with the first two, never after;
+   4. **all four** migrations together, in this order:
+      1. `20261120000000_student_accounts.sql`: tables and functions;
+      2. `20261121000000_service_role_grants.sql`: grants on those tables;
+      3. `20261122000000_account_deletion_gate.sql`: the gate, which replaces `request_account_deletion()`;
+      4. `20261122010000_deletion_rate_limit.sql`: rate limits, which replace it again.
+
+      Never apply the first two without the last two;
    5. the scheduler configured (`vars.ATLAS_SWEEP_URL`, `secrets.ATLAS_DELETION_SWEEP_SECRET`, `vars.ATLAS_DELETION_SWEEP_ENABLED`).
 5. **Opening the deletion gate:** only after the staged verification in `PHASE_2_RELEASE.md` section 9, C.3:
    1. a full staging test with the gate open;
@@ -392,7 +398,7 @@ Read-only checks of the live site after #13 deployed, plus local gates and a sta
 | Staging RLS probe | 25/25: anonymous reads denied on all 11 tables; A versus B read, update, insert-as and delete blocked; students can't switch sync on, upload study data or change `app_config`. The sync switches were `'false'` before, during and after; staging ended with 0 users and 0 rows |
 | Not run | `npm run test:staging` (23 checks) switches `adult_sync_permitted` on in staging for its run, so it was not run, to keep sync off throughout. Its last result is 23/23 (`supabase/README.md`). **Replaced on 2026-11-22** by `npm run test:staging:release` (never enables sync): 63/63 |
 | Live audit, 2026-11-22 | The same checks again: 14/14 journeys, 0 broken links, 0 overflow. **New defect M1:** React error #418 (×6) on `/dashboard/activity/` the day after the build; fix in #17. `/jee/` still pending #14 |
-| Manual inbox checks | The 7 inbox checks in `supabase/README.md` (confirmation, reset, link reuse) have no recorded result |
+| Manual inbox checks | **NOT VERIFIED.** The 7 inbox checks in `supabase/README.md` (confirmation, reset, link reuse) have no recorded result (E1) |
 | Dependencies | `npm audit`: 14 advisories (5 high, 9 moderate), all in build or dev tooling; production tree: 1 moderate (`baseline-browser-mapping`, build time only). No upgrades made |
 
 Every merge deploys and needs the owner's explicit approval.

@@ -160,7 +160,7 @@ npm run test:staging:release
 ```
 `scripts/staging/release-check.staging.mjs` is the release verification that **never enables cloud sync**.
 - **Its rules,** enforced on its source by `staging-release-check.test.ts`:
-  - it never writes `app_config`;
+  - The check makes one deliberate authenticated student-side UPDATE attempt against `app_config`. The server must deny it. No successful `app_config` modification occurs, and the script's server key never writes to `app_config`.
   - it stops before doing anything unless `adult_sync_permitted`, `minor_sync_permitted` and `account_deletion_enabled` are all `'false'`, and checks them again at the end;
   - it stores no study data: its only study-table writes are single synthetic rows the server must refuse, with 0 rows stored;
   - it uses synthetic accounts (admin API, no email), all removed.
@@ -169,7 +169,7 @@ npm run test:staging:release
   - sign-in with generic errors, session refresh, and sign-out revoking the refresh token;
   - own-profile and append-only consent rules;
   - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18 with full consent: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
-  - **one deliberate, denied write:** a signed-in student tries to set `adult_sync_permitted` to `'true'` in `app_config`. The check passes only if the server denies it and the value stays `'false'`. The script's server key never writes `app_config`, so it never touches either sync permission or the deletion gate;
+  - the denied student-side UPDATE attempt against `app_config` (above): a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server denies it and the value stays `'false'`. No successful `app_config` modification occurs, so neither sync permission nor the deletion gate changes;
   - A-versus-B isolation;
   - export (own data only, documented shape);
   - deletion refusal with the gate off (request, function and sweep; nothing recorded).
@@ -202,7 +202,7 @@ npm run test:staging:release
 | 2026-11-22 | `npm run test:staging:release` (safe release check) | 63/63. Started and ended with both sync switches and the deletion gate `'false'`; 3 synthetic accounts removed; 0 rows in all student tables, `deletion_requests` and `deletion_rate` |
 
 ### Manual staging checks (needs a real inbox)
-**Status: not yet verified.** No result has been recorded for any of the 7 checks below. They are required before the accounts UI is turned on (tracker E1).
+**Status: NOT VERIFIED.** No result has been recorded for any of the 7 checks below. They are required before the accounts UI is turned on (tracker E1).
 Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:
 1. Sign up: the confirmation email arrives; its link opens `/auth/callback/`, signs you in, and the code disappears from the address bar.
 2. Open the same link again: you see the "link can't be used" message, not an error page.

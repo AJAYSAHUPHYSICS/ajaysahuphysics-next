@@ -130,7 +130,7 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
 
 **Its replacement, `npm run test:staging:release`** (`scripts/staging/release-check.staging.mjs`):
 - **How it stays safe:**
-  - it never writes `app_config`;
+  - The check makes one deliberate authenticated student-side UPDATE attempt against `app_config`. The server must deny it. No successful `app_config` modification occurs, and the script's server key never writes to `app_config`.
   - it stops unless both sync switches and the deletion gate are `'false'`;
   - it stores no study data;
   - it uses synthetic accounts, all removed.
@@ -139,7 +139,7 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - sign-in, generic errors, session refresh, and sign-out revoking the refresh token;
   - profile and consent rules;
   - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
-  - **one deliberate write attempt on `app_config`:** a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server **denies** it. The script's server key never writes `app_config`, and a unit test enforces both on its source;
+  - the denied student-side UPDATE attempt against `app_config` (above): a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server denies it and the value stays `'false'`. A unit test (`staging-release-check.test.ts`) enforces on the script's source that this is the only `app_config` UPDATE, and that the server key makes none;
   - A-versus-B isolation;
   - export;
   - deletion refusal with the gate off.
@@ -225,7 +225,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 
 **B. Site merges**, one at a time, in the order of section 1's current merge mechanics: #14, #16 and #17 first, then the release stack. After each deploy, check the live site: routes, console errors and a phone.
 - **While H1 is in force** (the release stack is merged, but `ACCOUNTS_UI_ENABLED` is still `false`), check that no login or sign-up control appears, and that a signed-in session can still log out.
-- **Turning the accounts UI on** is a separate, owner-approved release PR. After it deploys, test login, sign-up and password reset with a test inbox, and record the 7 manual email checks (`supabase/README.md`), which are **not yet verified**.
+- **Turning the accounts UI on** is a separate, owner-approved release PR. After it deploys, test login, sign-up and password reset with a test inbox, and record the 7 manual email checks (`supabase/README.md`), which are **NOT VERIFIED**.
 
 **C. Production database. Only after legal sign-off (F12).**
 1. **Before any production database change:**
@@ -315,7 +315,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 - **M1 (live defect, fix in #17, not merged):** `/dashboard/activity/` throws React hydration error #418 on every day after a deploy, because the build day's dates were in the prerendered HTML. `/dashboard/revision/` had the same pattern, without a visible error.
 - **Hosting:** GitHub Pages can't send security headers such as `frame-ancestors` or `nosniff` (F8). Cloudflare Pages is the preferred candidate; the migration isn't authorised.
 - **Build switches:** the analytics and CAPTCHA switches aren't wired into `deploy.yml` (F7).
-- **Manual staging checks, not yet verified:** the 7 inbox checks (confirmation and reset emails, link reuse, another browser, repeat sign-up, logout, account page) need a real inbox (checklist in `supabase/README.md`). No result has been recorded.
+- **Manual staging checks, NOT VERIFIED:** the 7 inbox checks (confirmation and reset emails, link reuse, another browser, repeat sign-up, logout, account page) need a real inbox (checklist in `supabase/README.md`). No result has been recorded.
 - **Not tested, on purpose:** cloud sync with sync on (two devices, merging, tombstones, large syncs). The old `npm run test:staging` covered it by enabling sync in staging, and it is no longer run.
 - **Age band:** self-declared, and changeable.
 - **Dependencies:** 1 moderate `npm audit` advisory, in a build-time tool (F13).
