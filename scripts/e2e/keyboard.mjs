@@ -3,6 +3,8 @@
 // DevTools protocol, like study-tools.mjs). Run by npm run test:e2e.
 //   - the first Tab stop is the skip link, and it leads into <main>
 //   - every Tab stop on key pages has a visible focus indicator
+//   - while the accounts UI is off (H1): no login or sign-up control is
+//     visible or reachable (desktop and mobile menu); when it is on:
 //   - the login dialog opens from the keyboard, traps focus, closes on
 //     Escape and returns focus to its trigger
 //   - the mobile menu is reachable, reports aria-expanded, closes on Escape
@@ -66,6 +68,26 @@ await tab(); await key("Enter", "Enter", 13); await sleep(300); await tab();
 const afterSkip = await ev(`(() => { const m = document.querySelector("main"); return location.hash + " " + (m && m.contains(document.activeElement)); })()`);
 (/ true$/.test(afterSkip) ? ok : fail)(`after the skip link, the next Tab lands inside <main> (${afterSkip})`);
 
+// Login and sign-up entry points (owner decision H1). While the accounts UI
+// switch (src/lib/auth/accounts-ui.ts) is off, no login or sign-up control may
+// be visible or keyboard-reachable anywhere, desktop or mobile menu. The
+// dialog checks below run only when the switch is on.
+const ACCOUNTS_UI = /ACCOUNTS_UI_ENABLED = true/.test(fs.readFileSync(path.resolve("src", "lib", "auth", "accounts-ui.ts"), "utf8"));
+const LOGIN_RE = /log ?in|sign ?up|create an account/i;
+const VISIBLE_LOGIN = `[...document.querySelectorAll("a, button, [role=button]")].filter((e) => e.checkVisibility()).map((e) => (e.getAttribute("aria-label") || e.textContent || "").trim()).filter((t) => ${LOGIN_RE}.test(t))`;
+if (!ACCOUNTS_UI) {
+  for (const [p, w] of [["/", 1280], ["/dashboard/", 1280], ["/class-11/kinematics/", 1280], ["/", 360], ["/dashboard/", 360]]) {
+    await go(p, w);
+    if (w < 600) { await ev(`document.querySelector("button[aria-label$=menu]")?.click()`); await sleep(400); }
+    const found = (await ev(VISIBLE_LOGIN)) ?? ["(check did not run)"];
+    (found.length === 0 ? ok : fail)(`${p} @${w}${w < 600 ? " with the menu open" : ""}: no login or sign-up control (H1)${found.length ? " — found: " + found.join(", ") : ""}`);
+  }
+  await go("/");
+  let reachable = null;
+  for (let i = 0; i < 40 && !reachable; i++) { await tab(); const f = await ev(FOCUS); if (f && LOGIN_RE.test(f.text)) reachable = f.text; }
+  (!reachable ? ok : fail)(`no login or sign-up control is reachable by keyboard (H1)${reachable ? " — reached: " + reachable : ""}`);
+  for (const m of ["auth dialog opens from the keyboard", "focus moves into the dialog on open", "Tab and Shift+Tab stay inside the dialog", "Escape closes the dialog", "focus returns to the trigger"]) skip(m + " (login hidden until the release, H1)");
+} else {
 // Auth dialog via keyboard
 await go("/");
 let opened = false;
@@ -94,6 +116,7 @@ if (opened && ACCOUNTS) {
   const back = await ev(FOCUS);
   (closed ? ok : fail)("Escape closes the dialog");
   (back && /Login \/ Sign Up/.test(back.text) ? ok : fail)(`focus returns to the trigger (${back?.tag} "${back?.text}")`);
+}
 }
 
 // Mobile menu
