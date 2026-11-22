@@ -23,15 +23,15 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 ## Summary
 | ID | Severity | Priority | Status | Blocks | Owner |
 |---|---|---|---|---|---|
-| F1 | High | P0 | OPEN | Merging #12 and #10 | Owner (at merge time) |
-| F2 | Medium | P0 | OPEN | Every merge | Owner (at merge time) |
+| F1 | High | P0 | #12 RESOLVED (superseded by #13) · #10 OPEN | Merging #10 | Owner (at merge time) |
+| F2 | Medium | P0 | VERIFIED for `main` at `2734e98` · OPEN for #7 and #10 | Merging #7 and #10 | Owner (at merge time) |
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
 | F4 | Medium | P1 | OPEN (code fix and test required) · missing-database handling VERIFIED | Enabling account deletion | Engineering |
 | F5 | High | P0 | OPEN (deletion gate and scheduler not started) | Production database migrations and enabling account deletion | Engineering, then owner |
 | F6 | Low | P2 | VERIFIED (auth and CORS) · 3 fixes OPEN | Nothing | Engineering |
 | F7 | Medium | P1 | OPEN · OWNER DECISION | Switching analytics off; CAPTCHA | Engineering (PR), owner (approval) |
 | F8 | Medium | P2 | OPEN · OWNER DECISION (hosting) | Nothing | Engineering (interim), owner (hosting) |
-| F9 | Medium | P0 | OPEN · NOT VERIFIED | Merging #6 and #7 | Engineering |
+| F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · live login check after #7 OPEN | Nothing before merging #7 | Engineering |
 | F10 | High | P0 | OPEN · OWNER DECISION | Production database | Owner (approve the read-only inventory) |
 | F11 | Medium | P1 | DOCUMENTED · pending-deletion step OPEN | Any rollback | Owner |
 | F12 | Critical | P0 | BLOCKED | Production database and cloud sync | Counsel, then owner |
@@ -51,6 +51,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - Then run `gh pr edit 12 --base main` and `gh pr edit 10 --base main`, and wait for green CI on each before merging.
 - **Depends on:** #8 merged (for #12); #7 merged (for #10).
 - **Done when:** both PRs show base `main` with green CI before they are merged.
+- **Update (2026-11-21, after the merges):** #9, #11, #6, #8 and #13 were **squash-merged**, not merged with merge commits. #12's change was rebased onto `main` as #13 and is deployed; #12 is superseded and can be closed (owner's call). #10 is still stacked on #7's branch. Because squash is the method in use, the safe path is: squash-merge #7, then rebase #10 onto `main` (as was done for #12 → #13), wait for green CI, then merge.
 
 ### F2 · No intermediate `main` state has been built in CI
 - **Severity:** Medium. **Priority:** P0. **Status:** OPEN.
@@ -61,6 +62,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 - **Action:** before every merge, click "Update branch" and wait for green CI on the updated head. Optionally, turn on "require branches to be up to date" in the ruleset (an owner setting).
 - **Depends on:** nothing.
 - **Done when:** each merged PR's last CI run was on a head that included the then-current `main`.
+- **Update (2026-11-21):** `main` at `2734e98` (after #9, #11, #6, #8, #13): all five deploy runs succeeded; locally, lint and `tsc` clean, unit 461 passed and 1 skipped, build-output 11 passed and 2 skipped, E2E 69/69, keyboard 17/17 (5 skipped). `main` + #10 (which contains #7), merged locally without conflicts: lint and `tsc` clean, unit 550 passed and 1 skipped, build-output 11 passed and 2 skipped, E2E 69/69, keyboard 24/24. #7 and #10 are 5 commits behind `main`, so their CI hasn't run on that combination: update both branches before merging.
 
 ### F3 · #7 changes the live auth flow; production redirect URLs come first
 - **Severity:** High. **Priority:** P0. **Status:** OPEN · NOT VERIFIED (no access to production Auth settings).
@@ -196,7 +198,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 - **Done when:** the interim guards ship with tests, or the site moves to a host that sends `frame-ancestors` and `nosniff`.
 
 ### F9 · No browser test of a production-configured build
-- **Severity:** Medium. **Priority:** P0 for #6 and #7. **Status:** OPEN · NOT VERIFIED.
+- **Severity:** Medium. **Priority:** P0 for #6 and #7. **Status:** VERIFIED on staging (see Result) · live login check after #7 OPEN.
 - **Evidence:**
   - CI builds with auth off on purpose (`.github/workflows/ci.yml:52-56`), so its E2E run (`.github/workflows/ci.yml:73-79` (#8)) never sees accounts switched on, and its CSP falls back to `*.supabase.co`.
   - Staging browser journeys ran on `npm run dev`, which doesn't inject the CSP.
@@ -206,6 +208,11 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - Do this on #6 and again on #7. After each deploy, test login live.
 - **Depends on:** the staging project (available).
 - **Done when:** both runs pass with 0 CSP violations, and the result is recorded here.
+- **Result (2026-11-21):**
+  - #6 was merged before a separate #6 run. Instead, the live site at `2734e98` was audited read-only: 23 pages, with the CSP meta tag on every page, 0 CSP violations and 0 console errors, and the login dialog opens. The live CSP's `connect-src` names the production Supabase origin. No live sign-in was attempted.
+  - `main` + #10 (contains #7) was built with `next build` and the **staging** URL and publishable key. The CSP was injected on 228 pages with `connect-src` set to the staging origin, and no production ref appears in the output. The build was served locally like GitHub Pages and never deployed.
+  - The staging browser journey ran against that build with CSP reporting added: **15/15 passed**, 0 CSP violations, CSP meta on every navigation, 0 console errors, 0 failed requests. It covers a wrong password, login, session restore, the account page, export, sync shown unavailable, logout keeping device progress, deletion from the UI with the server user gone, and phone width.
+  - Remaining: a live login check straight after #7 deploys.
 
 ### F10 · Schema-wide revokes against an unknown production schema
 - **Severity:** High. **Priority:** P0 for the production database. **Status:** OPEN · OWNER DECISION.
@@ -284,9 +291,9 @@ Record:
 - [ ] Counsel review reference, if any: ______.
 
 ## Release dependencies
-1. **Before the first merge:** production Auth redirect URLs, Site URL check and password length (F3). F7 is optional. The F9 test runs on #6.
-2. **Each merge:** update the branch and wait for green CI (F2), in the order #9 → #6 → #8 → #12 → #11 → #7 → #10. Use merge commits for #8 and #7, and retarget #12 and #10 (F1).
-3. **#7:** after F3 and the F9 test, and the F13 decision (checklist under F13).
+1. **Done:** #9, #11, #6, #8 and #13 are merged and deployed (squash). #12 is superseded.
+2. **Before merging #7:** production Auth redirect URLs, Site URL check and password length (F3); the F13 decision; update the branch and wait for green CI (F2). F9 has passed on staging. F7 is optional.
+3. **#10:** after #7, rebase onto `main` (F1), wait for green CI, then merge.
 4. **Production database:** in this order:
    1. F12 (legal), then F10 (inventory) and a backup;
    2. the F4 fix and the F5 server-side deletion gate (off by default, failing closed), merged and deployed;
@@ -305,12 +312,28 @@ Record:
 ## Merge readiness
 | PR | Ready? | Waiting on |
 |---|---|---|
-| #9 | Yes, with approval | F2 (update branch) |
-| #6 | After the F9 test | F2, F9 |
-| #8 | Yes, with approval | F2; merge commit (F1) |
-| #12 | After #8 and retargeting | F1, F2 |
-| #11 | Yes, with approval | F2 |
-| #7 | No | F3, F9, F13; merge commit (F1) |
-| #10 | No | #7 merged; F1 retarget; F2 |
+| #9 | Merged (squash), deployed | — |
+| #11 | Merged (squash), deployed | — |
+| #6 | Merged (squash), deployed | — |
+| #8 | Merged (squash), deployed | — |
+| #13 (replaces #12) | Merged (squash), deployed `2734e98` | — |
+| #12 | Superseded by #13 | Owner: close |
+| #7 | No | F3 (production Auth settings), F13 decision, F2 (update branch); F4 fix recommended first |
+| #10 | No | #7 merged, then rebase onto `main` (F1), F2 |
+
+## Post-deploy verification (2026-11-21)
+Read-only checks of the live site after #13 deployed, plus local gates and a staging run. No production database access; staging used synthetic accounts only.
+
+| Check | Result |
+|---|---|
+| Deploy | "Deploy to GitHub Pages" succeeded for `2734e98`; the live site serves that build |
+| Live crawl | 49 pages and 36 external links; 0 broken internal links. One Instagram link couldn't be checked from the audit machine (its TLS chain is intercepted locally), so it is unverified, not broken |
+| Live browser | 23 pages: 0 console errors, 0 CSP violations, no horizontal overflow at 360, 390, 768 or 1280 px |
+| Live journeys | 14/14: the mobile menu opens and closes with Escape and navigates; the dashboard and its 5 cards render with empty and seeded synthetic storage; all 6 dashboard routes; a chapter bookmark; the login dialog opens (not submitted) |
+| Accessibility | 1 defect: on `/jee/`, the JEE Main / JEE Advanced picker had headings inside buttons and skipped from h1 to h3. Fixed in PR #14 (`phase-2-5-jee-picker-a11y`, not merged); the audit now covers `/jee/` and `/neet/`, and fails without the fix |
+| Staging RLS probe | 25/25: anonymous reads denied on all 11 tables; A versus B read, update, insert-as and delete blocked; students can't switch sync on, upload study data or change `app_config`. The sync switches were `'false'` before, during and after; staging ended with 0 users and 0 rows |
+| Not run | `npm run test:staging` (23 checks) switches `adult_sync_permitted` on in staging for its run, so it was not run, to keep sync off throughout. Its last result is 23/23 (`supabase/README.md`) |
+| Manual inbox checks | The 7 inbox checks in `supabase/README.md` (confirmation, reset, link reuse) have no recorded result |
+| Dependencies | `npm audit`: 14 advisories (5 high, 9 moderate), all in build or dev tooling; production tree: 1 moderate (`baseline-browser-mapping`, build time only). No upgrades made |
 
 Every merge deploys and needs the owner's explicit approval.

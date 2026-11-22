@@ -5,6 +5,8 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
 **Release status (pre-release audit, 2026-11-21):** the code is complete and verified on staging, but the release is **not ready to merge as-is**. The merge order is right, but merging has prerequisites (section 1), some items block #7 and the production database (section 12), and legal sign-off gates every database and sync step. Each finding, F1 to F13, is tracked with its status in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 
 ## 1. Pull requests and merge order
+**Status (2026-11-21, after the merges):** #9, #11, #6, #8 and #13 (a rebased #12) are squash-merged and deployed at `2734e98`. Still open: #7, then #10. #10 must be rebased onto `main` after #7 merges, because squash merges are in use. F9 has passed on staging. See the tracker's "Post-deploy verification" and "Merge readiness" sections. The table below is the original plan.
+
 | Order | PR | Scope | Before merging |
 |---|---|---|---|
 | 1 | #9 | Next.js 16.2.9 → 16.4.6 (clears all Next.js advisories) | Update branch, green CI (F2) |
