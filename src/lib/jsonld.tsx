@@ -105,12 +105,27 @@ export function faqPageJsonLd(faqs: { question: string; answer: string }[]) {
   };
 }
 
+/**
+ * JSON for embedding inside a <script> element. JSON.stringify doesn't
+ * escape "<", so a value containing "</script>" or "<!--" could end the
+ * element early and inject markup. Escaping "<" (plus the two line
+ * separators that are invalid in some JS parsers) keeps the JSON
+ * identical when parsed.
+ */
+export function serializeJsonForScript(data: unknown): string {
+  const backslash = String.fromCharCode(92);
+  return JSON.stringify(data)
+    .split("<").join(backslash + "u003c")
+    .split(String.fromCharCode(0x2028)).join(backslash + "u2028")
+    .split(String.fromCharCode(0x2029)).join(backslash + "u2029");
+}
+
 /** Renders a JSON-LD script tag. Use once per structured-data object. */
 export function JsonLd({ data }: { data: object }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonForScript(data) }}
     />
   );
 }

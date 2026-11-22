@@ -30,7 +30,7 @@ export default function DailyStudyPlanCard({ plan }: { plan: DailyStudyPlan }) {
         title="Nothing planned for today"
         description="No overdue revisions, mistakes, or unfinished resources right now — a great time to start a new chapter."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

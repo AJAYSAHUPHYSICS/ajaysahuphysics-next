@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   getBookmarks,
   subscribeToBookmarks,
-  toggleBookmark,
   type Bookmark,
 } from "@/lib/bookmarks";
 import {
@@ -95,7 +94,19 @@ const EMPTY_ACTIVITY_LOG: ActivityEvent[] = [];
 const EMPTY_MISTAKES: Mistake[] = [];
 const EMPTY_ACTIVE_GOALS: ActiveGoal[] = [];
 
-export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] }) {
+export type DashboardView = "overview" | "progress" | "revision" | "mistakes" | "activity";
+
+/**
+ * The dashboard's study data, rendered per page:
+ *   overview  – the five essentials (owner decision, 2026-11-20): continue
+ *               studying, due for revision, today's plan, mistakes to
+ *               retry, study streak;
+ *   progress  – readiness, goals, targets, recommendations, forecasts and
+ *               the full chapter list (/dashboard/progress/);
+ *   revision / mistakes / activity – the analysis cards for that study page.
+ * Every calculation is unchanged; only where each card appears changed.
+ */
+export default function DashboardClient({ chapters, view = "overview" }: { chapters: ChapterMeta[]; view?: DashboardView }) {
   const checklists = useSyncExternalStore(
     subscribeToChecklist,
     getAllChecklists,
@@ -347,558 +358,543 @@ export default function DashboardClient({ chapters }: { chapters: ChapterMeta[] 
     motivation = "Let's start your first chapter today.";
   }
 
+  // The chapter list is on the Progress page; Continue Studying is on the overview.
+  const allChaptersHref = view === "progress" ? "#all-chapters" : "/dashboard/progress#all-chapters";
+  const continueHref = view === "overview" ? "#continue-studying" : "/dashboard#continue-studying";
+
   return (
     <div className="space-y-8">
-      {/* Task 7 — Daily motivation */}
-      <div className="rounded-lg bg-navy text-white p-6 sm:p-7 flex flex-wrap items-center justify-between gap-4">
-        <p className="font-display text-lg sm:text-xl">{motivation}</p>
-        {!hasAnyActivity && (
-          <Link
-            href="#all-chapters"
-            className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-navy bg-gold hover:bg-gold-deep rounded-md px-4 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-white"
-          >
-            Browse chapters &rarr;
-          </Link>
-        )}
-      </div>
-
-      {/* M13 Task 1/4 — Exam Readiness Score */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Exam Readiness</h3>
-        <ExamReadinessCard readiness={readiness} />
-      </div>
-
-      {/* M16 Task 7 — Productivity Score */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Productivity Score</h3>
-        <p className="text-sm text-slate mb-5">
-          One score combining completion, revision, accuracy, and consistency.
-        </p>
-        <ProductivityScoreCard score={productivityScoreData} />
-      </div>
-
-      {/* M15 Task 1/2/3/5/8 — Daily Study Plan */}
-      <div id="study-plan" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Study Plan</h3>
-        <p className="text-sm text-slate mb-5">
-          Up to 8 tasks, ranked by urgency and mixed across subjects, each linking straight
-          to what you need to do.
-        </p>
-        <DailyStudyPlanCard plan={dailyPlan} />
-      </div>
-
-      {/* M16 Task 1 — Study Goals */}
-      <div id="study-goals" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Study Goals</h3>
-        <p className="text-sm text-slate mb-5">
-          Track any of these and get a target date, daily/weekly targets, and coaching below.
-        </p>
-        <GoalsCard rows={goalRows} onToggle={toggleGoal} />
-      </div>
-
-      {/* M16 Task 3/4 — Daily & Weekly Targets */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Today&apos;s Targets</h3>
-          <p className="text-sm text-slate mb-5">Based on your tracked goals and today&apos;s study plan.</p>
-          <DailyTargetsCard targets={dailyTargets} />
-        </div>
-        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">This Week&apos;s Targets</h3>
-          <p className="text-sm text-slate mb-5">A rolling 7-day target based on your recent pace.</p>
-          <WeeklyTargetsCard targets={weeklyTargets} />
-        </div>
-      </div>
-
-      {/* M16 Task 8 — Smart Recommendations */}
-      <div className="rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Smart Recommendations</h3>
-        <p className="text-sm text-slate mb-5">Coaching based on your goal pace and revision schedule.</p>
-        <SmartRecommendationsCard recommendations={goalRecommendations} />
-      </div>
-
-      {/* Task 5 — Quick actions */}
-      <nav aria-label="Dashboard quick actions" className="flex flex-wrap gap-2">
-        <QuickAction href="#study-plan" label="Today's Plan" />
-        <QuickAction href="#study-goals" label="Study Goals" />
-        <QuickAction href="#recommended-today" label="Recommended Today" />
-        <QuickAction href="#continue-studying" label="Continue Study" />
-        <QuickAction href="#todays-revision" label="Today's Revision" />
-        <QuickAction href="#weak-chapters" label="Weak Chapters" />
-        <QuickAction href="#all-chapters" label="Browse Chapters" />
-      </nav>
-
-      {/* M13 Task 6 — Recommended Today */}
-      <div id="recommended-today" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Recommended Today</h3>
-        <p className="text-sm text-slate mb-5">
-          Up to 5 chapters worth your time today, in priority order: overdue revisions first,
-          then weak chapters, unfinished practice, and bookmarks.
-        </p>
-        <RecommendedToday items={todaysPriorities} />
-      </div>
-
-      {/* M12 Task 7 / M14 Task 8 — Study Insights */}
-      {allInsights.length > 0 && (
-        <div className="rounded-lg border border-navy/10 bg-white p-6 sm:p-7">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
-            {allInsights.map((insight) => (
-              <li key={insight} className="text-sm text-navy flex items-center gap-2">
-                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-gold" />
-                {insight}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Stats */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Your progress</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
-          <Stat value={chaptersCompleted} label="Chapters completed" />
-          <Stat value={resourcesCompleted} label="Resources completed" />
-          <Stat value={bookmarks.length} label="Bookmarks" />
-          <Stat value={revisionCount} label="Revision rounds" />
-        </div>
-        <div className="pt-6 border-t border-navy/10">
-          <StudyStreakBadge />
-          <div className="mt-3">
-            <StreakBonusCard bonus={streakBonus} />
-          </div>
-        </div>
-      </div>
-
-      {/* M13 Task 7 — Milestones */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Milestones</h3>
-        <MilestonesCard milestones={milestones} />
-      </div>
-
-      {/* M16 Task 6 — Achievements */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Achievements</h3>
-        <AchievementsCard achievements={achievementsList} />
-      </div>
-
-      {/* M14 Task 3 — Mistake Notebook */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Mistake Notebook</h3>
-        <MistakeNotebookCard mistakes={mistakes} />
-      </div>
-
-      {/* M14 Task 4 — Chapter Performance */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Chapter Performance</h3>
-        <p className="text-sm text-slate mb-5">
-          Accuracy per chapter, based on practice done and mistakes logged.
-        </p>
-        <ChapterAccuracyList accuracies={chapterAccuracies} />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-        {/* M14 Task 5 — Concept Analysis */}
-        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Concept Analysis</h3>
-          <p className="text-sm text-slate mb-5">Concepts needing the most revision.</p>
-          <ConceptAnalysisCard concepts={topConcepts} />
-        </div>
-
-        {/* M14 Task 6/7 — Practice Again */}
-        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-1">Practice Again</h3>
-          <p className="text-sm text-slate mb-5">Unresolved mistakes, oldest and hardest first.</p>
-          <ReattemptListCard items={reattemptList} />
-        </div>
-      </div>
-
-      {/* Task 2 — Today's Activity */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Today&apos;s Activity</h3>
-        {hasTodayActivity ? (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-              <Stat value={resourcesCompletedToday} label="Resources completed" />
-              <Stat value={chaptersVisitedToday} label="Chapters visited" />
-              <Stat value={revisionRoundsToday} label="Revision rounds" />
-              <Stat value={bookmarksAddedToday} label="Bookmarks added" />
-            </div>
-            <div className="mt-6 pt-5 border-t border-navy/10">
+      {view === "overview" ? (
+        <>
+          {/* Task 7 — Daily motivation */}
+          <div className="rounded-lg bg-navy text-white p-6 sm:p-7 flex flex-wrap items-center justify-between gap-4">
+            <p className="font-display text-lg sm:text-xl">{motivation}</p>
+            {!hasAnyActivity && (
               <Link
-                href="#continue-studying"
-                className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
+                href={allChaptersHref}
+                className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-navy bg-gold hover:bg-gold-deep hover:text-white rounded-md px-4 py-2.5 transition-colors focus-visible:outline-2 focus-visible:outline-white"
               >
-                Continue studying &rarr;
+                Browse chapters &rarr;
+              </Link>
+            )}
+          </div>
+
+          {/* Task 1 — Continue Studying */}
+          <div id="continue-studying" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-4">Continue Studying</h2>
+            {continueStudying.length > 0 ? (
+              <ul className="space-y-2">
+                {continueStudying.map((r) => (
+                  <li key={`${r.cls}-${r.slug}-${r.resourceKey}`}>
+                    <Link
+                      href={r.path}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3.5 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
+                    >
+                      <span>
+                        <span className="block text-sm font-semibold text-navy">{r.chapterName}</span>
+                        <span className="block text-xs text-slate/60 mt-0.5">
+                          {r.resourceLabel} &middot; opened {formatRelativeTime(r.visitedAt)}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-gold-deep">Continue &rarr;</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon="clock"
+                title="Nothing left unfinished"
+                description="Resources you open but haven't checked off will show up here so you can pick up right where you left off."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
+            )}
+          </div>
+
+          {/* Task 3 — Today's revision plan */}
+          <div id="todays-revision" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Due for revision</h2>
+            <p className="text-sm text-slate mb-5">
+              A short list worth revising today, based on due revisions, bookmarks, recent
+              activity, and unfinished chapters.
+            </p>
+            {revisionPlan.length > 0 ? (
+              <ul className="space-y-2">
+                {revisionPlan.map((item) => (
+                  <li key={`${item.cls}-${item.slug}`}>
+                    <Link
+                      href={item.path}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-navy/10 px-4 py-3 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
+                    >
+                      <span className="text-sm font-semibold text-navy">{item.name}</span>
+                      <span className="flex flex-wrap gap-1.5">
+                        {item.reasons.map((reason) => (
+                          <span
+                            key={reason}
+                            className="text-xs font-medium text-gold-deep bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5"
+                          >
+                            {reason}
+                          </span>
+                        ))}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon="revision"
+                title="No revision due"
+                description="Nothing is overdue for revision right now. Complete a chapter's resources or mark a revision round to build your plan."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
+            )}
+          </div>
+
+          {/* M15 Task 1/2/3/5/8 — Daily Study Plan */}
+          <div id="study-plan" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Today&apos;s plan</h2>
+            <p className="text-sm text-slate mb-5">
+              Up to 8 tasks, ranked by urgency and mixed across subjects, each linking straight
+              to what you need to do.
+            </p>
+            <DailyStudyPlanCard plan={dailyPlan} />
+          </div>
+
+          {/* Overview — Mistakes to retry (same list as the Mistakes page's "Practice Again") */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+              <h2 className="font-display text-xl text-navy">Mistakes to retry</h2>
+              <Link href="/dashboard/mistakes" className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
+                Mistake notebook &rarr;
               </Link>
             </div>
-          </>
-        ) : (
-          <EmptyState
-            icon="clock"
-            title="No study activity yet today"
-            description="Open a chapter and check off a resource or revision round — today's activity will show up here."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
-
-      {/* M13 Task 5 — Weekly Progress (last 7 days) */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Weekly Progress</h3>
-        <WeeklyProgress events={weeklyEvents} />
-      </div>
-
-      {/* Task 1 — Continue Studying */}
-      <div id="continue-studying" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-4">Continue Studying</h3>
-        {continueStudying.length > 0 ? (
-          <ul className="space-y-2">
-            {continueStudying.map((r) => (
-              <li key={`${r.cls}-${r.slug}-${r.resourceKey}`}>
-                <Link
-                  href={r.path}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3.5 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
-                >
-                  <span>
-                    <span className="block text-sm font-semibold text-navy">{r.chapterName}</span>
-                    <span className="block text-xs text-slate/60 mt-0.5">
-                      {r.resourceLabel} &middot; opened {formatRelativeTime(r.visitedAt)}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold text-gold-deep">Continue &rarr;</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon="clock"
-            title="Nothing left unfinished"
-            description="Resources you open but haven't checked off will show up here so you can pick up right where you left off."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
-
-      {/* M12 Task 3 — Revision Health */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Revision Health</h3>
-        <RevisionHealthCard health={health} />
-      </div>
-
-      {/* M12 Task 1 — Revision Timeline */}
-      <div id="revision-timeline" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Revision Timeline</h3>
-        <p className="text-sm text-slate mb-5">
-          Chapters grouped by when they&apos;re next due, based on a 1 / 7 / 30-day revision
-          schedule after each round.
-        </p>
-        <RevisionTimeline chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
-      </div>
-
-      {/* M15 Task 6 — Weekly Plan */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Weekly Plan</h3>
-        <p className="text-sm text-slate mb-5">
-          A 7-day look ahead — computed fresh each time, nothing saved.
-        </p>
-        <WeeklyPlanCard days={weeklyPlan} />
-      </div>
-
-      {/* Task 4/6 — Resource completion chart */}
-      {resourceBreakdown.some((r) => r.total > 0) && (
-        <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-          <h3 className="font-display text-xl text-navy mb-5">Resource completion</h3>
-          <div className="space-y-4">
-            {resourceBreakdown
-              .filter((r) => r.total > 0)
-              .map((r) => {
-                const pct = Math.round((r.completed / r.total) * 100);
-                return (
-                  <div key={r.key}>
-                    <div className="flex items-baseline justify-between mb-1.5">
-                      <span className="text-sm font-semibold text-navy">{r.label}</span>
-                      <span className="text-xs text-slate/60">
-                        {r.completed}/{r.total} chapters ({pct}%)
-                      </span>
-                    </div>
-                    <ProgressBar percent={pct} size="sm" label={`${r.label} completion across all chapters`} />
-                  </div>
-                );
-              })}
+            <p className="text-sm text-slate mb-5">Unresolved mistakes, oldest and hardest first.</p>
+            <ReattemptListCard items={reattemptList} />
           </div>
-          <div className="mt-6 pt-5 border-t border-navy/10">
-            <Link href="#all-chapters" className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
-              Browse chapters &rarr;
-            </Link>
+
+          {/* Overview — Study streak */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+              <h2 className="font-display text-xl text-navy">Study streak</h2>
+              <Link href="/dashboard/activity" className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
+                Activity &rarr;
+              </Link>
+            </div>
+            <StudyStreakBadge />
+            <div className="mt-3">
+              <StreakBonusCard bonus={streakBonus} />
+            </div>
           </div>
-        </div>
-      )}
+        </>
+      ) : null}
 
-      {/* M13 Task 3 — Resource Gaps */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Resource Gaps</h3>
-        <p className="text-sm text-slate mb-5">Work remaining across every resource type and revision.</p>
-        <ResourceGapsCard gaps={resourceGaps} />
-      </div>
-
-      {/* M16 Task 5 — Progress Forecast */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Progress Forecast</h3>
-        <p className="text-sm text-slate mb-5">
-          Estimated days remaining at your current pace, for chapters and each resource type.
-        </p>
-        <ProgressForecastCard forecast={progressForecastData} />
-      </div>
-
-      {/* Task 2 (M10) — Weak chapters */}
-      <div id="weak-chapters" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Needs attention</h3>
-        <p className="text-sm text-slate mb-5">
-          Chapters that are incomplete, haven&apos;t been revised, or still have unsolved PYQs.
-        </p>
-        {hasWeakChapters ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <WeakGroup title="Incomplete" entries={weak.incomplete} />
-            <WeakGroup title="Never revised" entries={weak.neverRevised} />
-            <WeakGroup title="PYQs not solved" entries={weak.pyqNotSolved} />
+      {view === "progress" ? (
+        <>
+          {/* M13 Task 1/4 — Exam Readiness Score */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Exam Readiness</h2>
+            <ExamReadinessCard readiness={readiness} />
           </div>
-        ) : (
-          <EmptyState
-            icon="check"
-            title="No weak chapters"
-            description="Every chapter you've started is complete, revised, and has its PYQs solved. Great work."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
 
-      {/* M13 Task 2 — Strength Analysis */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Strength Analysis</h3>
-        <StrengthAnalysis analysis={strength} />
-      </div>
+          {/* M16 Task 7 — Productivity Score */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Productivity Score</h2>
+            <p className="text-sm text-slate mb-5">
+              One score combining completion, revision, accuracy, and consistency.
+            </p>
+            <ProductivityScoreCard score={productivityScoreData} />
+          </div>
 
-      {/* Task 3 — Today's revision plan */}
-      <div id="todays-revision" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Today&apos;s revision plan</h3>
-        <p className="text-sm text-slate mb-5">
-          A short list worth revising today, based on due revisions, bookmarks, recent
-          activity, and unfinished chapters.
-        </p>
-        {revisionPlan.length > 0 ? (
-          <ul className="space-y-2">
-            {revisionPlan.map((item) => (
-              <li key={`${item.cls}-${item.slug}`}>
-                <Link
-                  href={item.path}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-navy/10 px-4 py-3 hover:border-gold hover:bg-ivory transition-colors focus-visible:outline-2 focus-visible:outline-gold"
-                >
-                  <span className="text-sm font-semibold text-navy">{item.name}</span>
-                  <span className="flex flex-wrap gap-1.5">
-                    {item.reasons.map((reason) => (
-                      <span
-                        key={reason}
-                        className="text-xs font-medium text-gold-deep bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5"
-                      >
-                        {reason}
-                      </span>
-                    ))}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon="revision"
-            title="No revision due"
-            description="Nothing is overdue for revision right now. Complete a chapter's resources or mark a revision round to build your plan."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
+          {/* M16 Task 1 — Study Goals */}
+          <div id="study-goals" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Study Goals</h2>
+            <p className="text-sm text-slate mb-5">
+              Track any of these and get a target date, daily/weekly targets, and coaching below.
+            </p>
+            <GoalsCard rows={goalRows} onToggle={toggleGoal} />
+          </div>
 
-      {/* M12 Task 4 — Mastered Library */}
-      <div id="mastered-chapters" className="scroll-mt-24 rounded-lg border border-green-200 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-1">Mastered Chapters</h3>
-        <p className="text-sm text-slate mb-5">
-          Every resource completed, all 3 revision rounds done.
-        </p>
-        <MasteredLibrary chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
-      </div>
+          {/* M16 Task 3/4 — Daily & Weekly Targets */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+              <h2 className="font-display text-xl text-navy mb-1">Today&apos;s Targets</h2>
+              <p className="text-sm text-slate mb-5">Based on your tracked goals and today&apos;s study plan.</p>
+              <DailyTargetsCard targets={dailyTargets} />
+            </div>
+            <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+              <h2 className="font-display text-xl text-navy mb-1">This Week&apos;s Targets</h2>
+              <p className="text-sm text-slate mb-5">A rolling 7-day target based on your recent pace.</p>
+              <WeeklyTargetsCard targets={weeklyTargets} />
+            </div>
+          </div>
 
-      {/* M12 Task 5 — Revision History */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Revision History</h3>
-        <RevisionHistory log={activityLog} />
-      </div>
+          {/* M16 Task 8 — Smart Recommendations */}
+          <div className="rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Smart Recommendations</h2>
+            <p className="text-sm text-slate mb-5">Coaching based on your goal pace and revision schedule.</p>
+            <SmartRecommendationsCard recommendations={goalRecommendations} />
+          </div>
 
-      {/* Bookmarked Resources */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-4">
-          <h3 className="font-display text-xl text-navy">Bookmarked Resources</h3>
-          {bookmarks.length > 0 && (
-            <Link
-              href={bookmarks[0].path}
-              className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
-            >
-              Continue Reading &rarr;
-            </Link>
+          {/* M13 Task 6 — Recommended Today */}
+          <div id="recommended-today" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Recommended Today</h2>
+            <p className="text-sm text-slate mb-5">
+              Up to 5 chapters worth your time today, in priority order: overdue revisions first,
+              then weak chapters, unfinished practice, and bookmarks.
+            </p>
+            <RecommendedToday items={todaysPriorities} />
+          </div>
+
+          {/* M12 Task 7 / M14 Task 8 — Study Insights */}
+          {allInsights.length > 0 && (
+            <div className="rounded-lg border border-navy/10 bg-white p-6 sm:p-7">
+              <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                {allInsights.map((insight) => (
+                  <li key={insight} className="text-sm text-navy flex items-center gap-2">
+                    <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-gold" />
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-        </div>
-        {bookmarks.length > 0 ? (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {bookmarks.map((b) => (
-              <li key={b.id} className="flex items-center justify-between gap-3 rounded-md border border-navy/10 px-4 py-3">
-                <Link
-                  href={b.path}
-                  className="min-w-0 text-sm font-semibold text-navy hover:text-gold-deep transition-colors truncate"
-                >
-                  {b.label}
+
+          {/* Stats */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Your progress</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
+              <Stat value={chaptersCompleted} label="Chapters completed" />
+              <Stat value={resourcesCompleted} label="Resources completed" />
+              <Stat value={bookmarks.length} label="Bookmarks" />
+              <Stat value={revisionCount} label="Revision rounds" />
+            </div>
+            <div className="pt-6 border-t border-navy/10">
+              <StudyStreakBadge />
+              <div className="mt-3">
+                <StreakBonusCard bonus={streakBonus} />
+              </div>
+            </div>
+          </div>
+
+          {/* Task 4/6 — Resource completion chart */}
+          {resourceBreakdown.some((r) => r.total > 0) && (
+            <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+              <h2 className="font-display text-xl text-navy mb-5">Resource completion</h2>
+              <div className="space-y-4">
+                {resourceBreakdown
+                  .filter((r) => r.total > 0)
+                  .map((r) => {
+                    const pct = Math.round((r.completed / r.total) * 100);
+                    return (
+                      <div key={r.key}>
+                        <div className="flex items-baseline justify-between mb-1.5">
+                          <span className="text-sm font-semibold text-navy">{r.label}</span>
+                          <span className="text-xs text-slate/60">
+                            {r.completed}/{r.total} chapters ({pct}%)
+                          </span>
+                        </div>
+                        <ProgressBar percent={pct} size="sm" label={`${r.label} completion across all chapters`} />
+                      </div>
+                    );
+                  })}
+              </div>
+              <div className="mt-6 pt-5 border-t border-navy/10">
+                <Link href={allChaptersHref} className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
+                  Browse chapters &rarr;
                 </Link>
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggleBookmark({
-                      cls: b.cls,
-                      slug: b.slug,
-                      type: b.type,
-                      chapterName: b.chapterName,
-                      label: b.label,
-                      path: b.path,
-                    })
-                  }
-                  aria-label={`Remove ${b.label} bookmark`}
-                  className="shrink-0 text-xs font-semibold text-slate/50 hover:text-navy transition-colors focus-visible:outline-2 focus-visible:outline-gold rounded px-1.5 py-1"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon="bookmark"
-            title="No bookmarks yet"
-            description="Bookmark a chapter or resource from its page and it'll show up here for quick access."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
+              </div>
+            </div>
+          )}
 
-      {/* Recent Activity */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-4">Recent activity</h3>
-        {recentResources.length > 0 ? (
-          <ul className="space-y-2">
-            {recentResources.slice(0, 5).map((r) => (
-              <li key={`${r.cls}-${r.slug}-${r.resourceKey}`}>
-                <Link
-                  href={r.path}
-                  className="flex items-center justify-between gap-3 text-sm text-navy hover:text-gold-deep transition-colors"
-                >
-                  <span>
-                    {r.chapterName} — {r.resourceLabel}
-                  </span>
-                  <span className="text-xs text-slate/50 shrink-0">{formatRelativeTime(r.visitedAt)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon="clock"
-            title="No recent study"
-            description="Open any Notes, Formula Sheet, DPP, or PYQ page and it'll appear here — and on Continue Studying if left unfinished."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        )}
-      </div>
+          {/* M13 Task 3 — Resource Gaps */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Resource Gaps</h2>
+            <p className="text-sm text-slate mb-5">Work remaining across every resource type and revision.</p>
+            <ResourceGapsCard gaps={resourceGaps} />
+          </div>
 
-      {/* Smart Recommendations */}
-      <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
-        <h3 className="font-display text-xl text-navy mb-5">Recommended for you</h3>
+          {/* M16 Task 5 — Progress Forecast */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Progress Forecast</h2>
+            <p className="text-sm text-slate mb-5">
+              Estimated days remaining at your current pace, for chapters and each resource type.
+            </p>
+            <ProgressForecastCard forecast={progressForecastData} />
+          </div>
 
-        {incompleteChapters.length === 0 &&
-        recommendedBookmarks.length === 0 &&
-        recommendedRecent.length === 0 &&
-        relatedRecommendations.length === 0 ? (
-          <EmptyState
-            icon="chapters"
-            title="No recommendations yet"
-            description="Start checking off chapters and we'll recommend what to study next, based on your progress and bookmarks."
-            actionLabel="Browse chapters"
-            actionHref="#all-chapters"
-          />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {incompleteChapters.length > 0 && (
-              <RecommendationGroup title={inProgress.length > 0 ? "Pick up where you left off" : "Start a chapter"}>
-                {incompleteChapters.map((c) => (
-                  <RecommendationLink
-                    key={c.slug}
-                    href={`/class-${c.cls}/${c.slug}`}
-                    primary={c.name}
-                    secondary={c.total > 0 ? `${c.done}/${c.total} resources done` : undefined}
-                  />
-                ))}
-              </RecommendationGroup>
-            )}
-
-            {relatedRecommendations.length > 0 && (
-              <RecommendationGroup title="Related chapters">
-                {relatedRecommendations.map((rel) => {
-                  const relChapter = chapterMap.get(rel.slug);
-                  if (!relChapter) return null;
-                  return (
-                    <RecommendationLink
-                      key={rel.slug}
-                      href={`/class-${relChapter.cls}/${relChapter.slug}`}
-                      primary={relChapter.name}
-                      secondary={rel.reason}
-                    />
-                  );
-                })}
-              </RecommendationGroup>
-            )}
-
-            {recommendedBookmarks.length > 0 && (
-              <RecommendationGroup title="From your bookmarks">
-                {recommendedBookmarks.map((b) => (
-                  <RecommendationLink key={b.id} href={b.path} primary={b.label} />
-                ))}
-              </RecommendationGroup>
-            )}
-
-            {recommendedRecent.length > 0 && (
-              <RecommendationGroup title="Pick up a recent resource">
-                {recommendedRecent.map((r) => (
-                  <RecommendationLink
-                    key={`${r.cls}-${r.slug}-${r.resourceKey}`}
-                    href={r.path}
-                    primary={`${r.chapterName} — ${r.resourceLabel}`}
-                  />
-                ))}
-              </RecommendationGroup>
+          {/* Task 2 (M10) — Weak chapters */}
+          <div id="weak-chapters" className="scroll-mt-24 rounded-lg border border-gold/40 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Needs attention</h2>
+            <p className="text-sm text-slate mb-5">
+              Chapters that are incomplete, haven&apos;t been revised, or still have unsolved PYQs.
+            </p>
+            {hasWeakChapters ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <WeakGroup title="Incomplete" entries={weak.incomplete} />
+                <WeakGroup title="Never revised" entries={weak.neverRevised} />
+                <WeakGroup title="PYQs not solved" entries={weak.pyqNotSolved} />
+              </div>
+            ) : (
+              <EmptyState
+                icon="check"
+                title="No weak chapters"
+                description="Every chapter you've started is complete, revised, and has its PYQs solved. Great work."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
             )}
           </div>
-        )}
-      </div>
 
-      {/* Task 1/5/6 (M10) — full chapter list with progress bars, filters, sorting */}
-      <ChapterList
-        chapters={chapters}
-        checklists={checklists}
-        revisionEntries={revisionEntries}
-        bookmarkedIds={bookmarkedIds}
-      />
+          {/* M13 Task 2 — Strength Analysis */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Strength Analysis</h2>
+            <StrengthAnalysis analysis={strength} />
+          </div>
+
+          {/* Smart Recommendations */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Recommended for you</h2>
+
+            {incompleteChapters.length === 0 &&
+            recommendedBookmarks.length === 0 &&
+            recommendedRecent.length === 0 &&
+            relatedRecommendations.length === 0 ? (
+              <EmptyState
+                icon="chapters"
+                title="No recommendations yet"
+                description="Start checking off chapters and we'll recommend what to study next, based on your progress and bookmarks."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {incompleteChapters.length > 0 && (
+                  <RecommendationGroup title={inProgress.length > 0 ? "Pick up where you left off" : "Start a chapter"}>
+                    {incompleteChapters.map((c) => (
+                      <RecommendationLink
+                        key={c.slug}
+                        href={`/class-${c.cls}/${c.slug}`}
+                        primary={c.name}
+                        secondary={c.total > 0 ? `${c.done}/${c.total} resources done` : undefined}
+                      />
+                    ))}
+                  </RecommendationGroup>
+                )}
+
+                {relatedRecommendations.length > 0 && (
+                  <RecommendationGroup title="Related chapters">
+                    {relatedRecommendations.map((rel) => {
+                      const relChapter = chapterMap.get(rel.slug);
+                      if (!relChapter) return null;
+                      return (
+                        <RecommendationLink
+                          key={rel.slug}
+                          href={`/class-${relChapter.cls}/${relChapter.slug}`}
+                          primary={relChapter.name}
+                          secondary={rel.reason}
+                        />
+                      );
+                    })}
+                  </RecommendationGroup>
+                )}
+
+                {recommendedBookmarks.length > 0 && (
+                  <RecommendationGroup title="From your bookmarks">
+                    {recommendedBookmarks.map((b) => (
+                      <RecommendationLink key={b.id} href={b.path} primary={b.label} />
+                    ))}
+                  </RecommendationGroup>
+                )}
+
+                {recommendedRecent.length > 0 && (
+                  <RecommendationGroup title="Pick up a recent resource">
+                    {recommendedRecent.map((r) => (
+                      <RecommendationLink
+                        key={`${r.cls}-${r.slug}-${r.resourceKey}`}
+                        href={r.path}
+                        primary={`${r.chapterName} — ${r.resourceLabel}`}
+                      />
+                    ))}
+                  </RecommendationGroup>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Task 1/5/6 (M10) — full chapter list with progress bars, filters, sorting */}
+          <ChapterList
+            chapters={chapters}
+            checklists={checklists}
+            revisionEntries={revisionEntries}
+            bookmarkedIds={bookmarkedIds}
+          />
+        </>
+      ) : null}
+
+      {view === "revision" ? (
+        <>
+          {/* M12 Task 3 — Revision Health */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Revision Health</h2>
+            <RevisionHealthCard health={health} />
+          </div>
+
+          {/* M12 Task 1 — Revision Timeline */}
+          <div id="revision-timeline" className="scroll-mt-24 rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Revision Timeline</h2>
+            <p className="text-sm text-slate mb-5">
+              Chapters grouped by when they&apos;re next due, based on a 1 / 7 / 30-day revision
+              schedule after each round.
+            </p>
+            <RevisionTimeline chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
+          </div>
+
+          {/* M15 Task 6 — Weekly Plan */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Weekly Plan</h2>
+            <p className="text-sm text-slate mb-5">
+              A 7-day look ahead — computed fresh each time, nothing saved.
+            </p>
+            <WeeklyPlanCard days={weeklyPlan} />
+          </div>
+
+          {/* M12 Task 4 — Mastered Library */}
+          <div id="mastered-chapters" className="scroll-mt-24 rounded-lg border border-green-200 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Mastered Chapters</h2>
+            <p className="text-sm text-slate mb-5">
+              Every resource completed, all 3 revision rounds done.
+            </p>
+            <MasteredLibrary chapters={chapters} checklists={checklists} revisionEntries={revisionEntries} />
+          </div>
+
+          {/* M12 Task 5 — Revision History */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Revision History</h2>
+            <RevisionHistory log={activityLog} />
+          </div>
+        </>
+      ) : null}
+
+      {view === "mistakes" ? (
+        <>
+          {/* M14 Task 3 — Mistake Notebook */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Mistake Notebook</h2>
+            <MistakeNotebookCard mistakes={mistakes} />
+          </div>
+
+          {/* M14 Task 4 — Chapter Performance */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-1">Chapter Performance</h2>
+            <p className="text-sm text-slate mb-5">
+              Accuracy per chapter, based on practice done and mistakes logged.
+            </p>
+            <ChapterAccuracyList accuracies={chapterAccuracies} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {/* M14 Task 5 — Concept Analysis */}
+            <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+              <h2 className="font-display text-xl text-navy mb-1">Concept Analysis</h2>
+              <p className="text-sm text-slate mb-5">Concepts needing the most revision.</p>
+              <ConceptAnalysisCard concepts={topConcepts} />
+            </div>
+
+            {/* M14 Task 6/7 — Practice Again */}
+            <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+              <h2 className="font-display text-xl text-navy mb-1">Practice Again</h2>
+              <p className="text-sm text-slate mb-5">Unresolved mistakes, oldest and hardest first.</p>
+              <ReattemptListCard items={reattemptList} />
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {view === "activity" ? (
+        <>
+          {/* M13 Task 7 — Milestones */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Milestones</h2>
+            <MilestonesCard milestones={milestones} />
+          </div>
+
+          {/* M16 Task 6 — Achievements */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Achievements</h2>
+            <AchievementsCard achievements={achievementsList} />
+          </div>
+
+          {/* Task 2 — Today's Activity */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Today&apos;s Activity</h2>
+            {hasTodayActivity ? (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                  <Stat value={resourcesCompletedToday} label="Resources completed" />
+                  <Stat value={chaptersVisitedToday} label="Chapters visited" />
+                  <Stat value={revisionRoundsToday} label="Revision rounds" />
+                  <Stat value={bookmarksAddedToday} label="Bookmarks added" />
+                </div>
+                <div className="mt-6 pt-5 border-t border-navy/10">
+                  <Link
+                    href={continueHref}
+                    className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors"
+                  >
+                    Continue studying &rarr;
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <EmptyState
+                icon="clock"
+                title="No study activity yet today"
+                description="Open a chapter and check off a resource or revision round — today's activity will show up here."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
+            )}
+          </div>
+
+          {/* M13 Task 5 — Weekly Progress (last 7 days) */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-5">Weekly Progress</h2>
+            <WeeklyProgress events={weeklyEvents} />
+          </div>
+
+          {/* Recent Activity */}
+          <div className="rounded-lg border border-navy/10 bg-white p-7 sm:p-9">
+            <h2 className="font-display text-xl text-navy mb-4">Recent activity</h2>
+            {recentResources.length > 0 ? (
+              <ul className="space-y-2">
+                {recentResources.slice(0, 5).map((r) => (
+                  <li key={`${r.cls}-${r.slug}-${r.resourceKey}`}>
+                    <Link
+                      href={r.path}
+                      className="flex items-center justify-between gap-3 text-sm text-navy hover:text-gold-deep transition-colors"
+                    >
+                      <span>
+                        {r.chapterName} — {r.resourceLabel}
+                      </span>
+                      <span className="text-xs text-slate/50 shrink-0">{formatRelativeTime(r.visitedAt)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <EmptyState
+                icon="clock"
+                title="No recent study"
+                description="Open any Notes, Formula Sheet, DPP, or PYQ page and it'll appear here — and on Continue Studying if left unfinished."
+                actionLabel="Browse chapters"
+                actionHref={allChaptersHref}
+              />
+            )}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -912,16 +908,6 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-function QuickAction({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex items-center text-sm font-semibold text-navy bg-white border border-navy/15 rounded-full px-4 py-2 hover:border-gold hover:text-gold-deep transition-colors focus-visible:outline-2 focus-visible:outline-gold"
-    >
-      {label}
-    </Link>
-  );
-}
 
 function WeakGroup({
   title,
@@ -933,7 +919,7 @@ function WeakGroup({
   if (entries.length === 0) {
     return (
       <div>
-        <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+        <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
         <p className="text-xs text-slate/50">None — nice work.</p>
       </div>
     );
@@ -941,9 +927,9 @@ function WeakGroup({
 
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">
+      <h3 className="font-semibold text-navy text-sm mb-2.5">
         {title} <span className="text-slate/50 font-normal">({entries.length})</span>
-      </h4>
+      </h3>
       <ul className="space-y-2">
         {entries.slice(0, 5).map((e) => (
           <li key={`${e.cls}-${e.slug}`}>
@@ -964,7 +950,7 @@ function WeakGroup({
 function RecommendationGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+      <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
       <ul className="space-y-2">{children}</ul>
     </div>
   );

@@ -11,7 +11,7 @@ export default function StrengthAnalysis({ analysis }: { analysis: StrengthAnaly
         title="Not enough data yet"
         description="Start a chapter's resources and this will rank your strongest and weakest chapters by completion."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
@@ -37,7 +37,7 @@ function RankedGroup({
 
   return (
     <div>
-      <h4 className="font-semibold text-navy text-sm mb-2.5">{title}</h4>
+      <h3 className="font-semibold text-navy text-sm mb-2.5">{title}</h3>
       {chapters.length === 0 ? (
         <p className="text-xs text-slate/50">Not enough data yet.</p>
       ) : (

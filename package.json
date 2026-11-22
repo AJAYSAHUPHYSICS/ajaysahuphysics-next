@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/inject-csp.mjs out",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -18,13 +19,14 @@
     "test:staging:deletion-gate": "node scripts/staging/staging-env.mjs check && node scripts/staging/deletion-gate.staging.mjs",
     "test:staging:release": "node scripts/staging/staging-env.mjs check && node scripts/staging/release-check.staging.mjs",
     "og:fonts": "node scripts/fetch-og-fonts.mjs",
-    "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs"
+    "og:generate": "node scripts/derive-og-sources.mjs && node scripts/generate-og-images.mjs",
+    "test:e2e": "node scripts/e2e/study-tools.mjs out && node scripts/e2e/keyboard.mjs out"
   },
   "dependencies": {
     "@fontsource/source-sans-3": "^5.2.9",
     "@fontsource/source-serif-4": "^5.2.9",
     "@supabase/supabase-js": "^2.112.4",
-    "next": "16.2.9",
+    "next": "16.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -36,7 +38,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "4.1.12"

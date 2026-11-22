@@ -24,7 +24,7 @@ export default function ChapterAccuracyList({ accuracies }: { accuracies: Chapte
         title="No accuracy data yet"
         description="Mark a chapter's DPP or PYQ as done, or log a mistake, and its accuracy score will show up here."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }

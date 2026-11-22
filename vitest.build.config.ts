@@ -12,5 +12,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/build-checks/**/*.check.ts"],
+    // Several checks read every file of the ~220-page export; the 5 s default
+    // is too tight on slower machines (the assertions are unchanged).
+    testTimeout: 60_000,
   },
 });

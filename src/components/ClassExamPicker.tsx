@@ -15,53 +15,55 @@ export default function ClassExamPicker({ cls }: { cls: "11" | "12" }) {
         <button
           type="button"
           onClick={() => setChoice("neet")}
+          aria-pressed={choice === "neet"}
           className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "neet"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
           }`}
         >
-          <h3
-            className={`font-display text-2xl ${
+          <span
+            className={`block font-display text-2xl ${
               choice === "neet" ? "text-white" : "text-navy"
             }`}
           >
             NEET
-          </h3>
-          <p
-            className={`mt-3 text-sm leading-relaxed ${
+          </span>
+          <span
+            className={`block mt-3 text-sm leading-relaxed ${
               choice === "neet" ? "text-white/80" : "text-slate"
             }`}
           >
             Class {cls} chapters for NEET&apos;s exam pattern. Resources are
             being rebuilt and appear as they&apos;re reviewed.
-          </p>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setChoice("jee")}
+          aria-pressed={choice === "jee"}
           className={`text-left rounded-lg border p-7 transition-all focus-visible:outline-2 focus-visible:outline-gold ${
             choice === "jee"
               ? "border-navy bg-navy text-white shadow-lg"
               : "border-navy/10 bg-white hover:border-gold hover:shadow-lg"
           }`}
         >
-          <h3
-            className={`font-display text-2xl ${
+          <span
+            className={`block font-display text-2xl ${
               choice === "jee" ? "text-white" : "text-navy"
             }`}
           >
             JEE
-          </h3>
-          <p
-            className={`mt-3 text-sm leading-relaxed ${
+          </span>
+          <span
+            className={`block mt-3 text-sm leading-relaxed ${
               choice === "jee" ? "text-white/80" : "text-slate"
             }`}
           >
             Class {cls} chapters for JEE Main and JEE Advanced. Resources are
             being rebuilt and appear as they&apos;re reviewed.
-          </p>
+          </span>
         </button>
       </div>
 

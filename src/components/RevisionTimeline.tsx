@@ -69,7 +69,7 @@ export default function RevisionTimeline({
         title="Your revision timeline is empty"
         description="Complete a chapter's resources and mark a revision round — this timeline will group your chapters by when they're next due."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
@@ -78,9 +78,9 @@ export default function RevisionTimeline({
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {grouped.map(({ bucket, rows: bucketRows }) => (
         <div key={bucket} className={`rounded-md border p-4 ${BUCKET_STYLE[bucket]}`}>
-          <h4 className="font-semibold text-navy text-sm mb-2.5">
+          <h3 className="font-semibold text-navy text-sm mb-2.5">
             {BUCKET_LABEL[bucket]} <span className="text-slate/50 font-normal">({bucketRows.length})</span>
-          </h4>
+          </h3>
           <ul className="space-y-1.5">
             {bucketRows.slice(0, 6).map((row) => (
               <li key={`${row.ch.cls}-${row.ch.slug}`}>

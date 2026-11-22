@@ -55,7 +55,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="rounded-lg border border-navy/10 p-7 hover:border-gold hover:shadow-lg transition-all">
-              <h3 className="font-display text-xl text-navy">WhatsApp</h3>
+              <h2 className="font-display text-xl text-navy">WhatsApp</h2>
               <p className="mt-3 text-sm text-slate leading-relaxed">
                 Fastest way to reach Ajay Sir — for demo classes, fees, and doubts.
               </p>
@@ -70,7 +70,7 @@ export default function ContactPage() {
                 key={c.label}
                 className="rounded-lg border border-navy/10 p-7 hover:border-gold hover:shadow-lg transition-all"
               >
-                <h3 className="font-display text-xl text-navy">{c.label}</h3>
+                <h2 className="font-display text-xl text-navy">{c.label}</h2>
                 {c.href ? (
                   <a
                     href={c.href}
@@ -93,9 +93,9 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-12 bg-navy rounded-lg p-8 sm:p-10 text-white physics-grid">
-            <h3 className="font-display text-2xl">
+            <h2 className="font-display text-2xl">
               Looking for a demo class?
-            </h3>
+            </h2>
             <p className="mt-2 text-white/70 max-w-xl">
               Send a message on WhatsApp with your class (11 or 12) and exam
               target (JEE or NEET), and Ajay Sir will get back to you with

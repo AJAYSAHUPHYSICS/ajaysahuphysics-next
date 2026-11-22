@@ -140,6 +140,8 @@ export default function ExamTabs({
         </div>
       </div>
 
+      {/* Gives the chapter cards (h3) a section heading for screen readers; no visual change. */}
+      <h2 className="sr-only">Chapters</h2>
       {visibleChapters.length > 0 ? (
         <ChapterGrid
           chapters={visibleChapters}

@@ -13,7 +13,7 @@ export default function ResourceGapsCard({ gaps }: { gaps: ResourceGap[] }) {
         title="Nothing to show yet"
         description="Once a chapter has Notes, Formula Sheet, DPP, or PYQ available, remaining work will show up here."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
@@ -25,7 +25,7 @@ export default function ResourceGapsCard({ gaps }: { gaps: ResourceGap[] }) {
         title="Nothing remaining"
         description="Every resource and revision round you've started is complete."
         actionLabel="Browse chapters"
-        actionHref="#all-chapters"
+        actionHref="/dashboard/progress#all-chapters"
       />
     );
   }
@@ -39,7 +39,7 @@ export default function ResourceGapsCard({ gaps }: { gaps: ResourceGap[] }) {
         </div>
       ))}
       <div className="col-span-2 sm:col-span-3 pt-2">
-        <Link href="#all-chapters" className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
+        <Link href="/dashboard/progress#all-chapters" className="text-sm font-semibold text-gold-deep hover:text-navy transition-colors">
           Browse chapters &rarr;
         </Link>
       </div>
