@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
+import { useClientNow } from "@/lib/use-client-now";
 import { getActivityLog, type ActivityEvent } from "@/lib/activity-log";
 import { getStreak, subscribeToStreak, type StreakState } from "@/lib/study-streak";
 import { activityDays, activitySummary } from "@/lib/study-tools";
@@ -17,10 +18,11 @@ export default function ActivityClient() {
   // The activity log is kept only in this browser (30 days) and never leaves it.
   const log = useSyncExternalStore(noSubscribe, getActivityLog, () => EMPTY_LOG);
   const streak = useSyncExternalStore(subscribeToStreak, getStreak, () => EMPTY_STREAK);
-  const [now] = useState(() => Date.now());
-  const days = useMemo(() => activityDays(log, 28, now), [log, now]);
-  const summary = activitySummary(days);
-  const max = Math.max(1, ...days.map((d) => d.count));
+  // null until hydration ends, so the prerendered HTML never contains the build day (M1).
+  const now = useClientNow();
+  const days = useMemo(() => (now === null ? null : activityDays(log, 28, now)), [log, now]);
+  const summary = activitySummary(days ?? []);
+  const max = Math.max(1, ...(days ?? []).map((d) => d.count));
 
   return (
     <div className="space-y-4">
@@ -34,7 +36,10 @@ export default function ActivityClient() {
       <section className={studyCard} aria-labelledby="act-cal">
         <h2 id="act-cal" className="font-display text-lg text-navy">Last 4 weeks</h2>
         <ol className="mt-3 grid grid-cols-7 gap-1.5" aria-label="Activity per day, oldest first">
-          {days.map((d) => (
+          {days === null ? Array.from({ length: 28 }, (_, i) => (
+            // Same 28 cells as the real calendar, so nothing shifts when the dates arrive.
+            <li key={i} aria-hidden="true" className="aspect-square rounded" style={{ backgroundColor: "rgba(15, 32, 64, 0.06)" }} />
+          )) : days.map((d) => (
             <li key={d.date} title={`${d.date}: ${d.count} action${d.count === 1 ? "" : "s"}`} className="aspect-square rounded" style={{ backgroundColor: d.count ? `rgba(184, 134, 11, ${0.25 + 0.75 * (d.count / max)})` : "rgba(15, 32, 64, 0.06)" }}>
               <span className="sr-only">{d.date}: {d.count} actions</span>
             </li>
