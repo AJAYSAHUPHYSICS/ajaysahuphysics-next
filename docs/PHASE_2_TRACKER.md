@@ -28,7 +28,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
 | F4 | Medium | P1 | FIXED on `phase-2b-deletion-gate` (local, not pushed) · tests pass · staging VERIFIED | Enabling account deletion | Engineering, then owner (PR) |
 | F5 | High | P0 | Gate and scheduler BUILT on `phase-2b-deletion-gate` (local) · staging stage 1 VERIFIED · production stages OPEN | Production database migrations and enabling account deletion | Owner (PR, scheduler settings, staged production steps) |
-| F6 | Low | P2 | Gaps 1 and 2 FIXED on `phase-2b-deletion-gate` (local) · gap 3 (rate limiting) OPEN | Nothing | Engineering |
+| F6 | Low | P2 | Gaps 1, 2 and 3 FIXED on `phase-2b-deletion-gate` (local, not pushed) · staging VERIFIED | Nothing | Owner (PR) |
 | F7 | Medium | P1 | OPEN · OWNER DECISION | Switching analytics off; CAPTCHA | Engineering (PR), owner (approval) |
 | F8 | Medium | P2 | OPEN · OWNER DECISION (hosting) | Nothing | Engineering (interim), owner (hosting) |
 | F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · live login check after #7 OPEN | Nothing before merging #7 | Engineering |
@@ -152,6 +152,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - **Built:** migration `20261122000000` (gate, created `'false'`, fails closed); gated `request_account_deletion()`; function user path and sweep gated (403 off, 503 unreadable); the hourly `deletion-sweep.yml` workflow, inert until `vars.ATLAS_DELETION_SWEEP_ENABLED` is `'true'`, with the alert as its exit code.
   - **Tests:** PGlite gate tests, 10 (all fail without the migration); handler tests, 13 (9 fail with the old handler); availability and sweep tests. On `main` + the branch: unit 583 passed and 1 skipped, E2E 69/69, keyboard 24/24.
   - **Staging, gate open (stage 1):** `npm run test:staging:deletion-gate` 30/30, covering rejection while off, deletion with a log row, a planted request swept by the real script, the alert firing with the gate closed while a request is outstanding, and the operator procedure. Account page: 8/8 with the gate off, browser journey 15/15 with it open. Staging was left with the gate off, sync off, and 0 users.
+  - **Rate limits (F6 gap 3), added 2026-11-22:** migration `20261122010000`; per verified user, 5 requests per hour and 6 function calls per 10 minutes; the sweep and the operator procedure are not limited. Staging 38/38, with exact limits under parallel calls.
   - **Still open:** the owner's PR review and merge; the scheduler variables and secret; production stages 2 to 5. Production deletion has **not** been tested.
 
 ### F6 · Deletion function: correct authentication, three small gaps

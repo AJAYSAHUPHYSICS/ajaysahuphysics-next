@@ -135,7 +135,9 @@ Staging check (staging linked, gate `'false'` at the start):
 ```
 npm run test:staging:deletion-gate
 ```
-It opens the staging gate for the run and always closes it again. It removes every synthetic account, and never writes the sync switches. Note: the deletion section of `npm run test:staging` needs the gate open, and that suite hasn't been run against the gated schema.
+**Rate limits** (migration `20261122010000`): per verified user, `request_account_deletion()` allows 5 calls per hour and the function's user path 6 per 10 minutes (429 with `Retry-After`). The sweep and the operator procedure (`purge_user_data` plus deleting the auth user) are never limited.
+
+The check opens the staging gate for the run and always closes it again. It removes every synthetic account, and never writes the sync switches. Note: the deletion section of `npm run test:staging` needs the gate open, and that suite hasn't been run against the gated schema.
 
 ### Staging verification record
 | Date | Item | Result |
@@ -151,6 +153,11 @@ It opens the staging gate for the run and always closes it again. It removes eve
 | 2026-11-22 | `npm run test:staging:deletion-gate` | 30/30: gate off (request, function and sweep rejected; nothing recorded), gate open (API deletion with a deletion-log row; planted request swept), gate closed again (alert fires; operator procedure completes the outstanding request) |
 | 2026-11-22 | Account page, production-configured build | Gate off: button disabled with DELETE typed, note shown, 8/8. Gate open for the run: browser journey 15/15, 0 CSP violations |
 | 2026-11-22 | End state | 0 users and 0 rows; deletion gate and sync switches `'false'` |
+| 2026-11-22 | Migration `20261122010000` (rate limits) applied after a dry run; function redeployed (v3, `verify_jwt: false`) | History matches local |
+| 2026-11-22 | `npm run test:staging:deletion-gate` with stage R | 38/38. 10 parallel requests: exactly 5 accepted. 10 parallel function calls: exactly 6 through and 4 x 429 with `Retry-After`. Support-assisted deletion of a rate-limited student works; 5 parallel deletions of one account give no 5xx |
+| 2026-11-22 | Account page (production-configured build) | Gate off 8/8; journey 15/15 with the gate open; 0 CSP violations |
+| 2026-11-22 | `db advisors --type security` | 0 errors. 6 WARN security-definer entry points (the 5 existing plus `account_deletion_enabled`, intended); 4 INFO RLS with no policy (tables with no client access, intended) |
+| 2026-11-22 | End state | 0 users; 0 rows in student tables, `deletion_requests` and `deletion_rate`; gate and sync switches `'false'`. `deletion_log` keeps its PII-free hash rows from the synthetic deletions (by design) |
 
 ### Manual staging checks (needs a real inbox)
 Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:
