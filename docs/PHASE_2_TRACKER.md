@@ -1,8 +1,8 @@
 # Phase 2 release tracker
 
-The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-21.
+The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-22. No legal approval and no production verification are claimed anywhere in this file.
 
-The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5 and F6 describes the code **before** the deletion-gate fix, so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
+The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5, F6 and F11 describes the code **before** the deletion-gate fix (#15), so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
 
 ## How to read this
 | Priority | Meaning |
@@ -23,12 +23,12 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 ## Summary
 | ID | Severity | Priority | Status | Blocks | Owner |
 |---|---|---|---|---|---|
-| F1 | High | P0 | #12 RESOLVED (superseded by #13) · #10 OPEN | Merging #10 | Owner (at merge time) |
-| F2 | Medium | P0 | VERIFIED for `main` at `2734e98` · OPEN for #7 and #10 | Merging #7 and #10 | Owner (at merge time) |
+| F1 | High | P0 | #12 CLOSED (superseded by #13) · stack #7 → #10 → #15 OPEN (plan: collapse, then one squash) | Merging the stack | Owner (at merge time) |
+| F2 | Medium | P0 | VERIFIED for `main` at `2734e98` · the integrated release simulated locally (all gates pass) · OPEN for each actual merge | Merging the stack | Owner (at merge time) |
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
-| F4 | Medium | P1 | FIXED on `phase-2b-deletion-gate` (local, not pushed) · tests pass · staging VERIFIED | Enabling account deletion | Engineering, then owner (PR) |
-| F5 | High | P0 | Gate and scheduler BUILT on `phase-2b-deletion-gate` (local) · staging stage 1 VERIFIED · production stages OPEN | Production database migrations and enabling account deletion | Owner (PR, scheduler settings, staged production steps) |
-| F6 | Low | P2 | Gaps 1, 2 and 3 FIXED on `phase-2b-deletion-gate` (local, not pushed) · staging VERIFIED | Nothing | Owner (PR) |
+| F4 | Medium | P1 | FIXED in #15 (not merged) · tests pass · staging VERIFIED | Enabling account deletion | Owner (merge) |
+| F5 | High | P0 | Gate, rate limits and scheduler BUILT in #15 (not merged) · staging stage 1 VERIFIED (38/38) · scheduler NOT CONFIGURED · production stages OPEN | Production database migrations and enabling account deletion | Owner (merge, scheduler settings, staged production steps) |
+| F6 | Low | P2 | Gaps 1, 2 and 3 FIXED in #15 (not merged) · staging VERIFIED | Nothing | Owner (merge) |
 | F7 | Medium | P1 | OPEN · OWNER DECISION | Switching analytics off; CAPTCHA | Engineering (PR), owner (approval) |
 | F8 | Medium | P2 | OPEN · OWNER DECISION (hosting) | Nothing | Engineering (interim), owner (hosting) |
 | F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · live login check after #7 OPEN | Nothing before merging #7 | Engineering |
@@ -36,6 +36,34 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 | F11 | Medium | P1 | DOCUMENTED · pending-deletion step OPEN | Any rollback | Owner |
 | F12 | Critical | P0 | BLOCKED | Production database and cloud sync | Counsel, then owner |
 | F13 | Low | P2 | OWNER DECISION (checklist below) | Publishing the draft privacy notice | Owner |
+| H1 | High | P0 | Owner decided (2026-11-22): hide login · UI gate in #16 (`main`) and #15 (stack), not merged · Auth API sign-ups still possible (dashboard setting, OPEN) | Nothing; the live site has open sign-up until #16 deploys | Owner (merge; dashboard setting) |
+| M1 | Medium | P1 | Live defect · FIXED in #17 (not merged) · regression tests pass | Nothing | Owner (merge) |
+| E1 | Medium | P1 | 7 manual inbox checks NOT VERIFIED | Turning the accounts UI on | Owner (needs an inbox) |
+
+### H1 · Production sign-up was open before legal sign-off
+- **Evidence:**
+  - `main`'s `AuthModal.tsx` calls `signUp`, and production builds include the Supabase keys, so the live navbar offered "Login / Sign Up" and created accounts before F12 and F13.
+  - Owner decision on 2026-11-22: hide login and sign-up until the release.
+- **Done:**
+  - #16 (`phase-2-5-hide-login`, onto `main`) and #15 (the stack) add `ACCOUNTS_UI_ENABLED = false` (`src/lib/auth/accounts-ui.ts`).
+  - Signed-out visitors see no login or sign-up control (desktop, mobile menu, account page); signed-in visitors keep "Log out".
+  - Guards:
+    - `accounts-ui.test.ts`: every opener of the login dialog goes through the switch, and only `AuthModal` calls `signUp`;
+    - the keyboard E2E: no login control is visible or reachable.
+
+    Both fail on the previous code.
+- **Limitation:** Supabase Auth still accepts sign-ups through its API. Disabling that is a dashboard setting, and an owner decision.
+- **Done when:** #16 is deployed (and the stack keeps the switch), and the owner has decided on the dashboard setting.
+
+### M1 · Hydration error on /dashboard/activity/
+- **Evidence:** the live site on 2026-11-22 (the build was 2026-11-21): React error #418, six times. `ActivityClient` read `Date.now()` at prerender time, so the build day's dates were in the HTML. `RevisionClient` had the same pattern, without a visible error.
+- **Done:** #17 (`phase-2-5-activity-hydration`, onto `main`): `useClientNow()` is `null` until hydration ends; same-size placeholders.
+- **Tests:**
+  - the server HTML is identical across build days;
+  - E2E with the browser clock 3 days past the build.
+
+  The previous code fails both, with #418.
+- **Done when:** #17 is deployed and the live page shows no #418.
 
 ## Findings
 
@@ -148,12 +176,18 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - the owner's explicit approval to open the gate is recorded;
   - **production (gate open), end to end:** the controlled test with the dedicated disposable account has passed while the workflow and alerts were monitored, and the result is recorded. Only from this point may production deletion be described as tested end to end. If the test fails, the gate is closed immediately and the investigation is recorded. Every request accepted while the gate was open is then completed by an authorized operator through a documented, auditable procedure, with deletion of the account and its data verified, the deletion log confirmed, and the outcome recorded without secrets or personal data.
 
-  **Progress (2026-11-22), on local branch `phase-2b-deletion-gate`, not pushed:**
+  **Progress (2026-11-22), in PR #15 (`phase-2b-deletion-gate`, stacked on #10; not merged):**
   - **Built:** migration `20261122000000` (gate, created `'false'`, fails closed); gated `request_account_deletion()`; function user path and sweep gated (403 off, 503 unreadable); the hourly `deletion-sweep.yml` workflow, inert until `vars.ATLAS_DELETION_SWEEP_ENABLED` is `'true'`, with the alert as its exit code.
   - **Tests:** PGlite gate tests, 10 (all fail without the migration); handler tests, 13 (9 fail with the old handler); availability and sweep tests. On `main` + the branch: unit 583 passed and 1 skipped, E2E 69/69, keyboard 24/24.
   - **Staging, gate open (stage 1):** `npm run test:staging:deletion-gate` 30/30, covering rejection while off, deletion with a log row, a planted request swept by the real script, the alert firing with the gate closed while a request is outstanding, and the operator procedure. Account page: 8/8 with the gate off, browser journey 15/15 with it open. Staging was left with the gate off, sync off, and 0 users.
   - **Rate limits (F6 gap 3), added 2026-11-22:** migration `20261122010000`; per verified user, 5 requests per hour and 6 function calls per 10 minutes; the sweep and the operator procedure are not limited. Staging 38/38, with exact limits under parallel calls.
-  - **Still open:** the owner's PR review and merge; the scheduler variables and secret; production stages 2 to 5. Production deletion has **not** been tested.
+  - **Still open:**
+    - the owner's PR review and merge;
+    - the scheduler variables and secret;
+    - running the sweep from the scheduled workflow itself (on staging it was run by hand);
+    - production stages 2 to 5.
+
+    Production deletion has **not** been tested.
 
 ### F6 · Deletion function: correct authentication, three small gaps
 - **Severity:** Low. **Priority:** P2. **Status:** VERIFIED (authentication and CORS) · 3 fixes OPEN.
@@ -296,15 +330,19 @@ Record:
 - [ ] Counsel review reference, if any: ______.
 
 ## Release dependencies
-1. **Done:** #9, #11, #6, #8 and #13 are merged and deployed (squash). #12 is superseded.
-2. **Before merging #7:** production Auth redirect URLs, Site URL check and password length (F3); the F13 decision; update the branch and wait for green CI (F2). F9 has passed on staging. F7 is optional.
-3. **#10:** after #7, rebase onto `main` (F1), wait for green CI, then merge.
+1. **Done:** #9, #11, #6, #8 and #13 are merged and deployed (squash). #12 is closed, superseded by #13.
+2. **Independent PRs onto `main`**, each after an updated branch and green CI: #14 (accessibility), #16 (H1) and #17 (M1). **#16 must be merged before the release stack** (its keyboard check expects no login control).
+3. **The release stack, #7 → #10 → #15:**
+   - **Before merging:** the production Auth redirect URLs, the Site URL check and the password length (F3); the F13 decision; F7 is optional.
+   - **Recommended:** merge #15 into #10's branch and #10 into #7's branch (no deploys), update #7 with `main` (keep the stack's `AuthButton.tsx`), wait for green CI, then squash-merge #7 once.
+   - **The alternative** (squash #7, then `rebase --onto` #10 and #15) is in `PHASE_2_RELEASE.md` section 1. Don't use GitHub's "Update branch" on #10 or #15.
+   - F9 has passed on staging.
 4. **Production database:** in this order:
    1. F12 (legal), then F10 (inventory) and a backup;
-   2. the F4 fix and the F5 server-side deletion gate (off by default, failing closed), merged and deployed;
+   2. the release stack merged and deployed (it has the F4 fix and follows the gate);
    3. the function deployed before the migrations;
-   4. the migrations;
-   5. the F5 scheduler.
+   4. **all four** migrations together: the gate (`20261122000000`) and the rate limits (`20261122010000`) come with the first two, never after;
+   5. the scheduler configured (`vars.ATLAS_SWEEP_URL`, `secrets.ATLAS_DELETION_SWEEP_SECRET`, `vars.ATLAS_DELETION_SWEEP_ENABLED`).
 5. **Opening the deletion gate:** only after the staged verification in `PHASE_2_RELEASE.md` section 9, C.3:
    1. a full staging test with the gate open;
    2. non-destructive production checks with the gate off, including rejection of deletion requests;
@@ -313,6 +351,7 @@ Record:
 
    The controlled production end-to-end test follows, and the gate is closed immediately if it fails (F5).
 6. **Cloud sync:** after F12 and the owner's separate authorisation (`PHASE_2_RELEASE.md` section 9, D). Opening the deletion gate doesn't enable cloud sync.
+7. **Turning the accounts UI on (ending H1):** a separate, owner-approved PR, after F3, F12 and F13. Then the live login, sign-up and reset checks, and the 7 manual inbox checks (E1).
 
 ## Merge readiness
 | PR | Ready? | Waiting on |
@@ -322,9 +361,13 @@ Record:
 | #6 | Merged (squash), deployed | — |
 | #8 | Merged (squash), deployed | — |
 | #13 (replaces #12) | Merged (squash), deployed `2734e98` | — |
-| #12 | Superseded by #13 | Owner: close |
-| #7 | No | F3 (production Auth settings), F13 decision, F2 (update branch); F4 fix recommended first |
-| #10 | No | #7 merged, then rebase onto `main` (F1), F2 |
+| #12 | Closed, superseded by #13 | — |
+| #14 | Yes, with approval (independent) | F2 (update branch, green CI) |
+| #16 | Yes, with approval (independent); before the stack | F2 |
+| #17 | Yes, with approval (independent) | F2 |
+| #7 | No | F3, the F13 decision, #16 on `main`; merge as part of the collapsed stack (with #10 and #15) |
+| #10 | No | Collapse into #7's branch (or `rebase --onto` after #7 is squashed) |
+| #15 | No | Collapse into #10's branch (or `rebase --onto` after #10) |
 
 ## Post-deploy verification (2026-11-21)
 Read-only checks of the live site after #13 deployed, plus local gates and a staging run. No production database access; staging used synthetic accounts only.
@@ -337,7 +380,8 @@ Read-only checks of the live site after #13 deployed, plus local gates and a sta
 | Live journeys | 14/14: the mobile menu opens and closes with Escape and navigates; the dashboard and its 5 cards render with empty and seeded synthetic storage; all 6 dashboard routes; a chapter bookmark; the login dialog opens (not submitted) |
 | Accessibility | 1 defect: on `/jee/`, the JEE Main / JEE Advanced picker had headings inside buttons and skipped from h1 to h3. Fixed in PR #14 (`phase-2-5-jee-picker-a11y`, not merged); the audit now covers `/jee/` and `/neet/`, and fails without the fix |
 | Staging RLS probe | 25/25: anonymous reads denied on all 11 tables; A versus B read, update, insert-as and delete blocked; students can't switch sync on, upload study data or change `app_config`. The sync switches were `'false'` before, during and after; staging ended with 0 users and 0 rows |
-| Not run | `npm run test:staging` (23 checks) switches `adult_sync_permitted` on in staging for its run, so it was not run, to keep sync off throughout. Its last result is 23/23 (`supabase/README.md`) |
+| Not run | `npm run test:staging` (23 checks) switches `adult_sync_permitted` on in staging for its run, so it was not run, to keep sync off throughout. Its last result is 23/23 (`supabase/README.md`). **Replaced on 2026-11-22** by `npm run test:staging:release` (never enables sync): 63/63 |
+| Live audit, 2026-11-22 | The same checks again: 14/14 journeys, 0 broken links, 0 overflow. **New defect M1:** React error #418 (×6) on `/dashboard/activity/` the day after the build; fix in #17. `/jee/` still pending #14 |
 | Manual inbox checks | The 7 inbox checks in `supabase/README.md` (confirmation, reset, link reuse) have no recorded result |
 | Dependencies | `npm audit`: 14 advisories (5 high, 9 moderate), all in build or dev tooling; production tree: 1 moderate (`baseline-browser-mapping`, build time only). No upgrades made |
 

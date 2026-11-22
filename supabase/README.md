@@ -88,7 +88,8 @@ npx supabase@2.122.1 secrets set --project-ref <staging-ref> ATLAS_ALLOWED_ORIGI
 - **CAPTCHA (optional):** enable Turnstile with Cloudflare's **test** secret `1x0000000000000000000000000000000AA`, and set `STAGING_TURNSTILE_TEST_TOKEN=XXXX.DUMMY.TOKEN.XXXX` in `.env.staging.local`.
   - For production the order matters: put the site key in the build first, then turn on bot protection in Supabase, otherwise every sign-in is blocked.
 
-### 7. Run the staging suite
+### 7. The old staging suite (not used for the release)
+> **Don't run this for the release** (owner decision, 2026-11-22). It switches staging's `adult_sync_permitted` on for its run, and cloud sync must never be enabled. Its deletion section also predates the deletion gate. Use `npm run test:staging:release` (step 10) instead. It is kept for reference only.
 ```
 npm run test:staging
 ```
@@ -139,6 +140,31 @@ npm run test:staging:deletion-gate
 
 The check opens the staging gate for the run and always closes it again. It removes every synthetic account, and never writes the sync switches. Note: the deletion section of `npm run test:staging` needs the gate open, and that suite hasn't been run against the gated schema.
 
+### 10. Safe release check (replaces `npm run test:staging`)
+```
+npm run test:staging:release
+```
+`scripts/staging/release-check.staging.mjs` is the release verification that **never enables cloud sync**.
+- **Its rules,** enforced on its source by `staging-release-check.test.ts`:
+  - it never writes `app_config`;
+  - it stops before doing anything unless `adult_sync_permitted`, `minor_sync_permitted` and `account_deletion_enabled` are all `'false'`, and checks them again at the end;
+  - it stores no study data: its only study-table writes are single synthetic rows the server must refuse, with 0 rows stored;
+  - it uses synthetic accounts (admin API, no email), all removed.
+- **What it verifies:**
+  - anonymous denial (12 tables, 5 functions);
+  - sign-in with generic errors, session refresh, and sign-out revoking the refresh token;
+  - own-profile and append-only consent rules;
+  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18 with full consent: "not-available-for-under-18"; uploads refused on all 6 study tables; no flipping of `sync_enabled` or `app_config`);
+  - A-versus-B isolation;
+  - export (own data only, documented shape);
+  - deletion refusal with the gate off (request, function and sweep; nothing recorded).
+- **Not verified, on purpose:**
+  - cloud sync itself (two devices, merging, tombstones, interrupted uploads, account switching, large syncs), because it needs sync on;
+  - the inbox checks below;
+  - CAPTCHA;
+  - deletion end to end (step 9);
+  - browser login (F9, step 8). The browser journey logs in through the login button, which is hidden while `ACCOUNTS_UI_ENABLED` is `false` (H1), so it runs only against a release-candidate build with the switch on.
+
 ### Staging verification record
 | Date | Item | Result |
 |---|---|---|
@@ -158,8 +184,10 @@ The check opens the staging gate for the run and always closes it again. It remo
 | 2026-11-22 | Account page (production-configured build) | Gate off 8/8; journey 15/15 with the gate open; 0 CSP violations |
 | 2026-11-22 | `db advisors --type security` | 0 errors. 6 WARN security-definer entry points (the 5 existing plus `account_deletion_enabled`, intended); 4 INFO RLS with no policy (tables with no client access, intended) |
 | 2026-11-22 | End state | 0 users; 0 rows in student tables, `deletion_requests` and `deletion_rate`; gate and sync switches `'false'`. `deletion_log` keeps its PII-free hash rows from the synthetic deletions (by design) |
+| 2026-11-22 | `npm run test:staging:release` (safe release check) | 63/63. Started and ended with both sync switches and the deletion gate `'false'`; 3 synthetic accounts removed; 0 rows in all student tables, `deletion_requests` and `deletion_rate` |
 
 ### Manual staging checks (needs a real inbox)
+**Status: not yet verified.** No result has been recorded for any of the 7 checks below. They are required before the accounts UI is turned on (tracker E1).
 Use a test inbox you control, on `npm run dev` with the staging values in `.env.development.local` (step 6). Do these with that inbox:
 1. Sign up: the confirmation email arrives; its link opens `/auth/callback/`, signs you in, and the code disappears from the address bar.
 2. Open the same link again: you see the "link can't be used" message, not an error page.
