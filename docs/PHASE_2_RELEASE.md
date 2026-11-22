@@ -2,10 +2,8 @@
 
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until counsel signs off and the owner authorises launch.
 
-**Release status (2026-11-22):** the code is complete and verified locally and on staging, but **nothing in the Phase 2B release stack is merged, and it is not ready for production**.
-- **What's open:**
-  - the release stack, #7 → #10 → #15, which includes the deletion gate, rate limits and the scheduled sweep (F4, F5 and F6 are fixed in #15);
-  - three independent PRs against `main`: #14 (accessibility), #16 (login hidden, H1) and #17 (activity hydration fix, M1).
+**Release status (2026-11-23):** #16 (H1), #14, #17 (M1) and #18 are merged and deployed (`main` `367d430`). The release stack is collapsed into **#7**: #15 is merged into #10's branch, and #10 into #7's branch. #7 is up to date with `main`, its CI passes, and it is **not merged**. It is waiting on the F13 decision. The completion audit is in [`PHASE_2_COMPLETION_AUDIT.md`](PHASE_2_COMPLETION_AUDIT.md). **Release-incomplete:** nothing below is claimed as production-verified for the account platform.
+- **What's open:** #7, the whole Phase 2B release (accounts platform, staging tooling, deletion gate, rate limits, sweep, H1 for the stack). F4, F5 and F6 are fixed in it.
 - **Blocked on decisions and outside work:**
   - legal sign-off (F12);
   - the production Auth settings (F3);
@@ -24,16 +22,21 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
 Each finding is tracked in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 
 ## 1. Pull requests and merge order
-**Status (2026-11-22):**
+**Status (2026-11-23):**
 - **Merged (squash) and deployed** at `2734e98`: #9, #11, #6, #8 and #13. **#12 is closed**, superseded by #13.
-- **Open, independent of each other and of the stack** (merge-tree checked, no conflicts):
+- **Merged (squash) and deployed since, each after fresh CI on an up-to-date head:**
 
-  | PR | Scope | Branch |
-  |---|---|---|
-  | #14 | JEE picker accessibility | `phase-2-5-jee-picker-a11y` |
-  | #16 | H1: hide login and sign-up until the release | `phase-2-5-hide-login` |
-  | #17 | M1: hydration-safe dates on the activity and revision pages | `phase-2-5-activity-hydration` |
-- **Open, the release stack:** #7 (accounts platform, onto `main`) → #10 (staging tooling and these docs, onto #7) → #15 (deletion gate, rate limits, sweep, H1 for the stack and the safe staging check, onto #10).
+  | PR | Scope | Squash commit | Live check |
+  |---|---|---|---|
+  | #16 | H1: hide login and sign-up | `357b061` | No login control on desktop or the mobile menu; Log out works with a simulated session |
+  | #14 | JEE picker accessibility | `21d0d11` | `/jee/` passes the accessibility audit |
+  | #17 | M1: hydration-safe dates | `5bc0cd8` | No React #418 with the clock moved +1 and +3 days |
+  | #18 | No duplicate chapter-visit entries; E2E for checklists, streaks and goals | `367d430` | All seven tools exercised on the live site, 14/14 |
+- **The release stack, collapsed:**
+  - #15 was squash-merged into #10's branch (`c76349d`), then #10 into #7's branch (`fd71d32`);
+  - `main` was then merged into #7's branch (`9c1b51f`). The only conflict was `AuthButton.tsx`, kept as the stack's version, which carries the H1 switch;
+  - CI passes on `9c1b51f`, and #7 is 0 commits behind `main`;
+  - **#7 is not merged.** It is waiting on the F13 decision, because it publishes the draft `/privacy` notice.
 
 The table below is the original plan; the current merge mechanics follow it.
 

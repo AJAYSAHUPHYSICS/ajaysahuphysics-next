@@ -33,8 +33,8 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 ## Summary
 | ID | Severity | Priority | Status | Blocks | Owner |
 |---|---|---|---|---|---|
-| F1 | High | P0 | #12 CLOSED (superseded by #13) · stack #7 → #10 → #15 OPEN (plan: collapse, then one squash) | Merging the stack | Owner (at merge time) |
-| F2 | Medium | P0 | VERIFIED for `main` at `2734e98` · the integrated release simulated locally (all gates pass) · OPEN for each actual merge | Merging the stack | Owner (at merge time) |
+| F1 | High | P0 | RESOLVED · #12 closed · stack collapsed: #15 → #10's branch (`c76349d`), #10 → #7's branch (`fd71d32`) · one squash of #7 remains | Merging #7 | Owner (F13 decision) |
+| F2 | Medium | P0 | VERIFIED: every merge since 2026-11-22 (#16, #14, #17, #18) had fresh CI on an up-to-date head; #7's head `9c1b51f` is 0 behind `main` with green CI | Nothing | — |
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
 | F4 | Medium | P1 | FIXED in #15 (not merged) · tests pass · staging VERIFIED | Enabling account deletion | Owner (merge) |
 | F5 | High | P0 | Gate, rate limits and scheduler BUILT in #15 (not merged) · staging stage 1 VERIFIED (38/38) · scheduler NOT CONFIGURED · production stages OPEN | Production database migrations and enabling account deletion | Owner (merge, scheduler settings, staged production steps) |
@@ -46,8 +46,9 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 | F11 | Medium | P1 | DOCUMENTED · pending-deletion step OPEN | Any rollback | Owner |
 | F12 | Critical | P0 | BLOCKED | Production database and cloud sync | Counsel, then owner |
 | F13 | Low | P2 | OWNER DECISION (checklist below) | Publishing the draft privacy notice | Owner |
-| H1 | High | P0 | Owner decided (2026-11-22): hide login · UI gate in #16 (`main`) and #15 (stack), not merged · Auth API sign-ups still possible (dashboard setting, OPEN) | Nothing; the live site has open sign-up until #16 deploys | Owner (merge; dashboard setting) |
-| M1 | Medium | P1 | Live defect · FIXED in #17 (not merged) · regression tests pass | Nothing | Owner (merge) |
+| H1 | High | P0 | UI gate DEPLOYED (#16, `357b061`) and LIVE-VERIFIED (no login control on desktop or mobile; Log out works with a simulated session) · the same switch is in #7 · Auth API sign-ups still possible (dashboard setting, OPEN) | Nothing | Owner (dashboard setting) |
+| M1 | Medium | P1 | FIXED and DEPLOYED (#17, `5bc0cd8`) · LIVE-VERIFIED: no #418 with the clock at +1 and +3 days | Nothing | — |
+| T1 | Low | P2 | Duplicate chapter-visit entries in the activity log: FIXED and DEPLOYED (#18, `367d430`) · LIVE-VERIFIED · E2E now covers checklists, streaks and goals | Nothing | — |
 | E1 | Medium | P1 | 7 manual inbox checks NOT VERIFIED | Turning the accounts UI on | Owner (needs an inbox) |
 
 ### H1 · Production sign-up was open before legal sign-off
@@ -378,12 +379,13 @@ Record:
 | #8 | Merged (squash), deployed | — |
 | #13 (replaces #12) | Merged (squash), deployed `2734e98` | — |
 | #12 | Closed, superseded by #13 | — |
-| #14 | Yes, with approval (independent) | F2 (update branch, green CI) |
-| #16 | Yes, with approval (independent); before the stack | F2 |
-| #17 | Yes, with approval (independent) | F2 |
-| #7 | No | F3, the F13 decision, #16 on `main`; merge as part of the collapsed stack (with #10 and #15) |
-| #10 | No | Collapse into #7's branch (or `rebase --onto` after #7 is squashed) |
-| #15 | No | Collapse into #10's branch (or `rebase --onto` after #10) |
+| #16 | Merged (squash) `357b061`, deployed, live-verified | — |
+| #14 | Merged (squash) `21d0d11`, deployed, live-verified | — |
+| #17 | Merged (squash) `5bc0cd8`, deployed, live-verified | — |
+| #18 | Merged (squash) `367d430`, deployed, live-verified | — |
+| #15 | Merged (squash) into #10's branch, `c76349d` | — |
+| #10 | Merged (squash) into #7's branch, `fd71d32` | — |
+| #7 | **Ready except for the owner decision.** Head `9c1b51f`, up to date with `main`, CI green | **F13** (it publishes the draft `/privacy` notice). F3 (production Auth redirect URLs and password length) is needed before the accounts UI is turned on; under H1 it is recommended before #7, not strictly required |
 
 ## Post-deploy verification (2026-11-21)
 Read-only checks of the live site after #13 deployed, plus local gates and a staging run. No production database access; staging used synthetic accounts only.
