@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useSession } from "@/lib/auth/use-session";
 import AuthModal from "@/components/AuthModal";
 import { downloadJson, exportDeviceData, removeDeviceData } from "@/lib/account/local-data";
+import { accountControl } from "@/lib/auth/accounts-ui";
 import { DELETION_NOTE, RATE_LIMITED_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError, isRateLimitedError } from "@/lib/account/deletion-availability";
 import { CLOUD_SYNC_ENABLED } from "@/lib/sync/policy";
 import { readMeta, syncOnce, type SyncResult } from "@/lib/sync/engine";
@@ -151,7 +152,8 @@ export default function AccountClient() {
         {session.status === "signed-out" ? (
           <>
             <p className="mt-3 text-slate leading-relaxed">You&apos;re not signed in. Your progress is still saved in this browser, and you can download it below.</p>
-            <button type="button" className={`mt-4 ${btn}`} onClick={() => setLoginOpen(true)}>Log in or create an account</button>
+            {/* H1: no login or sign-up entry point while the accounts UI is off. */}
+            {accountControl(false) === "login" ? <button type="button" className={`mt-4 ${btn}`} onClick={() => setLoginOpen(true)}>Log in or create an account</button> : null}
           </>
         ) : null}
         {session.status === "signed-in" ? (
