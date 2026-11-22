@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase-client";
 import AuthModal from "./AuthModal";
+import { accountControl } from "@/lib/auth/accounts-ui";
 
 export default function AuthButton({ className = "" }: { className?: string }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -26,6 +27,11 @@ export default function AuthButton({ className = "" }: { className?: string }) {
 
   // Avoids a flash of "Login" before the session check resolves on mount.
   if (!checked) return null;
+
+  // H1: while the accounts UI is off, signed-out visitors get no login or
+  // sign-up control. A signed-in visitor still gets "Log out".
+  const control = accountControl(!!session);
+  if (control === "none") return null;
 
   if (session) {
     return (
