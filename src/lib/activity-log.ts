@@ -17,6 +17,10 @@ import { safeGetItem } from "./safe-storage";
 const STORAGE_KEY = "atlas:activity-log";
 const MAX_ENTRIES = 400;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // prune anything older than 30 days
+// A reload or quick return to the same chapter is one visit, not several:
+// a "chapter-visited" event is skipped if that chapter was already logged as
+// visited within this window. Every other event type is always recorded.
+export const VISIT_DEDUPE_MS = 30 * 60 * 1000;
 
 export type ActivityEventType =
   | "resource-completed"
@@ -100,8 +104,11 @@ export function getTodayActivity(): ActivityEvent[] {
 export function logActivity(event: Omit<ActivityEvent, "at">): void {
   if (typeof window === "undefined") return;
   try {
-    const cutoff = Date.now() - MAX_AGE_MS;
-    const next = [{ ...event, at: Date.now() }, ...readAll().filter((e) => e.at >= cutoff)].slice(
+    const now = Date.now();
+    const cutoff = now - MAX_AGE_MS;
+    const existing = readAll();
+    if (event.type === "chapter-visited" && existing.some((e) => e.type === "chapter-visited" && e.cls === event.cls && e.slug === event.slug && now - e.at < VISIT_DEDUPE_MS)) return;
+    const next = [{ ...event, at: now }, ...existing.filter((e) => e.at >= cutoff)].slice(
       0,
       MAX_ENTRIES
     );

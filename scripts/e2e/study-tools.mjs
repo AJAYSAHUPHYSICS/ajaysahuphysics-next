@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────────
 // End-to-end test of the study tools (no extra dependencies): serves the
+// (checklists, streak extension, activity log and goals included)
 // static export, drives headless Chrome over the DevTools protocol, and
 // uses the real UI: bookmarks (search, remove), mistakes (category,
 // explanation, resolve, reopen, repeated-question flag), revision rounds,
@@ -129,6 +130,55 @@ await go("/dashboard/activity/");
 const actText = await ev("document.body.innerText");
 check("streak shown from store", /Longest streak[^0-9]*5 days/i.test(actText), actText.slice(actText.indexOf("Current streak"), actText.indexOf("Current streak") + 120).replace(/s+/g, " ") + " | stored " + JSON.stringify(await ls("atlas:study-streak")));
 check("calendar has 28 days", (await ev("document.querySelectorAll('ol[aria-label^=\"Activity per day\"] li').length")) === 28);
+
+// Checklists, streaks and goals through the real UI (Phase 2 tools audit).
+// The streak is set to "last active yesterday" so a real study action must
+// extend it by exactly one day, and a second action the same day must not.
+const localKey = (offsetDays) => ev(`(() => { const d = new Date(); d.setDate(d.getDate() + ${offsetDays}); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })()`);
+const savedStreak = await ls("atlas:study-streak");
+const yesterday = await localKey(-1), today = await localKey(0);
+await ev(`localStorage.setItem("atlas:study-streak", JSON.stringify({ current: 4, longest: 5, lastActiveDate: "${yesterday}" }))`);
+const logBefore = ((await ls("atlas:activity-log")) ?? []).length;
+await go("/class-11/kinematics/");
+const box = (item) => `document.getElementById("checklist-11-kinematics-${item}")`;
+check("checklist renders on a chapter page", await ev(`!!${box("notes")} && ${box("notes")}.checked === false`));
+await ev(`${box("notes")}.click()`); await sleep(300);
+check("checklist tick saved", (await ls("atlas:checklist"))?.["11:kinematics"]?.notes === true);
+const s1 = await ls("atlas:study-streak");
+check("streak extends by one day from yesterday", s1?.current === 5 && s1?.longest === 5 && s1?.lastActiveDate === today, JSON.stringify(s1));
+const second = await ev(`["formulaSheet", "dpp", "pyq"].find((k) => !!document.getElementById("checklist-11-kinematics-" + k)) ?? null`);
+check("a second checklist item exists on the chapter page", !!second, String(second));
+if (second) { await ev(`${box(second)}.click()`); await sleep(300); }
+const s2 = await ls("atlas:study-streak");
+check("a second action the same day doesn't add another day", s2?.current === 5 && s2?.lastActiveDate === today, JSON.stringify(s2));
+const logAfter = (await ls("atlas:activity-log")) ?? [];
+const added = logAfter.slice(0, logAfter.length - logBefore);
+const count = (list, type) => list.filter((e) => e.slug === "kinematics" && e.type === type).length;
+check("activity log: one chapter visit and one entry per checklist tick", added.length === 3 && count(added, "chapter-visited") === 1 && count(added, "resource-completed") === 2, `added=${JSON.stringify(added.map((e) => e.type))}`);
+await go("/class-11/kinematics/");
+check("after reload: checklist tick still shown", await ev(`${box("notes")}.checked === true`));
+await ev(`${box("notes")}.click()`); await sleep(300);
+check("untick saved", (await ls("atlas:checklist"))?.["11:kinematics"]?.notes === false);
+await go("/class-11/kinematics/");
+check("after reload: untick still shown", await ev(`${box("notes")}.checked === false`));
+const logReloaded = ((await ls("atlas:activity-log")) ?? []).slice(0, ((await ls("atlas:activity-log")) ?? []).length - logBefore);
+check("reloading the same chapter adds no duplicate visit entries", count(logReloaded, "chapter-visited") === 1, `visits=${count(logReloaded, "chapter-visited")}`);
+check("unticking doesn't change the streak", (await ls("atlas:study-streak"))?.current === 5);
+
+await go("/dashboard/progress/");
+const goalButtons = () => ev(`[...document.querySelectorAll("main button")].map((b) => b.textContent.trim()).filter((t) => /^(Track this goal|Stop tracking)$/.test(t))`);
+const g0 = await goalButtons();
+check("goals card lists goals to track", g0?.length > 0 && g0.every((t) => t === "Track this goal"), JSON.stringify(g0));
+await ev(`[...document.querySelectorAll("main button")].find((b) => b.textContent.trim() === "Track this goal").click()`); await sleep(300);
+const goals1 = (await ls("atlas:goals")) ?? {};
+check("tracking a goal saves it", Object.keys(goals1).length === 1 && Object.values(goals1).every((v) => typeof v === "number"), JSON.stringify(goals1));
+await go("/dashboard/progress/");
+check("after reload: the goal is still tracked", (await goalButtons())?.filter((t) => t === "Stop tracking").length === 1);
+await ev(`[...document.querySelectorAll("main button")].find((b) => b.textContent.trim() === "Stop tracking").click()`); await sleep(300);
+check("stopping a goal removes it", Object.keys((await ls("atlas:goals")) ?? {}).length === 0);
+await go("/dashboard/progress/");
+check("after reload: no goal tracked", (await goalButtons())?.every((t) => t === "Track this goal"));
+await ev(`localStorage.setItem("atlas:study-streak", ${JSON.stringify(JSON.stringify(savedStreak))})`);
 
 // Accessibility basics on the study pages and the main public pages (scripts/e2e/a11y-audit.mjs).
 await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
