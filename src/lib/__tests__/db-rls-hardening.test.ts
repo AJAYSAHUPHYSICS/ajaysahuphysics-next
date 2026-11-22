@@ -184,6 +184,9 @@ describe("M-2 / L-12: protected profile columns", () => {
 
 describe("M-3: no sync during a pending deletion, even with a re-created profile", () => {
   it("a profile re-created after a purge can't enable sync or write while the deletion request exists", async () => {
+    // Deletion is gated (20261122000000, audit F5); the owner opens the gate first.
+    await as("postgres");
+    await db.query("update public.app_config set value = 'true' where key = 'account_deletion_enabled'");
     await as("authenticated", T);
     expect(await allowed()).toBe(true);
     await db.query("select public.request_account_deletion()");
