@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/use-session";
 import { loadSupabase } from "@/lib/supabase-loader";
+import { accountControl } from "@/lib/auth/accounts-ui";
 
 // The dialog (and the Supabase client it imports) loads only when opened,
 // so signed-out visitors don't download either on every page.
@@ -20,6 +21,10 @@ export default function AuthButton({ className = "" }: { className?: string }) {
 
   // Avoids a flash of "Login" before the session check resolves on mount.
   if (state.status === "loading") return null;
+
+  // H1: while the accounts UI is off, signed-out visitors get no login or
+  // sign-up control. A signed-in visitor still gets "Account" and "Log out".
+  if (accountControl(state.status === "signed-in") === "none") return null;
 
   if (state.status === "signed-in") {
     return (

@@ -39,7 +39,12 @@ describe("rollback script", () => {
 
   it("the migrations re-apply cleanly afterwards", async () => {
     for (const m of migrations()) await db.exec(m);
-    expect(await count("select count(*) from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r'")).toBe(12); // 11 Atlas tables + the unrelated one
-    expect(await count("select count(*) from public.app_config where value = 'false'")).toBe(2);
+    expect(await count("select count(*) from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r'")).toBe(13); // 12 Atlas tables (deletion_rate since 20261122010000) + the unrelated one
+    const cfg = (await db.query<{ key: string; value: string }>("select key, value from public.app_config order by key")).rows;
+    expect(cfg.filter((r) => r.key !== "consent_version")).toEqual([
+      { key: "account_deletion_enabled", value: "false" },
+      { key: "adult_sync_permitted", value: "false" },
+      { key: "minor_sync_permitted", value: "false" },
+    ]);
   });
 });
