@@ -201,6 +201,9 @@ describe("data rights", () => {
   });
 
   it("deletion request is idempotent and stops further uploads at once", async () => {
+    // Deletion is gated (20261122000000, audit F5); the owner opens the gate first.
+    await as("postgres");
+    await db.query("update public.app_config set value = 'true' where key = 'account_deletion_enabled'");
     await as("authenticated", A);
     const t1 = (await rows<{ request_account_deletion: string }>("select public.request_account_deletion()"))[0].request_account_deletion;
     const t2 = (await rows<{ request_account_deletion: string }>("select public.request_account_deletion()"))[0].request_account_deletion;

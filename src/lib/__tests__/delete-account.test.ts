@@ -11,8 +11,13 @@ function backend(over: Partial<Deps> = {}) {
     purgeCalls: 0,
     failPurge: 0,
     failAuthDelete: 0,
+    gate: true as boolean | "unreadable",
   };
   const deps: Deps = {
+    deletionEnabled: async () => {
+      if (state.gate === "unreadable") throw new Error("app_config unavailable");
+      return state.gate;
+    },
     verifyUser: async (t) => (t === "token-u1" ? "u1" : t === "token-u2" ? "u2" : null),
     requestedAt: async (id) => state.requests.get(id) ?? null,
     pendingBefore: async (cutoff) => [...state.requests].filter(([, at]) => at < cutoff).map(([id]) => id),
@@ -75,8 +80,83 @@ describe("delete-account", () => {
     state.requests.set("u2", "2026-11-20T11:30:00Z"); // within 24 h grace
     expect((await sweep(deps, "wrong")).status).toBe(401);
     expect((await sweep(deps, null)).status).toBe(401);
-    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 200, body: { processed: 1, completed: 1, pending: 0 } });
+    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 200, body: { processed: 1, completed: 1, pending: 0, stale: 0 } });
     expect(state.users.has("u1")).toBe(false);
     expect(state.users.has("u2")).toBe(true);
+  });
+});
+
+describe("delete-account: deletion gate (audit F5)", () => {
+  it("gate off: a valid user token with a recorded request is rejected, and nothing is purged or deleted", async () => {
+    const { deps, state } = backend();
+    state.gate = false;
+    state.requests.set("u1", "2026-11-20T11:00:00Z");
+    expect(await deleteOwnAccount(deps, "Bearer token-u1")).toEqual({ status: 403, body: { error: "deletion-disabled" } });
+    expect(state.purgeCalls).toBe(0);
+    expect(state.users.has("u1")).toBe(true);
+    expect(state.rows.get("u1")).toBe(12);
+  });
+
+  it("gate off: a sweep with the valid secret is rejected, nothing is processed, and outstanding requests are counted", async () => {
+    const { deps, state } = backend();
+    state.gate = false;
+    state.requests.set("u1", "2026-11-18T09:00:00Z");
+    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 403, body: { error: "deletion-disabled", pendingRequests: 1 } });
+    expect(state.purgeCalls).toBe(0);
+    expect(state.users.has("u1")).toBe(true);
+  });
+
+  it("an unreadable gate fails closed on both paths", async () => {
+    const { deps, state } = backend();
+    state.gate = "unreadable";
+    state.requests.set("u1", "2026-11-18T09:00:00Z");
+    expect(await deleteOwnAccount(deps, "Bearer token-u1")).toEqual({ status: 503, body: { error: "deletion-unavailable" } });
+    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 503, body: { error: "deletion-unavailable" } });
+    expect(state.purgeCalls).toBe(0);
+    expect(state.users.has("u1")).toBe(true);
+  });
+
+  it("the gate never weakens authentication: no token or a wrong secret is still 401 when the gate is off", async () => {
+    const { deps, state } = backend();
+    state.gate = false;
+    expect((await deleteOwnAccount(deps, null)).status).toBe(401);
+    expect((await deleteOwnAccount(deps, "Bearer forged")).status).toBe(401);
+    expect((await sweep(deps, "wrong")).status).toBe(401);
+  });
+
+  it("gate open: the same requests succeed, with no exemption or special case for any account", async () => {
+    const { deps, state } = backend();
+    state.requests.set("u1", "2026-11-18T09:00:00Z");
+    state.requests.set("u2", "2026-11-20T11:00:00Z");
+    expect((await deleteOwnAccount(deps, "Bearer token-u2")).body).toEqual({ status: "deleted", rowsDeleted: 5 });
+    expect((await sweep(deps, "sweep-secret")).body).toEqual({ processed: 1, completed: 1, pending: 0, stale: 0 });
+    expect(state.users.size).toBe(0);
+  });
+});
+
+describe("delete-account: database errors are reported (audit F6)", () => {
+  it("a failed sweep query is a 500, not 'processed: 0'", async () => {
+    const { deps } = backend({ pendingBefore: async () => { throw new Error("db down"); } });
+    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 500, body: { error: "sweep-query-failed" } });
+  });
+
+  it("with the gate off, a failed outstanding-request count is also a 500", async () => {
+    const { deps, state } = backend({ pendingBefore: async () => { throw new Error("db down"); } });
+    state.gate = false;
+    expect(await sweep(deps, "sweep-secret")).toEqual({ status: 500, body: { error: "sweep-query-failed" } });
+  });
+
+  it("a failed request lookup on the user path is a 503, not 'request-deletion-first'", async () => {
+    const { deps, state } = backend({ requestedAt: async () => { throw new Error("db down"); } });
+    state.requests.set("u1", "2026-11-20T11:00:00Z");
+    expect(await deleteOwnAccount(deps, "Bearer token-u1")).toEqual({ status: 503, body: { error: "deletion-unavailable" } });
+    expect(state.purgeCalls).toBe(0);
+  });
+
+  it("requests still pending past the alert threshold are reported as stale", async () => {
+    const { deps, state } = backend();
+    state.requests.set("u1", "2026-11-10T09:00:00Z"); // 10 days old
+    state.failAuthDelete = 1;
+    expect((await sweep(deps, "sweep-secret")).body).toEqual({ processed: 1, completed: 0, pending: 1, stale: 1 });
   });
 });

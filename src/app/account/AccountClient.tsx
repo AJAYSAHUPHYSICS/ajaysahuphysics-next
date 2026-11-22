@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useSession } from "@/lib/auth/use-session";
 import AuthModal from "@/components/AuthModal";
 import { downloadJson, exportDeviceData, removeDeviceData } from "@/lib/account/local-data";
+import { DELETION_NOTE, canSubmitDeletion, deletionAvailability, isDeletionDisabledError } from "@/lib/account/deletion-availability";
 import { CLOUD_SYNC_ENABLED } from "@/lib/sync/policy";
 import { readMeta, syncOnce, type SyncResult } from "@/lib/sync/engine";
 import { supabaseRemote } from "@/lib/sync/supabase-remote";
@@ -45,6 +46,7 @@ export default function AccountClient() {
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [deleteText, setDeleteText] = useState("");
   const [cloudReady, setCloudReady] = useState<boolean | null>(null);
+  const [deletionEnabled, setDeletionEnabled] = useState<boolean | null>(null);
   const [lastSynced, setLastSynced] = useState<number | null>(null);
   const [needsLink, setNeedsLink] = useState(false);
 
@@ -60,7 +62,14 @@ export default function AccountClient() {
       },
       () => setCloudReady(false),
     );
+    // Server-side deletion gate (F5). Anything but a confirmed true is off.
+    supabase.rpc("account_deletion_enabled").then(
+      ({ data, error }) => setDeletionEnabled(!error && data === true),
+      () => setDeletionEnabled(false),
+    );
   }, [userId]);
+
+  const deletion = deletionAvailability(cloudReady, deletionEnabled);
 
   function downloadDevice() {
     downloadJson(`ajaysahuphysics-device-data-${new Date().toISOString().slice(0, 10)}.json`, exportDeviceData(window.localStorage));
@@ -102,11 +111,15 @@ export default function AccountClient() {
   }
 
   async function deleteAccount() {
-    if (!supabase || deleteText !== "DELETE") return;
+    if (!supabase || !canSubmitDeletion(deletion, deleteText, busy)) return;
     setBusy(true);
     const req = await supabase.rpc("request_account_deletion");
     if (req.error) {
       setBusy(false);
+      if (isDeletionDisabledError(req.error)) {
+        setDeletionEnabled(false);
+        return setNotice(DELETION_NOTE["not-available-yet"]);
+      }
       return setNotice("We couldn't record your deletion request. Please try again, or contact us to delete your account.");
     }
     const { data, error } = await supabase.functions.invoke("delete-account", { method: "POST" });
@@ -195,9 +208,9 @@ export default function AccountClient() {
           <label htmlFor="delete-confirm" className="sr-only">Type DELETE to confirm</label>
           <input id="delete-confirm" value={deleteText} onChange={(e) => setDeleteText(e.target.value)} autoComplete="off" className="mt-3 w-full max-w-xs text-sm rounded-md border border-navy/15 px-3 py-2.5 text-navy focus-visible:outline-2 focus-visible:outline-gold" />
           <div className="mt-3">
-            <button type="button" className={btnDanger} disabled={busy || deleteText !== "DELETE" || cloudReady === false} onClick={deleteAccount}>Delete my account</button>
+            <button type="button" className={btnDanger} disabled={!canSubmitDeletion(deletion, deleteText, busy)} onClick={deleteAccount}>Delete my account</button>
           </div>
-          {cloudReady === false ? <p className="mt-2 text-xs text-slate">Account deletion isn&apos;t set up on this site yet. To delete your account now, contact us from the Contact page.</p> : null}
+          {deletion !== "available" ? <p className="mt-2 text-xs text-slate" role="note">{DELETION_NOTE[deletion]}</p> : null}
         </section>
       ) : null}
 

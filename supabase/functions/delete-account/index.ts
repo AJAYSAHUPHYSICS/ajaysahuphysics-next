@@ -1,6 +1,9 @@
 // Supabase Edge Function (Deno): account deletion.
 // Deploy to STAGING first:
 //   supabase functions deploy delete-account --no-verify-jwt
+// (supabase/config.toml also pins verify_jwt = false for this function.)
+// Deletion gate (audit F5): every request checks
+// public.account_deletion_enabled() first; see handler.ts.
 // --no-verify-jwt: the platform's gateway check only understands legacy JWT
 // keys, and it would block the scheduled sweep (which carries no user
 // token). Authorisation happens here instead: every user request is
@@ -32,16 +35,24 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 const deps: Deps = {
+  async deletionEnabled() {
+    const { data, error } = await admin.rpc("account_deletion_enabled");
+    if (error) throw new Error(error.message);
+    return data === true;
+  },
   async verifyUser(token) {
     const { data, error } = await admin.auth.getUser(token);
     return error || !data.user ? null : data.user.id;
   },
   async requestedAt(userId) {
-    const { data } = await admin.from("deletion_requests").select("requested_at").eq("user_id", userId).maybeSingle();
+    const { data, error } = await admin.from("deletion_requests").select("requested_at").eq("user_id", userId).maybeSingle();
+    if (error) throw new Error(error.message);
     return data?.requested_at ?? null;
   },
   async pendingBefore(cutoff) {
-    const { data } = await admin.from("deletion_requests").select("user_id").lt("requested_at", cutoff).limit(100);
+    // Errors are thrown, never read as "no pending requests" (audit F6).
+    const { data, error } = await admin.from("deletion_requests").select("user_id").lt("requested_at", cutoff).limit(100);
+    if (error) throw new Error(error.message);
     return (data ?? []).map((r: { user_id: string }) => r.user_id);
   },
   async purge(userId) {
