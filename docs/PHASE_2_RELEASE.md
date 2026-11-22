@@ -11,7 +11,15 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
   - the production Auth settings (F3);
   - the privacy-notice decision (F13);
   - the production schema inventory (F10).
-- **Not done yet:** the production stages of the deletion verification. **No production verification and no legal approval are claimed here.**
+- **Not done yet:** the production stages of the deletion verification. **No production verification, production readiness or legal approval is claimed here.**
+
+**Safeguard status (2026-11-22):**
+- `CLOUD_SYNC_ENABLED` is `false` in code.
+- On staging, `adult_sync_permitted`, `minor_sync_permitted` and the deletion gate `account_deletion_enabled` are all `'false'` (checked at the start and end of every staging run).
+  - `minor_sync_permitted` has never been enabled.
+  - `adult_sync_permitted` was set to `'true'` on staging only once: temporarily, during the 2026-11-21 `npm run test:staging` run, which restored it. That suite is no longer used.
+  - The deletion gate is opened on staging only by `test:staging:deletion-gate`, for its own run, and it always closes it again.
+- Production has none of the four migrations applied, and no production Supabase or Auth setting has been changed.
 
 Each finding is tracked in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 
@@ -130,7 +138,8 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - anonymous denial (12 tables, 5 functions);
   - sign-in, generic errors, session refresh, and sign-out revoking the refresh token;
   - profile and consent rules;
-  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18: "not-available-for-under-18"; uploads refused on all 6 study tables);
+  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
+  - **one deliberate write attempt on `app_config`:** a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server **denies** it. The script's server key never writes `app_config`, and a unit test enforces both on its source;
   - A-versus-B isolation;
   - export;
   - deletion refusal with the gate off.

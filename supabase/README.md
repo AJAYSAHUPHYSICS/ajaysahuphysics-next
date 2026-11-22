@@ -6,16 +6,23 @@
 | Path | What |
 |---|---|
 | `migrations/20261120000000_student_accounts.sql` | Profiles, append-only consents, study tables (bookmarks, checklist items, revision rounds, mistakes, goals, streaks), deletion requests and a PII-free deletion log. Row Level Security on every table; database-side consent gate; per-student row limits; export and deletion functions. |
+| `migrations/20261121000000_service_role_grants.sql` | Least privilege for the server role: SELECT on the Atlas tables, UPDATE of `app_config.value`, INSERT into `consents` (the verified parental-consent process). No table is created. |
+| `migrations/20261122000000_account_deletion_gate.sql` | The server-side deletion gate: `app_config` key `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()`, true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` replaced so it refuses with `deletion-disabled` while the gate is off. |
+| `migrations/20261122010000_deletion_rate_limit.sql` | Per-user deletion rate limits: the `deletion_rate` table (RLS on, no client access, server role read-only) and `deletion_rate_wait()` (server role only); `request_account_deletion()` replaced again, adding 5 calls per hour after the sign-in and gate checks. |
+| `config.toml` | Only the `delete-account` function's `verify_jwt = false` pin. Never run `supabase config push` with it. |
+| `rollback/student_accounts_down.sql` | **Destructive** rollback of all four migrations (owner approval only; tested in PGlite). |
 | `functions/delete-account/` | Edge Function that deletes a student's account after they request it (service-role key stays in Supabase secrets). `handler.ts` is the tested core. |
 | `tests/supabase-auth-shim.sql` | **Test-only** stand-in for Supabase's `auth` schema and roles, so the migration can be tested in PGlite. Never apply it to a real project. |
 
 ## Safety switches (all off)
 - `app_config.adult_sync_permitted` and `app_config.minor_sync_permitted` stay `'false'` until legal sign-off. Only the service role can change them.
+- `app_config.account_deletion_enabled` (the deletion gate) stays `'false'` until the staged verification in `docs/PHASE_2_RELEASE.md` section 9, C.3 and the owner's explicit approval. Only staging's `test:staging:deletion-gate` opens it, on staging only and for that run, and it always closes it again. Opening it never enables sync.
+- Students can't change any of these switches. A signed-in student's attempt to update `app_config` is **deliberately denied**: there is no client policy or grant, and `test:staging:release` checks this every run.
 - `CLOUD_SYNC_ENABLED` in `src/lib/sync/policy.ts` is `false`, so the site never sends study data.
 - Students under 18 can't enable cloud copies without the minors switch **and** a `parental` consent recorded with method `parent-verified`, which only a verified server process can insert.
 
 ## Tests (no Docker needed)
-`npx vitest run src/lib/__tests__/db-rls.test.ts` applies the migration to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
+`npx vitest run src/lib/__tests__/db-rls.test.ts` applies all four migrations, in order, to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
 - anonymous visitors get no access;
 - students are isolated from each other;
 - the consent gate can't be bypassed through direct API calls;
@@ -52,14 +59,21 @@ It prints the target ref and the key **kinds**, never the values. It refuses whe
 ```
 npx supabase@2.122.1 login                                  # browser sign-in; the token stays in your user profile, not the repo
 npx supabase@2.122.1 link --project-ref <staging-ref>       # asks for the STAGING database password; writes supabase/.temp/ (git-ignored)
-npx supabase@2.122.1 db push --dry-run                      # lists the migration it WOULD apply; applies nothing
+npx supabase@2.122.1 db push --dry-run                      # lists the migrations it WOULD apply; applies nothing
 ```
 `supabase/config.toml` is committed and holds only the function's `verify_jwt = false` pin (audit F6). Don't regenerate it with `supabase init`, and **never run `supabase config push`**: the file holds no Auth or API settings on purpose, so a push could reset the remote project's settings to CLI defaults.
 
-### 4. Apply the migration (needs the owner's go-ahead)
+### 4. Apply the migrations (needs the owner's go-ahead)
 ```
-npx supabase@2.122.1 db push                                # applies supabase/migrations/ to the LINKED STAGING project
+npx supabase@2.122.1 db push --linked                       # applies supabase/migrations/ to the LINKED STAGING project
 ```
+**Order and dependencies:**
+1. **`20261120000000`** creates the tables and functions.
+2. **`20261121000000`** depends on those tables (grants).
+3. **`20261122000000`** depends on `app_config` and replaces `request_account_deletion()`.
+4. **`20261122010000`** depends on the gate function and replaces `request_account_deletion()` again.
+
+The CLI applies them in filename order. Apply all four together. In production, deploy the gated `delete-account` function (step 5) **before** applying them. Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, all four are applied (history matches local, 2026-11-22). Production: none applied.
 
 ### 5. Deploy the deletion function (staging)
 ```
@@ -154,7 +168,8 @@ npm run test:staging:release
   - anonymous denial (12 tables, 5 functions);
   - sign-in with generic errors, session refresh, and sign-out revoking the refresh token;
   - own-profile and append-only consent rules;
-  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18 with full consent: "not-available-for-under-18"; uploads refused on all 6 study tables; no flipping of `sync_enabled` or `app_config`);
+  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18 with full consent: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
+  - **one deliberate, denied write:** a signed-in student tries to set `adult_sync_permitted` to `'true'` in `app_config`. The check passes only if the server denies it and the value stays `'false'`. The script's server key never writes `app_config`, so it never touches either sync permission or the deletion gate;
   - A-versus-B isolation;
   - export (own data only, documented shape);
   - deletion refusal with the gate off (request, function and sweep; nothing recorded).

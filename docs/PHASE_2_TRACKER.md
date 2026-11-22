@@ -1,6 +1,16 @@
 # Phase 2 release tracker
 
-The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-22. No legal approval and no production verification are claimed anywhere in this file.
+The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-22. No legal approval, production verification or production readiness is claimed anywhere in this file.
+
+**Safeguards (2026-11-22):**
+- `CLOUD_SYNC_ENABLED = false`.
+- On staging, `adult_sync_permitted`, `minor_sync_permitted` and the deletion gate are `'false'`.
+  - `minor_sync_permitted` has never been enabled.
+  - `adult_sync_permitted` was enabled once on staging, temporarily, by the 2026-11-21 `test:staging` run, and restored.
+  - The deletion gate is opened only by `test:staging:deletion-gate`, during its own run.
+  - In production, none of these objects exists yet.
+- No production Supabase or Auth change.
+- The safe staging check is `npm run test:staging:release` (63/63). Its only `app_config` write is a signed-in student's attempt, which must be denied. `npm run test:staging` is not used, because it enables sync.
 
 The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5, F6 and F11 describes the code **before** the deletion-gate fix (#15), so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
 
