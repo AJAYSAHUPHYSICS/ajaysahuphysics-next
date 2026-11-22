@@ -6,6 +6,7 @@ import { REVISION_ROUNDS, getAllRevisionEntries, setRevisionRound, subscribeToRe
 import { allChapters } from "@/lib/chapters";
 import { revisionOverview, type RevisionRow } from "@/lib/study-tools";
 import { studyButton, studyCard, studySelect } from "@/components/study/StudyNav";
+import { useClientNow } from "@/lib/use-client-now";
 
 const EMPTY = {};
 const BUCKET_LABEL: Record<RevisionRow["bucket"], string> = { overdue: "Overdue", "due-today": "Due today", "due-soon": "Due soon", "recently-revised": "Revised recently", "never-revised": "Not revised yet" };
@@ -19,9 +20,11 @@ function dueText(r: RevisionRow): string {
 
 export default function RevisionClient() {
   const entries = useSyncExternalStore(subscribeToRevision, getAllRevisionEntries, () => EMPTY);
-  const [now] = useState(() => Date.now());
+  // null until hydration ends (M1). Until then the page shows what the server
+  // prerendered: no saved entries, which doesn't depend on the date.
+  const now = useClientNow();
   const [view, setView] = useState<"due" | "all" | "11" | "12">("due");
-  const rows = useMemo(() => revisionOverview(entries, allChapters.map((c) => ({ cls: c.cls, slug: c.slug, name: c.name })), now), [entries, now]);
+  const rows = useMemo(() => revisionOverview(now === null ? EMPTY : entries, allChapters.map((c) => ({ cls: c.cls, slug: c.slug, name: c.name })), now ?? 0), [entries, now]);
   const shown = rows.filter((r) => (view === "due" ? r.bucket === "overdue" || r.bucket === "due-today" || r.bucket === "due-soon" : view === "all" ? true : r.cls === view));
   const completed = rows.reduce((n, r) => n + r.rounds.length, 0);
   const history = rows.flatMap((r) => r.entries.filter((e) => e.completedAt > 0).map((e) => ({ ...e, name: r.name, cls: r.cls }))).sort((a, b) => b.completedAt - a.completedAt).slice(0, 15);

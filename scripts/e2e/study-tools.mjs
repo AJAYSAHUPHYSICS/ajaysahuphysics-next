@@ -5,7 +5,8 @@
 // explanation, resolve, reopen, repeated-question flag), revision rounds,
 // activity and streak; reloads to confirm persistence in the existing
 // storage formats; checks for horizontal overflow at phone, tablet,
-// laptop and desktop widths; fails on any exception or console error.
+// laptop and desktop widths; checks hydration with the clock moved past the
+// build day (M1); fails on any exception or console error.
 //
 //   npm run build && npm run test:e2e
 //   CHROME_PATH=/path/to/chrome npm run test:e2e   (override the browser)
@@ -147,6 +148,20 @@ for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800], [1366, 
     check(`no horizontal overflow ${w}px ${p}`, over <= 1, `overflow ${over}px ${widest}`);
   }
 }
+// Hydration across a date change (M1): pages are prerendered on the build
+// day, but students open them later. Move the browser's clock 3 days ahead
+// and reload the date-dependent pages; React error #418 would be thrown here.
+await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
+const shiftScript = await send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const R = Date, shift = 3 * 86400000; class D extends R { constructor(...a) { super(...(a.length ? a : [R.now() + shift])); } static now() { return R.now() + shift; } } window.Date = D; })()` });
+for (const p of ["/dashboard/activity/", "/dashboard/revision/", "/dashboard/"]) {
+  const before = events.filter((e) => e.method === "Runtime.exceptionThrown").length;
+  await go(p);
+  const shifted = await ev("Date.now() - performance.timeOrigin > 2 * 86400000");
+  const thrown = events.filter((e) => e.method === "Runtime.exceptionThrown").slice(before).map((e) => e.params.exceptionDetails.exception?.description?.slice(0, 80));
+  check(`hydrates without errors 3 days after the build: ${p}`, shifted && thrown.length === 0, `clock shifted=${shifted}; ${thrown.join(" | ")}`);
+}
+await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: shiftScript.identifier });
+
 const exceptions = events.filter((e) => e.method === "Runtime.exceptionThrown").map((e) => e.params.exceptionDetails.exception?.description?.slice(0, 160));
 const errors = events.filter((e) => e.method === "Runtime.consoleAPICalled" && e.params.type === "error").map((e) => e.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 160));
 ws.close(); chrome.kill(); server.close();
