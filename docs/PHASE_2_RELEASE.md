@@ -2,8 +2,8 @@
 
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until counsel signs off and the owner authorises launch.
 
-**Release status (2026-11-23):** #16 (H1), #14, #17 (M1) and #18 are merged and deployed (`main` `367d430`). The release stack is collapsed into **#7**: #15 is merged into #10's branch, and #10 into #7's branch. #7 is up to date with `main`, its CI passes, and it is **not merged**. It is waiting on the F13 decision. The completion audit is in [`PHASE_2_COMPLETION_AUDIT.md`](PHASE_2_COMPLETION_AUDIT.md). **Release-incomplete:** nothing below is claimed as production-verified for the account platform.
-- **What's open:** #7, the whole Phase 2B release (accounts platform, staging tooling, deletion gate, rate limits, sweep, H1 for the stack). F4, F5 and F6 are fixed in it.
+**Release status (2026-11-23):** all Phase 2 PRs are merged and deployed: #16 (H1), #14, #17 (M1), #18, and **#7**, the whole Phase 2B release including #10 and #15, as `9019a1c` (Pages deployment `7988286758`). The account code is live but **dormant**: login is hidden (H1), production has no account database, and account deletion shows as not set up, with the Contact-page fallback. `/privacy` is published as a labelled draft (owner decision F13). The completion audit, with the production verification and the gates table, is in [`PHASE_2_COMPLETION_AUDIT.md`](PHASE_2_COMPLETION_AUDIT.md). **Release-incomplete:** the account platform isn't production-verified with real accounts, and the production database steps haven't started.
+- **What's open:** no PRs. The remaining work is owner-, legal- and production-gated (below).
 - **Blocked on decisions and outside work:**
   - legal sign-off (F12);
   - the production Auth settings (F3);

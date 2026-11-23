@@ -12,7 +12,7 @@ The status of every pre-release audit finding (F1 to F13) for the Phase 2 studen
 - No production Supabase or Auth change.
 - The safe staging check is `npm run test:staging:release` (63/63). The check makes one deliberate authenticated student-side UPDATE attempt against `app_config`. The server must deny it. No successful `app_config` modification occurs, and the script's server key never writes to `app_config`. `npm run test:staging` is not used, because it enables sync.
 
-The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5, F6 and F11 describes the code **before** the deletion-gate fix (#15), so its references are at commit `3f1029b`; the progress notes under each finding describe the fix.
+The audit was **read-only**: no merges, deploys, Supabase changes or production data access. File references are on this branch (`phase-2b-staging-verification`, PR #10) unless marked `(#6)`, `(#8)` or `(main)`, which means that PR's branch or `main`. The audit evidence for F4, F5, F6 and F11 describes the code **before** the deletion-gate fix (#15), so its references are at commit `3f1029b`; references marked `(main)` describe `main` before #7 was merged, at `2734e98`; the progress notes under each finding describe the fix.
 
 ## How to read this
 | Priority | Meaning |
@@ -33,7 +33,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 ## Summary
 | ID | Severity | Priority | Status | Blocks | Owner |
 |---|---|---|---|---|---|
-| F1 | High | P0 | RESOLVED · #12 closed · stack collapsed: #15 → #10's branch (`c76349d`), #10 → #7's branch (`fd71d32`) · one squash of #7 remains | Merging #7 | Owner (F13 decision) |
+| F1 | High | P0 | RESOLVED · #12 closed · stack collapsed (#15 → `c76349d`, #10 → `fd71d32`) · #7 squash-merged into `main` as `9019a1c` (2026-11-23) | Nothing | — |
 | F2 | Medium | P0 | VERIFIED: every merge since 2026-11-22 (#16, #14, #17, #18) had fresh CI on an up-to-date head; #7's head `9c1b51f` is 0 behind `main` with green CI | Nothing | — |
 | F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
 | F4 | Medium | P1 | FIXED in #15 (not merged) · tests pass · staging VERIFIED | Enabling account deletion | Owner (merge) |
@@ -45,7 +45,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 | F10 | High | P0 | OPEN · OWNER DECISION | Production database | Owner (approve the read-only inventory) |
 | F11 | Medium | P1 | DOCUMENTED · pending-deletion step OPEN | Any rollback | Owner |
 | F12 | Critical | P0 | BLOCKED | Production database and cloud sync | Counsel, then owner |
-| F13 | Low | P2 | OWNER DECISION (checklist below) | Publishing the draft privacy notice | Owner |
+| F13 | Low | P2 | OWNER DECIDED (2026-11-23): publish `/privacy` as a labelled draft pending legal review, noindex, outside the sitemap · LIVE-VERIFIED · the final notice still needs counsel (F12) | Finalising the notice | Counsel (F12) |
 | H1 | High | P0 | UI gate DEPLOYED (#16, `357b061`) and LIVE-VERIFIED (no login control on desktop or mobile; Log out works with a simulated session) · the same switch is in #7 · Auth API sign-ups still possible (dashboard setting, OPEN) | Nothing | Owner (dashboard setting) |
 | M1 | Medium | P1 | FIXED and DEPLOYED (#17, `5bc0cd8`) · LIVE-VERIFIED: no #418 with the clock at +1 and +3 days | Nothing | — |
 | T1 | Low | P2 | Duplicate chapter-visit entries in the activity log: FIXED and DEPLOYED (#18, `367d430`) · LIVE-VERIFIED · E2E now covers checklists, streaks and goals | Nothing | — |
@@ -385,7 +385,7 @@ Record:
 | #18 | Merged (squash) `367d430`, deployed, live-verified | — |
 | #15 | Merged (squash) into #10's branch, `c76349d` | — |
 | #10 | Merged (squash) into #7's branch, `fd71d32` | — |
-| #7 | **Ready except for the owner decision.** Head `9c1b51f`, up to date with `main`, CI green | **F13** (it publishes the draft `/privacy` notice). F3 (production Auth redirect URLs and password length) is needed before the accounts UI is turned on; under H1 it is recommended before #7, not strictly required |
+| #7 | Merged (squash) `9019a1c` at the approved head `dc6e1f1` (CI run #97); deployed (Pages run #777, deployment `7988286758`); live-verified | — (F3 is still needed before the accounts UI is turned on) |
 
 ## Post-deploy verification (2026-11-21)
 Read-only checks of the live site after #13 deployed, plus local gates and a staging run. No production database access; staging used synthetic accounts only.

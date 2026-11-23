@@ -1,13 +1,16 @@
 # Phase 2 completion audit
 
-Status as of 2026-11-23. `main` is `367d430`, and production serves that build. The release branch is #7 at `9c1b51f` (not merged). The finding-by-finding detail is in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), and the runbook and rollback in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md).
+Status as of 2026-11-23 (01:35 UTC). `main` is `9019a1c`, and production serves that build (GitHub Pages deployment `7988286758`). The finding-by-finding detail is in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), and the runbook and rollback in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md).
 
 **Overall: RELEASE-INCOMPLETE.**
-- **Done and live:** the seven student tools work, are tested, and are verified in production as **local-first** tools (data stays in the student's browser). M1, H1 and the JEE accessibility fix are fixed and live.
-- **Blocked on decisions:**
-  - the accounts platform (#7) waits on the F13 owner decision;
-  - cloud sync and the production database wait on legal sign-off (F12);
-  - the production schema inventory (F10) and the Auth settings (F3) are owner actions.
+- **Done and live:**
+  - every Phase 2 PR is merged and deployed, including #7, the accounts platform and the whole release stack;
+  - the seven student tools work, are tested, and are verified in production as **local-first** tools (data stays in the student's browser);
+  - M1, H1 and the JEE accessibility fix are live;
+  - the account code is deployed but **dormant**: login is hidden (H1), production has no account database, and deletion is shown as not set up, with the Contact-page fallback.
+- **Blocked:**
+  - **legal and owner:** legal sign-off (F12), the production schema inventory and backup (F10), and the Auth settings (F3);
+  - **separately gated:** production migrations, the function and the scheduler; the 7 email checks (E1); the accounts UI; cloud sync.
 
 No legal compliance is claimed.
 
@@ -33,18 +36,18 @@ No legal compliance is claimed.
 | H1 remains functional | COMPLETE | Live check 15/15 after each deploy |
 | JEE accessibility fixed | COMPLETE | #14 `21d0d11`; live accessibility audit shows 0 issues |
 | Required security review complete | COMPLETE for code · BLOCKED for production configuration | Below |
-| Privacy and legal status resolved or documented | BLOCKED (documented) | F12 counsel; F13 owner decision |
-| Unit tests pass | COMPLETE | `main`: 474 passed, 1 skipped; release branch: 622 passed, 1 skipped |
+| Privacy and legal status resolved or documented | BLOCKED (documented) | F12 counsel review outstanding. F13 decided by the owner on 2026-11-23: `/privacy` is published as a labelled draft, noindex and outside the sitemap (live-verified). It is not a final notice |
+| Unit tests pass | COMPLETE | On code identical to `main` `9019a1c` (tree `b9beb13`): 622 passed, 1 skipped |
 | Integration tests (PGlite database, staging) pass | COMPLETE | Database suites in the unit run; staging 63/63, 38/38, 15/15 |
 | Build passes | COMPLETE | CI and local |
 | E2E passes | COMPLETE | 90/90 on `main` and on the release branch |
 | Accessibility checks pass | COMPLETE | E2E audit of 18 pages; live audit, 0 issues |
 | Mobile and desktop checks pass | COMPLETE | No overflow at 360–1536 px (E2E); live at 360, 390, 768 and 1280 px |
 | No known critical production defects | COMPLETE | Live audit: 0 console errors, 0 broken links |
-| All required Phase 2 PRs integrated | IN PROGRESS | #7 (the collapsed stack) waits on F13 |
+| All required Phase 2 PRs integrated | COMPLETE | #7 squash-merged as `9019a1c` on 2026-11-23, at the approved head `dc6e1f1` |
 | Documentation updated | COMPLETE | This file, the tracker, the release notes and `supabase/README.md` |
-| Production deployment successful; commit matches `main` | COMPLETE for `367d430` | The GitHub Pages deployment SHA equals `main` |
-| Post-deployment verification | COMPLETE for `367d430` | Live audit, H1, M1 and seven-tool checks |
+| Production deployment successful; commit matches `main` | COMPLETE | Pages run #777 (`45095158662`), deployment `7988286758` = `9019a1c` = `main` |
+| Post-deployment verification | COMPLETE for the public site and local-first tools · NOT VERIFIED for real accounts | New pages 16/16, seven tools 14/14, H1 15/15, M1 (+1 and +3 days), broad audit; no real account was used |
 
 ## The seven student tools
 Every tool stores its data in the browser (`atlas:*` keys; frozen formats, tested in `student-data-compat.test.ts`). Each also has a server-side table in #7, which is used only by cloud sync. **Sync is off** (`CLOUD_SYNC_ENABLED = false`, and both `app_config` switches are `'false'`), so no study data leaves the browser.
@@ -78,7 +81,25 @@ The sync engine's design (idempotent upserts, tombstones, conflict merge) was te
 | #15 (deletion gate, rate limits, sweep, H1 for the stack, safe staging check) | #10's branch | `c76349d` | No (feature branch) |
 | #10 (staging tooling, release docs) | #7's branch | `fd71d32` | No (feature branch) |
 | `main` → #7's branch (merge commit) | #7's branch | `9c1b51f` | No |
-| **#7 (accounts platform; the whole release)** | **Not merged** | Head `9c1b51f` | — |
+| **#7 (accounts platform; the whole release)** | `main` | **`9019a1c`** (approved head `dc6e1f1`; CI run #97) | Yes: run #777, deployment `7988286758` |
+
+## Production verification of `9019a1c` (2026-11-23, read-only)
+All checks ran in throwaway browser profiles with synthetic data. Every request to Supabase was intercepted and answered inside the browser; none reached production.
+
+| Check | Result |
+|---|---|
+| `/privacy`: labelled "Draft notice, pending legal review"; `noindex, follow`; canonical; CSP | PASS |
+| `/account`, `/auth/callback`, `/auth/reset-password`: `noindex, nofollow`; CSP | PASS |
+| Sitemap (13 URLs) excludes `/privacy`, `/account` and `/auth` | PASS |
+| Signed-out browsing makes no Supabase requests | PASS |
+| `/account` signed out: no login control; "saved in this browser"; cloud copy "Not available yet" | PASS |
+| `/account` with a synthetic session: Log out works; "Account deletion isn't set up… contact us from the Contact page"; delete button disabled with DELETE typed; export hidden | PASS |
+| Seven local-first tools, including persistence and the 390 px layout | PASS (14/14) |
+| H1: no login or sign-up control on desktop or mobile | PASS (15/15) |
+| M1: no #418 with the clock moved +1 and +3 days | PASS |
+| Broad audit: 49 pages crawled; 22 in the browser; CSP everywhere; 0 console errors; 0 accessibility issues; no overflow at 360, 390, 768 or 1280 px; navigation | PASS (the expected exception: the old "login dialog opens" journey fails because login is hidden) |
+| A real account's login and logout against production Auth | NOT VERIFIED (no real account used; login hidden) |
+| A Boards page | NOT APPLICABLE: no such route (`/boards/` is 404); Boards content is reached through `/class-11/` and `/class-12/` |
 
 ## Database and migrations
 | Migration | Staging | Production |
@@ -110,9 +131,9 @@ The sync engine's design (idempotent upserts, tombstones, conflict merge) was te
    - F3: production Auth redirect URLs, minimum password length 10, and the email confirmation setting;
    - turning off Supabase Auth API sign-ups (the H1 limitation), or accepting the risk;
    - F10: approval for the inventory, plus a backup;
-   - F13: the privacy-notice decision;
-   - the 7 manual email checks (E1);
-   - approval of the merge of #7.
+   - the 7 manual email checks (E1).
+
+   F13 was decided on 2026-11-23 (published as a draft), and the #7 merge was approved and done.
 4. **Requires legal review:** F12 (DPDP), including parental consent for under-18s, GA4 for minors, and the privacy notice text.
 5. **Not verified:**
    - production Supabase and Auth settings (not read);
@@ -141,8 +162,23 @@ The sync engine's design (idempotent upserts, tombstones, conflict merge) was te
 - **Order:** #18, #17, #14 and #16 are each independent single commits. **Don't revert #16 on its own** while login must stay hidden.
 - **Database:** nothing in production to roll back. For staging, see `supabase/rollback/student_accounts_down.sql` (destructive; owner approval only).
 
+## Remaining gates
+Each needs its own explicit owner approval. None has been started.
+
+| Gate | Status | Evidence | Risk if skipped or rushed | Prerequisite | Exact owner action | Separate approval |
+|---|---|---|---|---|---|---|
+| F12: legal review (privacy, DPDP, minors and parental consent, GA4, cloud sync) | BLOCKED | Draft `/privacy` live, labelled as a draft; no counsel sign-off recorded | Storing student data or finalising the notice without legal basis | None | Commission qualified counsel; record the outcome privately | Yes (counsel, then owner) |
+| F10: production schema inventory and verified backup | BLOCKED | Production `public` schema never inspected; no backup recorded | The migration's schema-wide revokes could break unknown objects; no restore point | None | Approve a read-only inventory; take a backup and test that it restores | Yes |
+| F3: production Auth (redirect allow-list, password minimum 10, email confirmation, sign-up setting) | BLOCKED (owner) · NOT VERIFIED | Settings never read. Signed-out visitors see no login (H1); API sign-ups stay possible until "Allow new users to sign up" is turned off | Broken email links when the UI is turned on; API sign-ups before F12 | None | In the Supabase dashboard: add `https://ajaysahuphysics.com/auth/callback/` and `/auth/reset-password/`; set the minimum length to 10; decide on email confirmation and sign-ups | Yes |
+| E1: the 7 manual email checks | NOT VERIFIED | `supabase/README.md` checklist; no result recorded | Unverified confirmation and reset flows | F3; an inbox you control | Run the checklist on staging and record the results | Part of turning the UI on |
+| Production migrations and Edge Function | BLOCKED | 0 of 4 applied in production; 4 of 4 on staging | Applying the first two without the gate migrations; schema conflicts (F10) | F12, F10, backup | Approve runbook section 9 C.2: deploy the function, then all four migrations together, with the gate off | Yes |
+| Deletion sweep workflow | BLOCKED (inert) | `deletion-sweep.yml` on `main`; it doesn't run unless `vars.ATLAS_DELETION_SWEEP_ENABLED` is `'true'` | Without it, pending deletions aren't completed | Production migrations and function | Set `vars.ATLAS_SWEEP_URL`, `secrets.ATLAS_DELETION_SWEEP_SECRET`, then the enable switch; test that the alert email arrives | Yes |
+| Production deletion gate (staged verification C.3, stages 2–5) | BLOCKED | Staging stage 1 done (38/38) | Promised deletions that never complete | Migrations, function, scheduler | Production gate-off checks, recorded evidence, then the owner's approval to open the gate and run a disposable-account test | Yes |
+| Accounts UI activation (`ACCOUNTS_UI_ENABLED = true`) | BLOCKED | Login hidden; switch `false`; guard tests in CI | Sign-ups before legal sign-off and before working Auth settings | F12, F3, E1, and production database work if account features are needed | Approve a PR that flips the switch | Yes |
+| Cloud sync (`CLOUD_SYNC_ENABLED` and `app_config` switches) | BLOCKED | `false` in code and on staging; never enabled in production | Student data stored online without legal basis | F12 and every item above; a parental-consent process for minors | Approve a reviewed PR and the switch changes | Yes, separately |
+
 ## Next
-1. The owner's F13 decision, then merge #7: one squash, which deploys.
-2. Then, after F12, F10 and a backup: production migrations, the function and the scheduler, in the staged deletion verification order.
-3. Then F3, and a separately approved PR to turn the accounts UI on. Then the 7 email checks.
-4. Cloud sync last, after counsel, as its own approval.
+1. The owner and counsel: F12. In parallel: the F10 inventory and backup, and the F3 settings.
+2. Then the production database release in the runbook's order: function, then the four migrations, then the scheduler, then the staged deletion verification.
+3. Then turning the accounts UI on (a separate PR), and the 7 email checks.
+4. Cloud sync last, as its own approval.
