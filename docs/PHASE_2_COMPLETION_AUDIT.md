@@ -1,6 +1,6 @@
 # Phase 2 completion audit
 
-Status as of 2026-11-23 (01:35 UTC). `main` is `9019a1c`, and production serves that build (GitHub Pages deployment `7988286758`). The finding-by-finding detail is in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), and the runbook and rollback in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md).
+**A dated snapshot**, as of 2026-11-23 (01:35 UTC). The live status, the owner decisions and the completion criteria are kept only in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md). `main` is `9019a1c`, and production serves that build (GitHub Pages deployment `7988286758`). The finding-by-finding detail is in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), and the runbook and rollback in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md).
 
 **Overall: RELEASE-INCOMPLETE.**
 - **Done and live:**
@@ -45,7 +45,7 @@ No legal compliance is claimed.
 | Mobile and desktop checks pass | COMPLETE | No overflow at 360–1536 px (E2E); live at 360, 390, 768 and 1280 px |
 | No known critical production defects | COMPLETE | Live audit: 0 console errors, 0 broken links |
 | All required Phase 2 PRs integrated | COMPLETE | #7 squash-merged as `9019a1c` on 2026-11-23, at the approved head `dc6e1f1` |
-| Documentation updated | COMPLETE | This file, the tracker, the release notes and `supabase/README.md` |
+| Documentation updated | IN PROGRESS | This file, the tracker, the release notes and `supabase/README.md`. A later review found stale statements (#7 "not merged", F4 to F6 "not merged", F3 "blocks merging #7"), corrected in #19 |
 | Production deployment successful; commit matches `main` | COMPLETE | Pages run #777 (`45095158662`), deployment `7988286758` = `9019a1c` = `main` |
 | Post-deployment verification | COMPLETE for the public site and local-first tools · NOT VERIFIED for real accounts | New pages 16/16, seven tools 14/14, H1 15/15, M1 (+1 and +3 days), broad audit; no real account was used |
 

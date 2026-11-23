@@ -3,12 +3,13 @@
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until counsel signs off and the owner authorises launch.
 
 **Release status (2026-11-23):** all Phase 2 PRs are merged and deployed: #16 (H1), #14, #17 (M1), #18, and **#7**, the whole Phase 2B release including #10 and #15, as `9019a1c` (Pages deployment `7988286758`). The account code is live but **dormant**: login is hidden (H1), production has no account database, and account deletion shows as not set up, with the Contact-page fallback. `/privacy` is published as a labelled draft (owner decision F13). The completion audit, with the production verification and the gates table, is in [`PHASE_2_COMPLETION_AUDIT.md`](PHASE_2_COMPLETION_AUDIT.md). **Release-incomplete:** the account platform isn't production-verified with real accounts, and the production database steps haven't started.
-- **What's open:** no PRs. The remaining work is owner-, legal- and production-gated (below).
+- **What's open:** #19 (this documentation), #20 (privacy-notice accuracy) and #21 (the F10 inventory and the F3 checklist). Only #20 changes a page: two sentences of the draft notice. Everything else is owner-, legal- or production-gated. The live status and the owner decisions are in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 - **Blocked on decisions and outside work:**
   - legal sign-off (F12);
-  - the production Auth settings (F3);
-  - the privacy-notice decision (F13);
-  - the production schema inventory (F10).
+  - the production Auth settings, and turning off API sign-ups (F3, H1). These now gate turning the accounts UI on, not a merge;
+  - the production schema inventory and a tested backup (F10);
+  - the owner's scope decision on the accounts UI and cloud sync.
+- **Decided:** F13. `/privacy` is published as a labelled draft, `noindex`, outside the sitemap.
 - **Not done yet:** the production stages of the deletion verification. **No production verification, production readiness or legal approval is claimed here.**
 
 **Safeguard status (2026-11-22):**
@@ -36,9 +37,9 @@ Each finding is tracked in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
   - #15 was squash-merged into #10's branch (`c76349d`), then #10 into #7's branch (`fd71d32`);
   - `main` was then merged into #7's branch (`9c1b51f`). The only conflict was `AuthButton.tsx`, kept as the stack's version, which carries the H1 switch;
   - CI passes on `9c1b51f`, and #7 is 0 commits behind `main`;
-  - **#7 is not merged.** It is waiting on the F13 decision, because it publishes the draft `/privacy` notice.
+  - **#7 was squash-merged as `9019a1c` on 2026-11-23**, after the owner's F13 decision, at the approved head `dc6e1f1`, and deployed (deployment `7988286758`).
 
-The table below is the original plan; the current merge mechanics follow it.
+The table below is the original plan, kept for the record. **Its "Before merging" column is historical.** #7 merged with login hidden (H1), so its F3 prerequisite now applies to turning the accounts UI on instead.
 
 | Order | PR | Scope | Before merging |
 |---|---|---|---|
@@ -69,8 +70,8 @@ Each merge into `main` deploys the site. #7, #10 and #15 belong together: #10 ho
 - **Static export.** Next.js `output: "export"` on GitHub Pages; there is no server code in the site.
 - **Local-first.** Study progress lives in the browser in 11 `atlas:*` localStorage stores. Their formats are frozen and tested (`student-data-compat.test.ts`).
 - **Optional accounts** with Supabase Auth (PKCE email links). The Supabase client (~60 KB gzipped) loads only when needed: a saved session, the login dialog, or the account and auth pages (`src/lib/supabase-loader.ts`).
-- **Accounts are already live in production.** `main` ships a "Login / Sign Up" button with the implicit flow and no redirect URL, and production builds have Supabase configured through repository secrets. So #7 **changes a live auth flow**: it switches to PKCE and sends email links to `/auth/callback/` and `/auth/reset-password/` (F3).
-- **Login hidden until the release (H1, owner decision 2026-11-22).** `ACCOUNTS_UI_ENABLED = false` (`src/lib/auth/accounts-ui.ts`, in #16 for `main` and in #15 for the stack).
+- **Accounts in production.** Before #7, `main` shipped a live "Login / Sign Up" button with the implicit flow. Production builds have Supabase configured through repository secrets, so accounts may already exist in production Auth (the F10 inventory counts them; no user data is read). Since `9019a1c`, production runs #7's PKCE flow, with email links to `/auth/callback/` and `/auth/reset-password/`, and the UI is hidden (H1). Those redirect URLs must be on production's allow-list before the UI is turned on (F3).
+- **Login hidden until the release (H1, owner decision 2026-11-22).** `ACCOUNTS_UI_ENABLED = false` (`src/lib/auth/accounts-ui.ts`, added in #16, kept by #7).
   - Signed-out visitors see no login or sign-up control, on desktop or mobile.
   - A signed-in visitor keeps "Log out" (and "Account" in the stack).
   - **Limitation:** this hides the UI only. Supabase Auth still accepts sign-ups through its API with the public key. Turning that off ("Allow new users to sign up" in the Supabase dashboard) is an owner decision and hasn't been made.
@@ -305,8 +306,8 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 - **Legal review (DPDP)** is required before any cloud storage of study data, especially for students under 18 (F12). Also pending:
   - a verified parental-consent process;
   - a decision on GA4 for under-18 visitors;
-  - a decision on publishing the draft privacy notice, which #7 adds at `/privacy` (marked as a draft and not indexed). The owner decision checklist is in the tracker under F13.
-- **Built in #15, not merged:**
+  - the final privacy notice. The owner decided F13 on 2026-11-23: `/privacy` is live as a labelled draft, not indexed; the final wording needs counsel.
+- **Built in #15 and deployed with #7 (`9019a1c`), inactive in production** (no account database):
   - the sweep scheduler (inert until configured);
   - the server-side deletion gate;
   - the rate limits;
@@ -315,7 +316,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
   - the retention clean-up job (tombstones count toward row limits until then);
   - an incident runbook.
 - **H1 limitation:** hiding the login UI doesn't disable Supabase Auth sign-ups through the API (owner decision on the dashboard setting).
-- **M1 (live defect, fix in #17, not merged):** `/dashboard/activity/` throws React hydration error #418 on every day after a deploy, because the build day's dates were in the prerendered HTML. `/dashboard/revision/` had the same pattern, without a visible error.
+- **M1 (resolved):** `/dashboard/activity/` threw React hydration error #418 on every day after a deploy, because the build day's dates were in the prerendered HTML. Fixed in #17 (`5bc0cd8`) and live-verified at +1 and +3 days. `/dashboard/revision/` had the same pattern.
 - **Hosting:** GitHub Pages can't send security headers such as `frame-ancestors` or `nosniff` (F8). Cloudflare Pages is the preferred candidate; the migration isn't authorised.
 - **Build switches:** the analytics and CAPTCHA switches aren't wired into `deploy.yml` (F7).
 - **Manual staging checks, NOT VERIFIED:** the 7 inbox checks (confirmation and reset emails, link reuse, another browser, repeat sign-up, logout, account page) need a real inbox (checklist in `supabase/README.md`). No result has been recorded.
@@ -343,12 +344,13 @@ The audit was read-only: no merges, deploys, Supabase changes or production data
 | F13 | Low | A draft privacy notice goes public with #7 (owner decision checklist in the tracker); 1 moderate build-time dependency advisory | Owner decision on publishing |
 
 **Since the audit (2026-11-22):**
-- **Fixed in #15 (not merged):** F4, F5 (the gate and the scheduler; the production stages are still open) and F6 (all three gaps).
-- **F9:** done on staging.
-- **F1:** #12 is closed.
-- **New:** H1 (production sign-up was open; the UI is now hidden in #16 and #15) and M1 (the hydration defect; fix in #17).
-- **Still open:** F3, F7, F8, F10, F11 (pending-deletion step), F12 and F13.
+- **Fixed in #15, merged with #7 (`9019a1c`) on 2026-11-23:** F4, F5 (the gate and the scheduler; the production stages are still open) and F6 (all three gaps).
+- **F9:** done on staging. A live login hasn't been checked, because login is hidden.
+- **F1:** resolved; #12 is closed.
+- **New:** H1 (production sign-up was open; the UI is hidden by #16, deployed) and M1 (the hydration defect; fixed by #17, deployed).
+- **F13:** decided (labelled draft).
+- **Still open (2026-11-23):** F3 (now gating the accounts UI), F7, F8, F10, F11 (pending-deletion step) and F12.
 
-The audit's own conclusion follows, for the record.
+The audit's own conclusion follows, for the record. **It is superseded:** every PR it names is merged or closed.
 
 **Safe to merge** (each still needs the owner's approval, an updated branch and green CI): #9, #6 (after the F9 test), #8, #12 (after retargeting), #11. **Must wait:** #7 (for F3, F9 and the F13 decision); #10 (after #7, retargeted); all production database, function and sync work (for F12, F10, F5 and F4). Account deletion stays disabled until the staged verification in section 9, C.3 is complete and the owner approves opening the gate (F5). Cloud sync stays disabled pending its own separate approval (F12).

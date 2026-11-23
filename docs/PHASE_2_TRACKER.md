@@ -1,6 +1,69 @@
 # Phase 2 release tracker
 
-The status of every pre-release audit finding (F1 to F13) for the Phase 2 student platform. The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md); this file tracks what is still open. Last updated 2026-11-22. No legal approval, production verification or production readiness is claimed anywhere in this file.
+**This is the single authoritative Phase 2 tracker.** [`PHASE_2_COMPLETION_AUDIT.md`](PHASE_2_COMPLETION_AUDIT.md) is a dated snapshot (2026-11-23, 01:35 UTC). The release notes, runbook and rollback are in [`PHASE_2_RELEASE.md`](PHASE_2_RELEASE.md). Last updated 2026-11-23. No legal approval, production verification or production readiness is claimed anywhere in this file.
+
+## Live status (2026-11-23)
+**Overall: RELEASE-INCOMPLETE.** `main` = production = `9019a1c` (Pages deployment `7988286758`, re-checked 2026-11-23). Login is hidden (H1), production has no account database, account deletion shows as not set up, and cloud sync is off.
+
+Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER · WAITING FOR LEGAL REVIEW · DEFERRED WITH OWNER APPROVAL. Every COMPLETE row names its evidence.
+
+| ID | Workstream | Status | Owner | Dependency | Evidence | Next action |
+|---|---|---|---|---|---|---|
+| T-01 | Release baseline: `main` = deployed | COMPLETE | — | — | `9019a1c` = deployment `7988286758`; re-checked 2026-11-23 | Re-check after every merge |
+| T-02 | Seven student tools, local-first (Chromium) | COMPLETE | — | — | Unit 622 passed and 1 skipped, E2E 90/90 and keyboard 22/22 on a tree identical to `9019a1c`; live 14/14 on 2026-11-23 | — |
+| T-03 | Seven tools: browsers beyond Chromium | NOT STARTED | Engineering | — | Only Chromium has been tested | Run the E2E suite in Firefox and WebKit |
+| T-04 | Documentation reconciled with the release | IN PROGRESS | Engineering, then owner (merge) | — | #19 | Owner reviews and merges #19 |
+| T-05 | Privacy notice: accurate statements (F13 follow-up, L-16) | WAITING FOR OWNER | Owner (merge) | — | #20: two inaccurate statements fixed; guard test (3 of 4 checks fail on the old text); E2E 90/90 | Merge #20. The page stays a draft, `noindex` and out of the sitemap |
+| T-06 | F12: legal review package | WAITING FOR LEGAL REVIEW | Owner (engage counsel), counsel | — | Private checklist, questions L-1 to L-20, updated 2026-11-23 | Send to qualified counsel |
+| T-07 | F10: read-only inventory tooling | WAITING FOR OWNER | Owner (merge) | — | #21: `schema_inventory.sql`, 10 tests; read-only staging run 2026-11-23 | Merge #21 |
+| T-08 | F10: production inventory run | WAITING FOR OWNER | Owner (approval) | T-07 | Production never inspected | Approve one read-only run (runbook 9, C.1) |
+| T-09 | F10: production backup and **tested** restore | WAITING FOR OWNER | Owner (approval) | T-08 | None recorded | Approve backup and restore into a throwaway project (runbook 9, C.1) |
+| T-10 | F3: production Auth settings | WAITING FOR OWNER | Owner (dashboard) | — | Never read. Checklist in runbook 9, A.1 (#21) | Apply the checklist |
+| T-11 | H1 limitation: API sign-ups still possible | WAITING FOR OWNER | Owner (dashboard) | — | Hidden UI ≠ disabled sign-up | Turn off "Allow new users to sign up" (recommended) |
+| T-12 | Production `delete-account` function (gate off) | BLOCKED | Owner (approval) | T-06, T-08, T-09 | Staging: deployed, version 3 | Runbook 9, C.2.1 after the prerequisites |
+| T-13 | Production migrations (all four together) | BLOCKED | Owner (approval) | T-12 | 0 of 4 in production; 4 of 4 on staging | Runbook 9, C.2.4 |
+| T-14 | Least privilege on `deletion_log_id_seq` (found 2026-11-23) | WAITING FOR OWNER | Owner (decision), then engineering | Before T-13 | `authenticated` has `USAGE` (staging inventory, #21). No data exposure | Decide whether a fix migration goes in before production |
+| T-15 | Deletion sweep workflow configured | BLOCKED | Owner (variables, secret) | T-13 | `deletion-sweep.yml` inert; 0 repository variables | Runbook 9, C.2.5 |
+| T-16 | Deletion verification: staging, gate open (stage 1) | COMPLETE | — | — | `test:staging:deletion-gate` 38/38 on 2026-11-22. The scheduler itself hasn't run it | — |
+| T-17 | Deletion verification: production stages 2–5 | BLOCKED | Owner (approval at each stage) | T-15 | None | Runbook 9, C.3 |
+| T-18 | F11: export pending deletions before a database rollback | NOT STARTED | Engineering | — | Documented in release section 10; not scripted | Script it and test it on staging |
+| T-19 | F7: analytics and CAPTCHA build switches in `deploy.yml` | WAITING FOR OWNER | Owner (workflow PR approval) | — | Switches work in code; not wired | Approve a workflow PR |
+| T-20 | F8: frame protection and security headers | WAITING FOR OWNER | Owner (hosting) | — | GitHub Pages sends only HSTS | Hosting decision, or the interim in-page guard |
+| T-21 | Accounts UI activation | BLOCKED (or owner may defer) | Owner | T-06, T-10, T-11, T-22; T-13 for account features | `ACCOUNTS_UI_ENABLED = false`; guard tests in CI | Owner decision OD-5 |
+| T-22 | E1: the 7 email checks | BLOCKED | Owner (inbox), engineering | T-10 | None recorded | Run them on staging, then on production |
+| T-23 | Cloud sync | BLOCKED (or owner may defer) | Owner, counsel | T-06 and everything above | `CLOUD_SYNC_ENABLED = false`; switches `'false'` | Owner decision OD-5 |
+
+### Phase 2 completion criteria (2026-11-23)
+| # | Criterion | Status |
+|---|---|---|
+| 1 | All agreed functionality implemented | Code COMPLETE; accounts and sync inactive (T-21, T-23) |
+| 2 | Seven tools verified | COMPLETE in Chromium; other browsers NOT STARTED (T-03) |
+| 3 | Tests pass on the release SHA | COMPLETE for `9019a1c` |
+| 4 | Production deployment verified | COMPLETE for the public site and local tools; real accounts NOT VERIFIED |
+| 5 | Qualified legal approval | WAITING FOR LEGAL REVIEW (T-06) |
+| 6 | Production schema and recovery verified | WAITING FOR OWNER (T-08, T-09) |
+| 7 | Auth configuration verified | WAITING FOR OWNER (T-10, T-11) |
+| 8 | Deletion safely tested | Staging COMPLETE; production BLOCKED (T-17) |
+| 9 | Security and RLS verified | Staging and PGlite COMPLETE; production BLOCKED (T-13) |
+| 10 | Accounts UI approved and verified, or removed from scope | BLOCKED (OD-5) |
+| 11 | Cloud sync approved and verified, or deferred | BLOCKED (OD-5) |
+| 12 | Documentation matches the release | IN PROGRESS (#19, #20, #21) |
+| 13 | Tracker reflects the actual state | COMPLETE with this update |
+| 14 | No critical unresolved security or data-integrity issue | COMPLETE: none known. T-11 is High and owner-gated |
+
+**Met: 3 of 14** (criteria 3, 13 and 14). Criteria 2 and 4 are met for the local-first scope only. No percentage above this is claimed.
+
+### Owner decisions
+| ID | Decision | Why it matters | Choices | Recommended | If undecided |
+|---|---|---|---|---|---|
+| OD-1 | Merge #19, #20 and #21 (each deploys; only #20 changes a page) | The live draft notice has two inaccurate statements; the docs and the inventory need to be on `main` | Merge each, at its current head, after CI | Merge all three | The inaccurate notice stays live |
+| OD-2 | API sign-ups (T-11) | Accounts can still be created through the API, before legal sign-off | Turn sign-ups off; accept the risk; keep the UI hidden and monitor | Turn sign-ups off until the accounts UI is approved | Unreviewed account creation stays possible |
+| OD-3 | Production inventory, then backup and restore (T-08, T-09) | The migrations' schema-wide revokes act on an unknown schema | Approve the read-only run; defer | Approve the read-only run now. It changes nothing | Production database work can't start |
+| OD-4 | Engage counsel (T-06) | Gates the database, the accounts UI and sync | Engage; defer | Engage, with the prepared package | Everything that stores student data stays blocked |
+| OD-5 | Phase 2 scope for the accounts UI and cloud sync | Phase 2 can't be COMPLETE while they are inactive and in scope | Keep in scope (finish after OD-2 to OD-4); defer them to a separately scoped release | The owner's call. Deferral makes Phase 2 completable on the local-first scope | Phase 2 stays RELEASE-INCOMPLETE |
+| OD-6 | Fix migration for `deletion_log_id_seq` (T-14) | Least privilege before production | Add a fix migration before production; accept it | Add it. It's a one-line, reviewed migration | Production gets the same grant |
+
+## Audit record (2026-11-21 to 2026-11-23)
 
 **Safeguards (2026-11-22):**
 - `CLOUD_SYNC_ENABLED = false`.
@@ -35,14 +98,14 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 |---|---|---|---|---|---|
 | F1 | High | P0 | RESOLVED · #12 closed · stack collapsed (#15 → `c76349d`, #10 → `fd71d32`) · #7 squash-merged into `main` as `9019a1c` (2026-11-23) | Nothing | — |
 | F2 | Medium | P0 | VERIFIED: every merge since 2026-11-22 (#16, #14, #17, #18) had fresh CI on an up-to-date head; #7's head `9c1b51f` is 0 behind `main` with green CI | Nothing | — |
-| F3 | High | P0 | OPEN · NOT VERIFIED | Merging #7 | Owner (production Auth settings) |
-| F4 | Medium | P1 | FIXED in #15 (not merged) · tests pass · staging VERIFIED | Enabling account deletion | Owner (merge) |
-| F5 | High | P0 | Gate, rate limits and scheduler BUILT in #15 (not merged) · staging stage 1 VERIFIED (38/38) · scheduler NOT CONFIGURED · production stages OPEN | Production database migrations and enabling account deletion | Owner (merge, scheduler settings, staged production steps) |
-| F6 | Low | P2 | Gaps 1, 2 and 3 FIXED in #15 (not merged) · staging VERIFIED | Nothing | Owner (merge) |
+| F3 | High | P0 | OPEN · NOT VERIFIED. #7 merged with login hidden (H1), so F3 now gates turning the accounts UI on (T-10, T-11) | Turning the accounts UI on | Owner (production Auth settings) |
+| F4 | Medium | P1 | RESOLVED: fixed in #15, merged with #7 (`9019a1c`) and deployed · live-verified: delete button disabled with DELETE typed | Nothing | — |
+| F5 | High | P0 | Gate, rate limits and scheduler merged with #7 (`9019a1c`) · staging stage 1 VERIFIED (38/38) · scheduler NOT CONFIGURED · production stages OPEN (T-15, T-17) | Enabling account deletion in production | Owner (scheduler settings, staged production steps) |
+| F6 | Low | P2 | RESOLVED: gaps 1, 2 and 3 fixed in #15, merged with #7 (`9019a1c`) · staging VERIFIED | Nothing | — |
 | F7 | Medium | P1 | OPEN · OWNER DECISION | Switching analytics off; CAPTCHA | Engineering (PR), owner (approval) |
 | F8 | Medium | P2 | OPEN · OWNER DECISION (hosting) | Nothing | Engineering (interim), owner (hosting) |
-| F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · live login check after #7 OPEN | Nothing before merging #7 | Engineering |
-| F10 | High | P0 | OPEN · OWNER DECISION | Production database | Owner (approve the read-only inventory) |
+| F9 | Medium | P0 | VERIFIED on staging (production-configured build of `main` + #10) · after #7: CSP on every live page, 0 violations · a live login is NOT VERIFIED (login hidden, H1) | Turning the accounts UI on (live login check) | Engineering |
+| F10 | High | P0 | Tooling ready in #21 (read-only inventory, 10 tests, staging-validated) · production run OWNER DECISION (T-08, T-09) | Production database | Owner (approve the read-only inventory) |
 | F11 | Medium | P1 | DOCUMENTED · pending-deletion step OPEN | Any rollback | Owner |
 | F12 | Critical | P0 | BLOCKED | Production database and cloud sync | Counsel, then owner |
 | F13 | Low | P2 | OWNER DECIDED (2026-11-23): publish `/privacy` as a labelled draft pending legal review, noindex, outside the sitemap · LIVE-VERIFIED · the final notice still needs counsel (F12) | Finalising the notice | Counsel (F12) |
@@ -121,6 +184,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - After the deploy, test sign-up, login and reset with a test account.
 - **Depends on:** owner access to the production Auth settings.
 - **Done when:** the settings are confirmed and the live checks pass.
+- **Update (2026-11-23):** #7 was merged at `9019a1c` **before** these settings were confirmed, with login hidden (H1, owner-approved). No student can start a sign-up or a reset from the site, so the UI can't produce a broken email link. F3 now gates **turning the accounts UI on**, not a merge. The full settings checklist and the API sign-up options are in `PHASE_2_RELEASE.md` section 9, A.1 (#21).
 
 ### F4 · Account features without the production database; delete button enabled before the check finishes
 - **Severity:** Medium. **Priority:** P1. **Status:** OPEN (code fix and test required). The handling of a missing database is VERIFIED.
@@ -137,6 +201,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - Add a test that the button is disabled while the check is in flight, and when it fails.
 - **Depends on:** nothing. It is required before account deletion is enabled (F5).
 - **Done when:** the fix and its test are merged, and the test passes in CI.
+- **Update (2026-11-23):** DONE. The fix is in #15, merged with #7 (`9019a1c`). Live-verified with a synthetic session: the delete button stays disabled with DELETE typed.
 
 ### F5 · No sweep scheduler and no deletion gate; deletions can be left unfinished
 - **Severity:** High. **Priority:** P0 for the production database. **Status:** OPEN (deletion gate and scheduler not started).
@@ -187,13 +252,13 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - the owner's explicit approval to open the gate is recorded;
   - **production (gate open), end to end:** the controlled test with the dedicated disposable account has passed while the workflow and alerts were monitored, and the result is recorded. Only from this point may production deletion be described as tested end to end. If the test fails, the gate is closed immediately and the investigation is recorded. Every request accepted while the gate was open is then completed by an authorized operator through a documented, auditable procedure, with deletion of the account and its data verified, the deletion log confirmed, and the outcome recorded without secrets or personal data.
 
-  **Progress (2026-11-22), in PR #15 (`phase-2b-deletion-gate`, stacked on #10; not merged):**
+  **Progress (2026-11-22), in PR #15 (`phase-2b-deletion-gate`, stacked on #10). Merged with #7 as `9019a1c` on 2026-11-23:**
   - **Built:** migration `20261122000000` (gate, created `'false'`, fails closed); gated `request_account_deletion()`; function user path and sweep gated (403 off, 503 unreadable); the hourly `deletion-sweep.yml` workflow, inert until `vars.ATLAS_DELETION_SWEEP_ENABLED` is `'true'`, with the alert as its exit code.
   - **Tests:** PGlite gate tests, 10 (all fail without the migration); handler tests, 13 (9 fail with the old handler); availability and sweep tests. On `main` + the branch: unit 583 passed and 1 skipped, E2E 69/69, keyboard 24/24.
   - **Staging, gate open (stage 1):** `npm run test:staging:deletion-gate` 30/30, covering rejection while off, deletion with a log row, a planted request swept by the real script, the alert firing with the gate closed while a request is outstanding, and the operator procedure. Account page: 8/8 with the gate off, browser journey 15/15 with it open. Staging was left with the gate off, sync off, and 0 users.
   - **Rate limits (F6 gap 3), added 2026-11-22:** migration `20261122010000`; per verified user, 5 requests per hour and 6 function calls per 10 minutes; the sweep and the operator procedure are not limited. Staging 38/38, with exact limits under parallel calls.
   - **Still open:**
-    - the owner's PR review and merge;
+    - ~~the owner's PR review and merge~~ (done with #7, 2026-11-23);
     - the scheduler variables and secret;
     - running the sweep from the scheduled workflow itself (on staging it was run by hand);
     - production stages 2 to 5.
@@ -215,6 +280,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 - **Action:** return 500 when a query fails; add `[functions.delete-account] verify_jwt = false`; watch invocation counts after launch.
 - **Depends on:** nothing.
 - **Done when:** gaps 1 and 2 are fixed, with tests.
+- **Update (2026-11-23):** RESOLVED. All three gaps are fixed in #15 and merged with #7 (`9019a1c`): query errors now return 500 or 503, `supabase/config.toml` pins `verify_jwt = false`, and the rate limits are in migration `20261122010000`.
 
 ### F7 · The analytics and CAPTCHA switches aren't wired into the deploy
 - **Severity:** Medium. **Priority:** P1. **Status:** OPEN · OWNER DECISION (workflow change).
@@ -271,6 +337,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
 - **Action:** with the owner's approval, run a read-only inventory of production's `public` schema (object names, owners, grants, no row data). If anything is there, scope the revokes to the Atlas objects.
 - **Depends on:** owner approval; legal sign-off (F12) before any change.
 - **Done when:** the inventory is recorded and the migration is confirmed safe for it.
+- **Update (2026-11-23):** the inventory script is in #21 (`schema_inventory.sql`). It reports table, function **and index-name** collisions; every other `public` object, selected by kind; sequences and their grants; client grants from `pg_class.relacl`; and default privileges. It's validated read-only on staging. The production run is an owner decision (T-08). New low finding: T-14.
 
 ### F11 · Rollback for partly completed releases
 - **Severity:** Medium. **Priority:** P1. **Status:** DOCUMENTED (`PHASE_2_RELEASE.md` section 10) · pending-deletion step OPEN.
@@ -305,7 +372,8 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - #7 publishes `/privacy`, marked as a draft and not indexed (`src/app/privacy/page.tsx:5-10`; `src/app/privacy/page.tsx:26`).
   - Its statement that searches aren't sent to GA holds: no search terms are put in page URLs.
   - `npm audit --omit=dev` reports 1 moderate advisory, in a build-time tool.
-- **Action:** the owner works through the decision checklist below before #7 merges. Recheck the advisory at each dependency update.
+- **Update (2026-11-23):** decided: Option B (labelled draft, `noindex`, outside the sitemap); #7 merged. #20 corrects two statements that didn't match the live site (deletion and the GA4 events).
+- **Action (original):** the owner works through the decision checklist below before #7 merges. Recheck the advisory at each dependency update.
 - **Depends on:** owner and counsel.
 - **Done when:** the checklist is completed and the decision is recorded here.
 
@@ -343,7 +411,7 @@ Record:
 ## Release dependencies
 1. **Done:** #9, #11, #6, #8 and #13 are merged and deployed (squash). #12 is closed, superseded by #13.
 2. **Independent PRs onto `main`**, each after an updated branch and green CI: #14 (accessibility), #16 (H1) and #17 (M1). **#16 must be merged before the release stack** (its keyboard check expects no login control).
-3. **The release stack, #7 → #10 → #15:**
+3. **The release stack, #7 → #10 → #15. DONE: squash-merged as `9019a1c` on 2026-11-23 with login hidden; F3 moved to the accounts-UI step:**
    - **Before merging:** the production Auth redirect URLs, the Site URL check and the password length (F3); the F13 decision; F7 is optional.
    - **Recommended:** merge #15 into #10's branch and #10 into #7's branch (no deploys), update #7 with `main` (keep the stack's `AuthButton.tsx`), wait for green CI, then squash-merge #7 once.
    - **The alternative** (squash #7, then `rebase --onto` #10 and #15) is in `PHASE_2_RELEASE.md` section 1. Don't use GitHub's "Update branch" on #10 or #15.
