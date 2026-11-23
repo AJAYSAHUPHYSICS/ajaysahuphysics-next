@@ -255,11 +255,18 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 1. **Before any production database change:**
    - legal sign-off for what will be stored;
    - a read-only inventory of production's `public` schema (M-4, F10), with the owner's approval. **Use `supabase/inventory/schema_inventory.sql`:** a single read-only `SELECT`, enforced by `schema-inventory.test.ts`, that returns one JSON summary and no data. Run it in the production SQL editor inside `begin transaction read only; … rollback;`, and save the output privately. **Go / no-go:**
-     - `atlas_conflicts` must be empty: the migrations use `CREATE`, not `CREATE IF NOT EXISTS`, so any listed object would make them fail;
-     - review every object in `other_public`: the first migration removes client privileges from the whole `public` schema (M-4), so any app relying on those objects would break;
+     - `atlas_conflicts` must be empty (tables, functions **and** the 8 index names): the migrations use `CREATE`, not `CREATE IF NOT EXISTS`, so any listed object would make them fail. An index name collides with a relation of any kind in `public`;
+     - review every object in `other_public`. These are selected by kind, never by name, so an object called `…_seq` or `…_pkey` is still listed. The first migration removes client privileges from the whole `public` schema (M-4), so any app relying on those objects would break;
+     - review `sequences` and the `kind: "S"` rows of `client_grants`: the first migration's `grant usage on all sequences … to authenticated` also gives `authenticated` usage on **every** existing sequence, including unrelated ones;
+     - review `default_acls`: default privileges decide what future objects in `public` grant to clients;
      - record `migration_history` and `auth_user_count` (a number only).
 
-     Validated on staging on 2026-11-23: 12 of 12 tables and 14 of 14 functions reported, as expected there; RLS on every public table; 23 policies.
+     Validated on staging on 2026-11-23 (read-only; `client_grants` now read from `pg_class.relacl`):
+     - 12 of 12 tables, 14 of 14 functions and 8 of 8 index names reported, as expected there;
+     - `other_public` is empty; RLS is on for every public table; 23 policies;
+     - 35 client grants: 33 on tables, plus `authenticated:USAGE` on the 2 identity sequences.
+
+     **Finding (low):** `authenticated` has `USAGE` on `deletion_log_id_seq`, although `deletion_log` is service-only. It exposes no data, because there is no table privilege, but it isn't least-privilege. It comes from the blanket sequence grant. Fixing it needs a new, reviewed migration (`revoke usage on sequence public.deletion_log_id_seq from authenticated`). That's an owner decision; it doesn't block the migrations.
    - **a backup, and a tested restore.** A backup counts only once a restore has been proven:
      1. take a logical dump of the production project. Either use the CLI twice, `npx supabase@2.122.1 db dump --linked -f schema.sql` (schema only, the default) and `… db dump --linked --data-only -f data.sql`, including the `auth` schema's users; or use the dashboard backup on paid plans. Store both files privately and encrypted: the data dump contains personal data;
      2. restore it into a new, isolated, throwaway project. **Never into staging, and never into production;**
