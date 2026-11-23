@@ -420,7 +420,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
   - **Re-merging after a revert needs a revert of the revert.** Git treats the reverted commits as already merged, so merging the same branch again brings nothing back.
 - **Database:** all six migrations are additive. [`supabase/rollback/student_accounts_down.sql`](../supabase/rollback/student_accounts_down.sql) removes exactly what they created, leaving the `auth` schema untouched (tested in `db-rollback.test.ts`). **It is destructive:** use it only with the owner's approval, after an export. For a partly completed release (F11):
   - **Pending deletions and the deletion record:** the script drops `deletion_requests` (obligations) and `deletion_log` (evidence). It **refuses to run while either has rows**, unless it starts with the ack from `supabase/rollback/export_before_rollback.sql` that matches the current records (T-18). Store that export privately, and complete every pending request from it afterwards.
-  - **The sixth migration alone:** `supabase/rollback/verified_email_down.sql` undoes only `20261124000000`, non-destructively (with #25).
+  - **The sixth migration alone:** its own non-destructive rollback script, which arrives with #25 (`verified_email_down.sql`, in the rollback folder), undoes only `20261124000000`.
   - **Partly applied migrations:** the script uses `IF EXISTS` throughout, so it works however far they got. Whether the CLI wraps each migration file in its own transaction has not been verified.
   - It also drops `deletion_rate`, `account_deletion_enabled()` and `deletion_rate_wait()` (tested).
   - Afterwards, remove the **six** migration rows (whichever are applied) from `supabase_migrations.schema_migrations`, as described in the script.
