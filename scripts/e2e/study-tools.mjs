@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────
 // End-to-end test of the study tools (no extra dependencies): serves the
 // (checklists, streak extension, activity log and goals included)
-// static export, drives headless Chrome over the DevTools protocol, and
+// static export, drives a headless browser (scripts/e2e/driver.mjs), and
 // uses the real UI: bookmarks (search, remove), mistakes (category,
 // explanation, resolve, reopen, repeated-question flag), revision rounds,
 // activity and streak; reloads to confirm persistence in the existing
@@ -10,50 +10,36 @@
 // build day (M1); fails on any exception or console error.
 //
 //   npm run build && npm run test:e2e
-//   CHROME_PATH=/path/to/chrome npm run test:e2e   (override the browser)
+//   CHROME_PATH=/path/to/chrome npm run test:e2e   (another Chromium build)
+//   npm run test:e2e:firefox | npm run test:e2e:webkit   (Playwright)
 // Synthetic data only, in a throwaway browser profile.
 // ─────────────────────────────────────────────────────────────────
-import { spawn } from "node:child_process";
-import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { A11Y_AUDIT } from "./a11y-audit.mjs";
+import { openBrowser, createServer, SCHEME, segmentFile } from "./driver.mjs";
 
 const OUT = path.resolve(process.argv[2] ?? "out");
 const PROFILE = process.argv[3] ?? fs.mkdtempSync(path.join(os.tmpdir(), "atlas-e2e-"));
 if (!fs.existsSync(path.join(OUT, "index.html"))) { console.error("No build in " + OUT + "; run npm run build first."); process.exit(2); }
 const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".txt": "text/plain", ".json": "application/json", ".png": "image/png", ".woff2": "font/woff2", ".woff": "font/woff", ".xml": "application/xml" };
-const server = http.createServer((req, res) => {
+const server = createServer((req, res) => {
   const p = decodeURIComponent(new URL(req.url, "http://x").pathname);
-  let f = path.join(OUT, p);
+  let f = segmentFile(path.join(OUT, p));
   if (p.endsWith("/")) f = path.join(f, "index.html");
   else if (!path.extname(p) && fs.existsSync(path.join(f, "index.html"))) { res.writeHead(301, { location: p + "/" }); res.end(); return; }
   if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { "content-type": types[path.extname(f)] ?? "application/octet-stream" });
   fs.createReadStream(f).pipe(res);
 }).listen(8767);
-const BASE = "http://localhost:8767";
-const CHROME = process.env.CHROME_PATH ?? ({ win32: "C:/Program Files/Google/Chrome/Application/chrome.exe", darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" }[process.platform] ?? "google-chrome");
-fs.mkdirSync(PROFILE, { recursive: true });
-// CI runners (recent Ubuntu) restrict the unprivileged user namespaces Chrome's
-// sandbox needs, so Chrome exits at start. These scripts load only the local
-// static build, so the sandbox is turned off in CI only.
-const CI_FLAGS = process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
-let chromeErr = "";
-const chrome = spawn(CHROME, ["--headless=new", "--disable-gpu", "--no-first-run", ...CI_FLAGS, `--user-data-dir=${PROFILE}`, "--remote-debugging-port=9336", "about:blank"], { stdio: ["ignore", "ignore", "pipe"] });
-chrome.stderr.on("data", (d) => (chromeErr += d));
+const BASE = `${SCHEME}://localhost:8767`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-for (let i = 0; i < 120; i++) { try { await (await fetch("http://127.0.0.1:9336/json/version")).json(); break; } catch { if (i === 119) { console.error("Chrome did not start: " + chromeErr.slice(-800)); process.exit(1); } await sleep(250); } }
-const t = (await (await fetch("http://127.0.0.1:9336/json/list")).json()).find((x) => x.type === "page");
-const ws = new WebSocket(t.webSocketDebuggerUrl);
-await new Promise((r) => ws.addEventListener("open", r, { once: true }));
-let id = 0; const pending = new Map(); const events = [];
-ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m.result); pending.delete(m.id); } else if (m.method) events.push(m); });
-const send = (method, params = {}) => new Promise((r) => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
-const ev = async (expression) => (await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true })).result?.value;
-await send("Runtime.enable"); await send("Page.enable");
-const go = async (p) => { await send("Page.navigate", { url: BASE + p }); await sleep(2500); };
+let browser;
+try { browser = await openBrowser({ debugPort: 9336, profile: PROFILE }); }
+catch (e) { console.error(e.message); server.close(); process.exit(1); }
+const { ev } = browser;
+const go = (p) => browser.go(BASE + p);
 const ls = (k) => ev(`localStorage.getItem(${JSON.stringify(k)})`).then((v) => JSON.parse(v ?? "null"));
 const clickText = (selector, text) => ev(`(() => { const el = [...document.querySelectorAll(${JSON.stringify(selector)})].find(e => e.textContent.trim().startsWith(${JSON.stringify(text)})); if (!el) return false; el.click(); return true; })()`);
 const setSelect = (sel, value) => ev(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return false; Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('change', { bubbles: true })); return true; })()`);
@@ -181,7 +167,7 @@ check("after reload: no goal tracked", (await goalButtons())?.every((t) => t ===
 await ev(`localStorage.setItem("atlas:study-streak", ${JSON.stringify(JSON.stringify(savedStreak))})`);
 
 // Accessibility basics on the study pages and the main public pages (scripts/e2e/a11y-audit.mjs).
-await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
+await browser.viewport(1280, 800);
 for (const p of ["/dashboard/", "/dashboard/progress/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/", "/", "/class-11/", "/class-12/", "/class-11/kinematics/", "/notes/", "/dpp/", "/formula-sheet/", "/pyq/", "/about/", "/contact/", "/jee/", "/neet/"]) {
   await go(p);
   const problems = (await ev(A11Y_AUDIT)) ?? [{ rule: "audit", detail: "did not run" }];
@@ -190,7 +176,7 @@ for (const p of ["/dashboard/", "/dashboard/progress/", "/dashboard/bookmarks/",
 
 // Responsive: no horizontal scroll at phone / tablet / desktop widths.
 for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800], [1366, 768], [1536, 864]]) {
-  await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: w < 600 });
+  await browser.viewport(w, h);
   for (const p of ["/dashboard/", "/dashboard/progress/", "/dashboard/bookmarks/", "/dashboard/mistakes/", "/dashboard/revision/", "/dashboard/activity/"]) {
     await go(p);
     const over = await ev("document.documentElement.scrollWidth - document.documentElement.clientWidth");
@@ -201,22 +187,23 @@ for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800], [1366, 
 // Hydration across a date change (M1): pages are prerendered on the build
 // day, but students open them later. Move the browser's clock 3 days ahead
 // and reload the date-dependent pages; React error #418 would be thrown here.
-await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
-const shiftScript = await send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => { const R = Date, shift = 3 * 86400000; class D extends R { constructor(...a) { super(...(a.length ? a : [R.now() + shift])); } static now() { return R.now() + shift; } } window.Date = D; })()` });
-for (const p of ["/dashboard/activity/", "/dashboard/revision/", "/dashboard/"]) {
-  const before = events.filter((e) => e.method === "Runtime.exceptionThrown").length;
-  await go(p);
-  const shifted = await ev("Date.now() - performance.timeOrigin > 2 * 86400000");
-  const thrown = events.filter((e) => e.method === "Runtime.exceptionThrown").slice(before).map((e) => e.params.exceptionDetails.exception?.description?.slice(0, 80));
-  check(`hydrates without errors 3 days after the build: ${p}`, shifted && thrown.length === 0, `clock shifted=${shifted}; ${thrown.join(" | ")}`);
-}
-await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: shiftScript.identifier });
+await browser.viewport(1280, 800);
+const SHIFT_CLOCK = `(() => { const R = Date, shift = 3 * 86400000; class D extends R { constructor(...a) { super(...(a.length ? a : [R.now() + shift])); } static now() { return R.now() + shift; } } window.Date = D; })()`;
+await browser.withInitScript(SHIFT_CLOCK, async () => {
+  for (const p of ["/dashboard/activity/", "/dashboard/revision/", "/dashboard/"]) {
+    const before = browser.exceptions.length;
+    await go(p);
+    const shifted = await ev("Date.now() - performance.timeOrigin > 2 * 86400000");
+    const thrown = browser.exceptions.slice(before).map((e) => e.slice(0, 80));
+    check(`hydrates without errors 3 days after the build: ${p}`, shifted && thrown.length === 0, `clock shifted=${shifted}; ${thrown.join(" | ")}`);
+  }
+});
 
-const exceptions = events.filter((e) => e.method === "Runtime.exceptionThrown").map((e) => e.params.exceptionDetails.exception?.description?.slice(0, 160));
-const errors = events.filter((e) => e.method === "Runtime.consoleAPICalled" && e.params.type === "error").map((e) => e.params.args.map((a) => a.value ?? a.description).join(" ").slice(0, 160));
-ws.close(); chrome.kill(); server.close();
+const { exceptions, consoleErrors: errors } = browser;
+await browser.close(); server.close();
 const failed = checks.filter((c) => !c.ok);
 for (const c of checks) console.log(`${c.ok ? "ok  " : "FAIL"} ${c.name}${c.ok ? "" : " " + c.detail}`);
-console.log(`e2e: ${checks.length - failed.length}/${checks.length} passed, ${exceptions.length} exceptions, ${errors.length} console errors`);
+console.log(`e2e (${browser.name}): ${checks.length - failed.length}/${checks.length} passed, ${exceptions.length} exceptions, ${errors.length} console errors` +
+  (browser.abortedByNavigation.length ? `; ${browser.abortedByNavigation.length} prefetches aborted by the suite's own page loads (WebKit reports them; not failures)` : ""));
 for (const e of [...exceptions, ...errors]) console.log("  " + e);
 process.exit(failed.length || exceptions.length || errors.length ? 1 : 0);
