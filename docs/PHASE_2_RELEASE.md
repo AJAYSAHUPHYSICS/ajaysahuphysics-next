@@ -89,7 +89,7 @@ Each merge into `main` deploys the site. #7, #10 and #15 belong together: #10 ho
 | `20261122000000_account_deletion_gate.sql` (#15) | The deletion gate: `app_config` `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()` is true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` refuses with `deletion-disabled` while it's off |
 | `20261122010000_deletion_rate_limit.sql` (#15) | Per-user rate limits: `deletion_rate` table (RLS on, no client access) and `deletion_rate_wait()` (server role only); `request_account_deletion()` allows 5 calls per hour |
 
-**Deployment order:** apply all six together (the four above, then `20261123000000_deletion_log_sequence_privilege.sql` (T-14) and `20261124000000_require_verified_email_for_sync.sql` (cloud copies need a verified email, decision K)), in filename order, after the function is deployed. **Never apply the first two without the last two.** Applying them alone would create the account tables without the deletion gate.
+**Deployment order:** apply all five together (the four above, then `20261123000000_deletion_log_sequence_privilege.sql`, T-14), in filename order, after the function is deployed. **Never apply the first two without the last two.** Applying them alone would create the account tables without the deletion gate.
 
 `20261120000000_student_accounts.sql` creates:
 - **Tables:**
@@ -155,12 +155,6 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - browser login (the F9 evidence).
 
 ## 6. Security controls
-- **Verified email for cloud sync** (migration `20261124000000`; owner decisions, 2026-11-23):
-  - an unverified account can neither read nor write cloud-sync records (the six study tables). It's enforced by RLS, whatever the client does;
-  - export and account deletion remain available to it (security-definer functions);
-  - profiles and consents keep ownership-only policies.
-  - **Known limitation, accepted by the owner:** existing Supabase Auth accounts are trusted as they stand. While "Confirm email" is off, Supabase marks new users confirmed at sign-up without checking the address, so `email_confirmed_at` proves verification only for accounts created while "Confirm email" is on. **Production "Confirm email" must be turned on before #25 is merged and before the production migrations** (tracker, current release procedure).
-  - Under-18 cloud sync is separately blocked: no verified parental-consent process exists. That doesn't block adult sync.
 - **Content Security Policy** on every page; no `unsafe-inline` or `unsafe-eval` for scripts; verified in a browser with an injection control.
 - **RLS, the consent gate and least-privilege grants**, as in section 3.
 - **Authentication:**
@@ -308,7 +302,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
    1. Deploy `delete-account` with `--use-api` (`verify_jwt` off comes from `supabase/config.toml`; `--no-verify-jwt` is harmless to add) and set `ATLAS_DELETION_SWEEP_SECRET` (no `ATLAS_ALLOWED_ORIGINS`) **before** the migrations. Without the tables, the function can't read the gate, so it refuses requests (503) and changes nothing.
    2. Confirm the production server key (new or legacy) is available to the function.
    3. **Check that the release stack (#7, #10, #15) is merged and deployed**, so the site has the F4 fix and follows the gate. The gate itself is part of the migrations.
-   4. `db push --dry-run`. It must list **all six** migrations: `20261120000000`, `20261121000000`, `20261122000000`, `20261122010000`, `20261123000000` (T-14) and `20261124000000` (verified email). Then `db push --linked`. Never apply the first two without the last two.
+   4. `db push --dry-run`. It must list **all five** migrations: `20261120000000`, `20261121000000`, `20261122000000`, `20261122010000` and `20261123000000` (T-14). Then `db push --linked`. Never apply the first two without the last two.
    5. Configure the sweep scheduler: set `vars.ATLAS_SWEEP_URL`, `secrets.ATLAS_DELETION_SWEEP_SECRET` (the same value as the function's), then `vars.ATLAS_DELETION_SWEEP_ENABLED = 'true'`. With the gate off and no requests, runs pass quietly. Check that the failure email reaches the owner by running it once with a deliberately wrong secret, which must fail.
    6. Verify, leaving the switches `'false'` and the deletion gate off.
    7. **Follow C.3 to verify deletion and, only with the owner's approval, open the gate.**
@@ -362,12 +356,12 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
   - **Revert in reverse merge order.** With the recommended collapsed merge, the stack is one squash commit, so revert that. Otherwise, revert #15, then #10, then #7.
   - **Don't revert #16 on its own** while the accounts UI must stay hidden. That brings back `main`'s login button.
   - **Re-merging after a revert needs a revert of the revert.** Git treats the reverted commits as already merged, so merging the same branch again brings nothing back.
-- **Database:** all six migrations are additive. [`supabase/rollback/student_accounts_down.sql`](../supabase/rollback/student_accounts_down.sql) removes exactly what they created, leaving the `auth` schema untouched (tested in `db-rollback.test.ts`). **It is destructive:** use it only with the owner's approval, after an export. For a partly completed release (F11):
+- **Database:** all five migrations are additive. [`supabase/rollback/student_accounts_down.sql`](../supabase/rollback/student_accounts_down.sql) removes exactly what they created, leaving the `auth` schema untouched (tested in `db-rollback.test.ts`). **It is destructive:** use it only with the owner's approval, after an export. For a partly completed release (F11):
   - **Pending deletions:** the script drops `deletion_requests`, which loses requests that must still be honoured. Finish them (or export them and finish by hand) first.
   - **Deletion record:** it also drops `deletion_log`, the record of completed deletions. Export it first.
   - **Partly applied migrations:** the script uses `IF EXISTS` throughout, so it works however far they got. Whether the CLI wraps each migration file in its own transaction has not been verified.
   - It also drops `deletion_rate`, `account_deletion_enabled()` and `deletion_rate_wait()` (tested).
-  - Afterwards, remove the **six** migration rows from `supabase_migrations.schema_migrations`, as described in the script.
+  - Afterwards, remove the **five** migration rows from `supabase_migrations.schema_migrations`, as described in the script.
 - **Function:** `supabase functions delete delete-account`, or redeploy the previous version. If it's left deployed after a database rollback, it refuses requests or reports them pending, and changes nothing.
 
 ## 11. Known limitations and open items
