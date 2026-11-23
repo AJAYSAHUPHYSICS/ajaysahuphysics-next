@@ -11,22 +11,22 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 |---|---|---|---|---|---|---|
 | T-01 | Release baseline: `main` = deployed | COMPLETE | — | — | `9019a1c` = deployment `7988286758`; re-checked 2026-11-23 | Re-check after every merge |
 | T-02 | Seven student tools, local-first (Chromium) | COMPLETE | — | — | Unit 622 passed and 1 skipped, E2E 90/90 and keyboard 22/22 on a tree identical to `9019a1c`; live 14/14 on 2026-11-23 | — |
-| T-03 | Seven tools: browsers beyond Chrome | IN PROGRESS | Engineering | — | Microsoft Edge (Chromium engine), 2026-11-23, on `516f1db` (`main` + #20): E2E 90/90, 0 console errors; keyboard 22/22 (5 skipped by design). Firefox and Safari/WebKit: NOT STARTED. The suite drives the browser over CDP, which Firefox no longer supports | Add a WebDriver BiDi or Playwright runner for Firefox and WebKit |
-| T-04 | Documentation reconciled with the release | IN PROGRESS | Engineering, then owner (merge) | — | #19 | Owner reviews and merges #19 |
+| T-03 | Seven tools: browsers beyond Chrome | WAITING FOR OWNER | Owner (merge #23) | — | #23 (`2426f82`): one driver for Chrome/Edge (CDP) and Firefox/WebKit (Playwright 1.64.1). Local, 2026-11-23: Chrome, Edge and Firefox 157 at E2E 90/90 and keyboard 22/22; WebKit 27.2 at E2E 90/90 and keyboard 15/15 (12 skipped: 5 H1, 7 because Tab skips links, as in Safari). Same results in CI on Linux (non-required `e2e-firefox` and `e2e-webkit`). **Not covered:** real Safari on macOS or iOS | Merge #23 |
+| T-04 | Documentation reconciled with the release | IN PROGRESS | Engineering, then owner (merge) | — | #19 | Owner reviews and merges #19 (last in OD-1) |
 | T-05 | Privacy notice: accurate statements (F13 follow-up, L-16) | WAITING FOR OWNER | Owner (merge) | — | #20: two inaccurate statements fixed; guard test (3 of 4 checks fail on the old text); E2E 90/90 | Merge #20. The page stays a draft, `noindex` and out of the sitemap |
-| T-06 | F12: legal review package | WAITING FOR LEGAL REVIEW | Owner (engage counsel), counsel | — | Private checklist, questions L-1 to L-20, updated 2026-11-23 | Send to qualified counsel |
-| T-07 | F10: read-only inventory tooling | WAITING FOR OWNER | Owner (merge) | — | #21: `schema_inventory.sql`, 10 tests; read-only staging run 2026-11-23 | Merge #21 |
-| T-08 | F10: production inventory run | WAITING FOR OWNER | Owner (approval) | T-07 | Production never inspected | Approve one read-only run (runbook 9, C.1) |
-| T-09 | F10: production backup and **tested** restore | WAITING FOR OWNER | Owner (approval) | T-08 | None recorded | Approve backup and restore into a throwaway project (runbook 9, C.1) |
+| T-06 | F12: legal review package | WAITING FOR OWNER | Owner (review and send), then counsel | — | Dispatch-ready package L-1 to L-20 (private: `docs/phase-2/COUNSEL_PACKAGE_L1_L20.md`, 2026-11-23): facts, data inventory, questions grouped by stage, what each answer unblocks. Bracketed items need the owner's details | Owner fills the brackets, attaches the notice PDF, and sends it |
+| T-07 | F10: read-only inventory tooling and procedure | WAITING FOR OWNER | Owner (merge #21) | — | #21 (`98e385e`): `schema_inventory.sql`, 10 tests. Runbook 9 C.1 split into four separate approvals (C.1a inventory, C.1b backup, C.1c restore rehearsal, C.1d migrations). Read-only first line `set transaction read only;` verified on staging (write refused with 25006; inventory returned) | Merge #21 |
+| T-08 | F10: production inventory run (approval C.1a) | WAITING FOR OWNER | Owner (approval) | T-07 | Production never inspected. C.1a reads catalogs and two counts only; it doesn't wait for F12 | Approve C.1a only |
+| T-09 | F10: production backup (C.1b) and **tested** restore (C.1c) | WAITING FOR OWNER | Owner (two separate approvals) | T-08 | None recorded. The backup copies personal data. The restore rehearsal needs a third project, but the Free plan's two projects are in use (OD-7) | Decide OD-7, then approve C.1b, then C.1c |
 | T-10 | F3: production Auth settings | WAITING FOR OWNER | Owner (dashboard) | — | Never read. Checklist in runbook 9, A.1 (#21) | Apply the checklist |
-| T-11 | H1 limitation: API sign-ups still possible | WAITING FOR OWNER | Owner (dashboard) | — | Hidden UI ≠ disabled sign-up | Turn off "Allow new users to sign up" (recommended) |
+| T-11 | H1 limitation: API sign-ups still possible | WAITING FOR OWNER | Owner (dashboard) | — | Hidden UI ≠ disabled sign-up. Step-by-step instructions, with a check that creates no account (`GET /auth/v1/settings` → `disable_signup: true`): private `docs/phase-2/F3_DISABLE_PUBLIC_SIGNUP.md` | Owner applies them (OD-2) |
 | T-12 | Production `delete-account` function (gate off) | BLOCKED | Owner (approval) | T-06, T-08, T-09 | Staging: deployed, version 3 | Runbook 9, C.2.1 after the prerequisites |
-| T-13 | Production migrations (all four together) | BLOCKED | Owner (approval) | T-12 | 0 of 4 in production; 4 of 4 on staging | Runbook 9, C.2.4 |
-| T-14 | Least privilege on `deletion_log_id_seq` (found 2026-11-23) | WAITING FOR OWNER | Owner (decision), then engineering | Before T-13 | `authenticated` has `USAGE` (staging inventory, #21). No data exposure | Decide whether a fix migration goes in before production |
+| T-13 | Production migrations (all five together, with #22) | BLOCKED | Owner (approval C.1d) | T-12 | 0 of 5 in production; 4 of 5 on staging (`20261123000000` not applied; dry run lists only it) | Runbook 9, C.2.4 |
+| T-14 | Least privilege on `deletion_log_id_seq` | WAITING FOR OWNER | Owner (merge #22; staging decision) | Before T-13 | #22 (`52ef94d`): migration `20261123000000` revokes all client privileges on the sequence. 6 tests, 3 of which fail without it. The deletion path and consent inserts still work. Staging dry run lists only this migration; it's applied nowhere | Merge #22; decide whether to apply it to staging (OD-6) |
 | T-15 | Deletion sweep workflow configured | BLOCKED | Owner (variables, secret) | T-13 | `deletion-sweep.yml` inert; 0 repository variables | Runbook 9, C.2.5 |
 | T-16 | Deletion verification: staging, gate open (stage 1) | COMPLETE | — | — | `test:staging:deletion-gate` 38/38 on 2026-11-22. The scheduler itself hasn't run it | — |
 | T-17 | Deletion verification: production stages 2–5 | BLOCKED | Owner (approval at each stage) | T-15 | None | Runbook 9, C.3 |
-| T-18 | F11: export pending deletions before a database rollback | NOT STARTED | Engineering | — | Documented in release section 10; not scripted | Script it and test it on staging |
+| T-18 | F11: export pending deletions before a database rollback | WAITING FOR OWNER | Owner (merge #24) | — | #24 (`e5437e6`): read-only `export_before_rollback.sql`; the rollback refuses, before any drop, unless its ack matches the current counts. 8 tests, 3 of which fail without the guard. Staging, synthetic data only: export read-only (ack `0/38`); the guard alone refused with no ack, passed with `0/38`, and refused `1/38` for a request planted in a rolled-back transaction. Afterwards: 0 auth users, gates `'false'` | Merge #24 |
 | T-19 | F7: analytics and CAPTCHA build switches in `deploy.yml` | WAITING FOR OWNER | Owner (workflow PR approval) | — | Switches work in code; not wired | Approve a workflow PR |
 | T-20 | F8: frame protection and security headers | WAITING FOR OWNER | Owner (hosting) | — | GitHub Pages sends only HSTS | Hosting decision, or the interim in-page guard |
 | T-21 | Accounts UI activation | BLOCKED (or owner may defer) | Owner | T-06, T-10, T-11, T-22; T-13 for account features | `ACCOUNTS_UI_ENABLED = false`; guard tests in CI | Owner decision OD-5 |
@@ -37,7 +37,7 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 | # | Criterion | Status |
 |---|---|---|
 | 1 | All agreed functionality implemented | Code COMPLETE; accounts and sync inactive (T-21, T-23) |
-| 2 | Seven tools verified | COMPLETE in Chrome and Edge; Firefox and WebKit NOT STARTED (T-03) |
+| 2 | Seven tools verified | COMPLETE at engine level: Chrome, Edge, Firefox and WebKit (#23 evidence). Real Safari devices not tested |
 | 3 | Tests pass on the release SHA | COMPLETE for `9019a1c` |
 | 4 | Production deployment verified | COMPLETE for the public site and local tools; real accounts NOT VERIFIED |
 | 5 | Qualified legal approval | WAITING FOR LEGAL REVIEW (T-06) |
@@ -47,21 +47,50 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 | 9 | Security and RLS verified | Staging and PGlite COMPLETE; production BLOCKED (T-13) |
 | 10 | Accounts UI approved and verified, or removed from scope | BLOCKED (OD-5) |
 | 11 | Cloud sync approved and verified, or deferred | BLOCKED (OD-5) |
-| 12 | Documentation matches the release | IN PROGRESS (#19, #20, #21) |
+| 12 | Documentation matches the release | IN PROGRESS (#19, #20, #21, #22, #24) |
 | 13 | Tracker reflects the actual state | COMPLETE with this update |
 | 14 | No critical unresolved security or data-integrity issue | COMPLETE: none known. T-11 is High and owner-gated |
 
-**Met: 3 of 14** (criteria 3, 13 and 14). Criteria 2 and 4 are met for the local-first scope only. No percentage above this is claimed.
+**Met: 4 of 14** (criteria 2, 3, 13 and 14). Criterion 2 is met at engine level; real Safari devices aren't tested. Criterion 4 is met for the public site and the local tools only. No percentage above this is claimed.
+
+### Open PRs and merge sequence (2026-11-23)
+All six are based on `main` `9019a1c`. CI (`ci`) is green on each head, and they merge cleanly with each other. **None is merged; each merge needs the owner's explicit authorisation.**
+
+| Order | PR | Head | Changes | Deploys a page change? |
+|---|---|---|---|---|
+| 1 | #20 | `516f1db` | Privacy notice: two accurate sentences; guard test | Yes: `/privacy` text |
+| 2 | #22 | `52ef94d` | T-14 migration (not applied anywhere); tests; docs | No |
+| 3 | #24 | `e5437e6` | T-18 export and rollback guard; tests | No |
+| 4 | #21 | `98e385e` | F10 inventory; runbook C.1a–C.1d; F3 checklist | No |
+| 5 | #23 | `2426f82` | Firefox and WebKit E2E; non-required workflow | No |
+| 6 | #19 | head at merge time | This tracker and the release docs | No |
+
+For each merge: update the branch with `main`, wait for green `ci` on the new head, then squash-merge, pinned with `--match-head-commit`. Check the deploy and the live site after each one.
+
+**Tested together, 2026-11-23**, all six merged in this order into a scratch tree:
+- lint and `tsc` clean;
+- unit 650 passed, 1 skipped;
+- build and `verify-build` pass; build-output 11 passed, 2 skipped;
+- Chrome E2E 90/90, keyboard 22/22;
+- `/privacy` still `noindex, follow`, labelled as a draft, and outside the sitemap.
+
+**Test-environment findings this session (no site defect):**
+- Windows builds write segment-prefetch files under folders, while Linux (production) uses dotted names. The live site serves the dotted names (200).
+- WebKit applies the CSP's `upgrade-insecure-requests` to localhost.
+- WebKit, like Safari by default, skips links on Tab.
+
+#23 handles all three.
 
 ### Owner decisions
 | ID | Decision | Why it matters | Choices | Recommended | If undecided |
 |---|---|---|---|---|---|
-| OD-1 | Merge #19, #20 and #21 (each deploys; only #20 changes a page) | The live draft notice has two inaccurate statements; the docs and the inventory need to be on `main` | Merge each, at its current head, after CI | Merge all three | The inaccurate notice stays live |
+| OD-1 | Merge #20, #22, #24, #21, #23, #19, in that order (each deploys; only #20 changes a page) | The live notice has two inaccurate statements; the docs, inventory, fix migration and rollback guard need to be on `main` | Merge each after updating its branch and green CI, at a pinned head | The order shown. All six merged together were tested on 2026-11-23: unit 650, build, E2E 90/90 | The inaccurate notice stays live; the tooling stays off `main` |
 | OD-2 | API sign-ups (T-11) | Accounts can still be created through the API, before legal sign-off | Turn sign-ups off; accept the risk; keep the UI hidden and monitor | Turn sign-ups off until the accounts UI is approved | Unreviewed account creation stays possible |
 | OD-3 | Production inventory, then backup and restore (T-08, T-09) | The migrations' schema-wide revokes act on an unknown schema | Approve the read-only run; defer | Approve the read-only run now. It changes nothing | Production database work can't start |
 | OD-4 | Engage counsel (T-06) | Gates the database, the accounts UI and sync | Engage; defer | Engage, with the prepared package | Everything that stores student data stays blocked |
 | OD-5 | Phase 2 scope for the accounts UI and cloud sync | Phase 2 can't be COMPLETE while they are inactive and in scope | Keep in scope (finish after OD-2 to OD-4); defer them to a separately scoped release | The owner's call. Deferral makes Phase 2 completable on the local-first scope | Phase 2 stays RELEASE-INCOMPLETE |
-| OD-6 | Fix migration for `deletion_log_id_seq` (T-14) | Least privilege before production | Add a fix migration before production; accept it | Add it. It's a one-line, reviewed migration | Production gets the same grant |
+| OD-6 | `deletion_log_id_seq` fix (T-14): apply it to staging now? | Staging is the rehearsal for production | Apply to staging now (a one-line revoke, after a dry run); or wait and apply it with production | Apply it to staging after #22 merges, so staging matches the five-migration production plan | Staging stays at four migrations |
+| OD-7 | Where to rehearse the restore (T-09) | A backup counts only once a restore is proven, and that needs an isolated third project | A paid plan for the rehearsal; temporarily pause staging; or another account's free project | A short paid plan, or a separate account, so staging isn't disturbed | No proven backup, so production migrations can't start |
 
 ## Audit record (2026-11-21 to 2026-11-23)
 
