@@ -15,6 +15,23 @@
 -- backup of anything that must be kept. Run in the Supabase SQL editor of
 -- the intended project, after checking the project name and ref.
 --
+-- GUARD (T-18): if deletion_requests or deletion_log has any row, this
+-- script refuses to run, and drops nothing, until
+--   1. supabase/rollback/export_before_rollback.sql has been run and its
+--      output stored privately, and
+--   2. this script is run with that export's `ack` as the first line:
+--        set atlas.rollback_exported = 'v2:<pending>/<logged>:<sha256>';
+-- The guard locks both tables against writes (until this transaction
+-- ends, after the drops), recomputes the SHA-256 of every field of every
+-- row, and refuses unless it matches. So an export is valid only for the
+-- exact records it holds: a request replaced by another, a changed attempt
+-- count or log row, or a request arriving after the export, is refused,
+-- even with the counts unchanged. The refusal never prints a valid ack:
+-- the only way to get one is to run the export. (This guards against
+-- mistakes, not against a database owner deliberately forging the value.)
+-- Pending requests remain obligations after the rollback: complete each
+-- one from the export.
+--
 -- It touches only objects these migrations created. Supabase's auth
 -- schema and users are not modified. Tested in PGlite
 -- (src/lib/__tests__/db-rollback.test.ts): after rollback, no Atlas
@@ -29,6 +46,39 @@
 -- ═══════════════════════════════════════════════════════════════════
 begin;
 
+-- guard:start (T-18; tested in src/lib/__tests__/db-rollback-guard.test.ts)
+do $guard$
+declare
+  pending bigint := 0;
+  logged bigint := 0;
+  req_canon text := '';
+  log_canon text := '';
+  expected text;
+  given text := coalesce(current_setting('atlas.rollback_exported', true), '');
+begin
+  -- EXCLUSIVE blocks inserts, updates and deletes (but not reads) until this
+  -- transaction ends, after the drops, so the records can't change between
+  -- this check and the drops.
+  if to_regclass('public.deletion_requests') is not null then
+    execute 'lock table public.deletion_requests in exclusive mode';
+    execute $q$select count(*), coalesce(string_agg(r.user_id::text || '|' || extract(epoch from r.requested_at)::text || '|' || r.attempts::text, E'\n' order by r.user_id), '')
+              from public.deletion_requests r$q$ into pending, req_canon;
+  end if;
+  if to_regclass('public.deletion_log') is not null then
+    execute 'lock table public.deletion_log in exclusive mode';
+    execute $q$select count(*), coalesce(string_agg(l.id::text || '|' || l.user_hash || '|' || coalesce(extract(epoch from l.requested_at)::text, '') || '|' || extract(epoch from l.completed_at)::text || '|' || l.rows_deleted::text, E'\n' order by l.id), '')
+              from public.deletion_log l$q$ into logged, log_canon;
+  end if;
+  -- The same serialisation and hash as export_before_rollback.sql.
+  expected := 'v2:' || pending::text || '/' || logged::text || ':' || encode(sha256(convert_to(req_canon || E'\n--\n' || log_canon, 'UTF8')), 'hex');
+  if (pending > 0 or logged > 0) and given <> expected then
+    raise exception 'Rollback refused: % pending deletion request(s) and % deletion-log row(s) would be lost, and atlas.rollback_exported does not match them (it is missing, from an older export, or from before a change). Run supabase/rollback/export_before_rollback.sql now, store its output privately, then start this script with: set atlas.rollback_exported = ''<ack from that export>'';',
+      pending, logged;
+  end if;
+end
+$guard$;
+-- guard:end
+
 drop table if exists public.bookmarks, public.checklist_items, public.revision_rounds, public.mistakes,
   public.goals, public.streaks, public.consents, public.deletion_requests, public.deletion_log, public.deletion_rate,
   public.profiles, public.app_config cascade;
@@ -40,3 +90,6 @@ drop function if exists public.enable_sync(), public.disable_sync(), public.expo
   public.atlas_touch(), public.atlas_row_cap(), public.atlas_protect_profile(), public.atlas_consents_append_only();
 
 commit;
+
+-- Clear the acknowledgement, so it can never carry over to a later run.
+reset atlas.rollback_exported;

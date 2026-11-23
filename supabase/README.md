@@ -14,6 +14,7 @@
 | `rollback/student_accounts_down.sql` | **Destructive** rollback of all five migrations (owner approval only; tested in PGlite). |
 | `functions/delete-account/` | Edge Function that deletes a student's account after they request it (service-role key stays in Supabase secrets). `handler.ts` is the tested core. |
 | `tests/supabase-auth-shim.sql` | **Test-only** stand-in for Supabase's `auth` schema and roles, so the migration can be tested in PGlite. Never apply it to a real project. |
+| `rollback/export_before_rollback.sql` | **Read-only** export of pending deletion requests and the deletion log, to run **before** any rollback (T-18). The rollback refuses to run while either table has rows unless it starts with the export's `ack` (`set atlas.rollback_exported = '<pending>/<logged>';`), which must match the current counts. The output holds user ids: store it privately and encrypted. |
 
 ## Safety switches (all off)
 - `app_config.adult_sync_permitted` and `app_config.minor_sync_permitted` stay `'false'` until legal sign-off. Only the service role can change them.
