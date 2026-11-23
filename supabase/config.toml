@@ -1,0 +1,19 @@
+# Supabase CLI configuration (audit F6).
+#
+# Its only purpose is to pin the delete-account function's gateway setting,
+# so a deploy that forgets --no-verify-jwt still deploys it correctly. The
+# function authorises every request itself: user tokens through the Auth
+# server, and the sweep through its secret (see
+# supabase/functions/delete-account/index.ts).
+#
+# WARNING: never run `supabase config push` with this file. It holds no Auth,
+# API or database settings on purpose, so a push could replace the remote
+# project's settings with CLI defaults. Auth settings are managed in the
+# dashboard (runbook, docs/PHASE_2_RELEASE.md section 9).
+#
+# project_id is the CLI's local identifier only; it is not a remote
+# project ref.
+project_id = "ajaysahuphysics-next"
+
+[functions.delete-account]
+verify_jwt = false

@@ -1,0 +1,49 @@
+name: Account deletion sweep
+
+# Scheduled sweep for the delete-account function (audit F5). It finishes
+# deletion requests the student didn't complete, and it alerts: a failed
+# run (GitHub emails the owner) means requests are still pending or stale,
+# or are outstanding while the deletion gate is off. See
+# scripts/deletion-sweep.mjs for the exact rules.
+#
+# INERT until the owner turns it on. The job runs only when the repository
+# variable ATLAS_DELETION_SWEEP_ENABLED is 'true'. It also needs:
+#   vars.ATLAS_SWEEP_URL                  https://<ref>.supabase.co/functions/v1/delete-account
+#   secrets.ATLAS_DELETION_SWEEP_SECRET   the same value as the function's secret
+# Scheduled runs happen only on the default branch (main).
+#
+# It never deploys and never touches the site. Opening or closing the
+# deletion gate is a separate, owner-approved database change. This
+# workflow never changes the gate or the sync switches.
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deletion-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    if: vars.ATLAS_DELETION_SWEEP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run the sweep
+        run: node scripts/deletion-sweep.mjs
+        env:
+          ATLAS_SWEEP_URL: ${{ vars.ATLAS_SWEEP_URL }}
+          ATLAS_DELETION_SWEEP_SECRET: ${{ secrets.ATLAS_DELETION_SWEEP_SECRET }}

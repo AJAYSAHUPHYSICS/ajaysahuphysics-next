@@ -31,10 +31,24 @@ Outputs static HTML/CSS/JS to `/out`, ready for any static host.
 ## Tests and checks
 
 ```bash
-npm test                         # unit tests (Vitest)
-npm run build                    # then:
+npm test                         # unit, integration and database/RLS tests (Vitest; PGlite for Postgres)
+npm run build                    # static export + CSP injection, then:
 node scripts/verify-build.mjs    # URLs, sitemap, robots, titles, canonicals, links, OG images
+npm run test:build-output        # post-build checks (withheld content, CSP)
+npm run test:e2e                 # headless-Chrome E2E, accessibility audit, phone overflow, keyboard
 ```
+
+Staging only (never production; see `supabase/README.md`):
+
+```bash
+npm run staging:check            # validates .env.staging.local offline (no values printed)
+npm run test:staging             # student journey against the staging Supabase project
+npm run test:staging:browser     # real UI journey against staging (needs `npm run dev`)
+```
+
+## Student accounts (Phase 2)
+
+Accounts are optional and study progress stays in the browser. Cloud copies of study data are built but switched **off** until legal sign-off and owner approval. Architecture, database, environment variables, security, export and deletion, the production runbook and rollback are in [`docs/PHASE_2_RELEASE.md`](docs/PHASE_2_RELEASE.md). Database and staging setup: [`supabase/README.md`](supabase/README.md).
 
 ## Continuous integration
 
