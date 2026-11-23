@@ -46,7 +46,7 @@ export default function PrivacyPage() {
         <section className={section}>
           <h2 className={h2}>Analytics</h2>
           <p className={p}>
-            We use Google Analytics 4 to count page visits so we can improve the site. We don&apos;t send it your searches, your saved progress or your email address.
+            We use Google Analytics 4 to understand how the site is used so we can improve it. It receives the pages you visit, which chapter a search led to and how many results it found (never the words you typed), clicks on resource links, and clicks on the WhatsApp button. We don&apos;t send it your saved progress or your email address.
           </p>
         </section>
 
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <h2 className={h2}>Your choices</h2>
           <ul className="mt-3 list-disc pl-6 space-y-2 text-slate">
             <li>Download everything this browser stores for us, or remove it, from your account page.</li>
-            <li>Delete your account from your account page, or ask us to through the <Link href="/contact" className="underline hover:text-navy">contact page</Link>.</li>
+            <li>To delete your account, ask us through the <Link href="/contact" className="underline hover:text-navy">contact page</Link>. Deleting it yourself from the account page isn&apos;t available yet; the account page will say so until it is.</li>
             <li>Signing out never deletes the progress saved in your browser.</li>
           </ul>
         </section>
