@@ -26,7 +26,7 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 | T-15 | Deletion sweep workflow configured | BLOCKED | Owner (variables, secret) | T-13 | `deletion-sweep.yml` inert; 0 repository variables | Runbook 9, C.2.5 |
 | T-16 | Deletion verification: staging, gate open (stage 1) | COMPLETE | — | — | `test:staging:deletion-gate` 38/38 on 2026-11-22. The scheduler itself hasn't run it | — |
 | T-17 | Deletion verification: production stages 2–5 | BLOCKED | Owner (approval at each stage) | T-15 | None | Runbook 9, C.3 |
-| T-18 | F11: export pending deletions before a database rollback | WAITING FOR OWNER | Owner (merge #24) | — | #24 (`e5437e6`): read-only `export_before_rollback.sql`; the rollback refuses, before any drop, unless its ack matches the current counts. 8 tests, 3 of which fail without the guard. Staging, synthetic data only: export read-only (ack `0/38`); the guard alone refused with no ack, passed with `0/38`, and refused `1/38` for a request planted in a rolled-back transaction. Afterwards: 0 auth users, gates `'false'` | Merge #24 |
+| T-18 | F11: export pending deletions before a database rollback | WAITING FOR OWNER | Owner (merge #24) | — | #24 (`751980f`): read-only `export_before_rollback.sql` with a **content-integrity ack**, `v2:<pending>/<logged>:<sha256 of every field of every row>`. The rollback locks both tables (EXCLUSIVE), recomputes the hash and refuses, before any drop, unless it matches; the refusal never prints a valid ack. A review of the first version (`e5437e6`) found it count-only, so a replaced request or an edited log row with the same count passed; fixed. 17 tests, 11 of which fail on the first version. Staging, guard only, synthetic data in a rolled-back transaction: no ack refused; the fresh ack passed; refused after a planted request. State unchanged | Merge #24 |
 | T-19 | F7: analytics and CAPTCHA build switches in `deploy.yml` | WAITING FOR OWNER | Owner (workflow PR approval) | — | Switches work in code; not wired | Approve a workflow PR |
 | T-20 | F8: frame protection and security headers | WAITING FOR OWNER | Owner (hosting) | — | GitHub Pages sends only HSTS | Hosting decision, or the interim in-page guard |
 | T-21 | Accounts UI activation | BLOCKED (or owner may defer) | Owner | T-06, T-10, T-11, T-22; T-13 for account features | `ACCOUNTS_UI_ENABLED = false`; guard tests in CI | Owner decision OD-5 |
@@ -60,7 +60,7 @@ All six are based on `main` `9019a1c`. CI (`ci`) is green on each head, and they
 |---|---|---|---|---|
 | 1 | #20 | `516f1db` | Privacy notice: two accurate sentences; guard test | Yes: `/privacy` text |
 | 2 | #22 | `52ef94d` | T-14 migration (not applied anywhere); tests; docs | No |
-| 3 | #24 | `e5437e6` | T-18 export and rollback guard; tests | No |
+| 3 | #24 | `751980f` | T-18 export and content-integrity rollback guard; tests | No |
 | 4 | #21 | `98e385e` | F10 inventory; runbook C.1a–C.1d; F3 checklist | No |
 | 5 | #23 | `2426f82` | Firefox and WebKit E2E; non-required workflow | No |
 | 6 | #19 | head at merge time | This tracker and the release docs | No |
