@@ -79,7 +79,7 @@ npx supabase@2.122.1 db push --linked                       # applies supabase/m
 5. **`20261123000000`** depends on `deletion_log` (from the first) and revokes client privileges on its sequence (T-14).
 6. **`20261124000000`** replaces `sync_allowed()` and `enable_sync()` (from the first) to require a verified email address.
 
-The CLI applies them in filename order. Apply all six together in production. In production, deploy the gated `delete-account` function (step 5) **before** applying them. Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, the first four are applied (history matches local, 2026-11-22); `20261123000000` is **not** applied there yet (owner approval). Production: none applied.
+The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, the first five are applied (`20261123000000` on 2026-11-23, after a fresh dry run; history matches local); `20261124000000` isn't applied there. Production: none applied.
 
 ### 5. Deploy the deletion function (staging)
 ```
