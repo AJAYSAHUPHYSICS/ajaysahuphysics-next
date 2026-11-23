@@ -68,7 +68,7 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 - **The function deployment (T-12) comes first.**
 
 ### Current release procedure (authoritative)
-This is the only current procedure. Where any older text in this file or in `PHASE_2_RELEASE.md` disagrees, this one applies.
+This is the only current procedure. `PHASE_2_RELEASE.md` section 9 gives the same order with each step's details (reconciled in #26). Where any older text disagrees, this one applies.
 1. **CLI access to the confirmed production project** (T-25), with its ID verified.
 2. **Read-only inventory** (T-08, approved). A go / no-go on collisions and on the objects migration 1's schema-wide revokes would affect.
 3. **Secured backup and integrity check** (T-09, approved), with no temporary production role. No restore before launch (decision E).
@@ -87,7 +87,7 @@ This is the only current procedure. Where any older text in this file or in `PHA
 **Legal review isn't a gate for these steps.** Owner decision I moved formal counsel review to after launch. The privacy notice stays labelled a draft, and no legal approval is claimed (T-06).
 
 **Superseded instructions, kept as historical:**
-- **`PHASE_2_RELEASE.md` section 9:** the heading "Production database. Only after legal sign-off (F12)" is superseded by decision I. Its "all five migrations" becomes six when #25 merges; #25 updates that section.
+- **`PHASE_2_RELEASE.md`:** reconciled in #26. The legal-sign-off gate is removed (decision I), the order matches this procedure, there are six migrations, and the earlier merge-and-audit material is labelled historical.
 - **This file's "Release dependencies" and "Merge readiness" sections below** are the 2026-11-22 plan: legal sign-off first, four migrations.
 
 ### Phase 2 completion criteria (2026-11-23)
@@ -104,7 +104,7 @@ This is the only current procedure. Where any older text in this file or in `PHA
 | 9 | Security and RLS verified | Staging and PGlite COMPLETED; production BLOCKED |
 | 10 | Accounts UI live and verified | BLOCKED (T-21) |
 | 11 | Cloud sync live and verified | BLOCKED (T-23, T-23b) |
-| 12 | Documentation matches the release | IN PROGRESS: the corrections are in #26, unmerged. Known remaining mismatch: `PHASE_2_RELEASE.md` section 9 (see "Current release procedure") |
+| 12 | Documentation matches the release | IN PROGRESS: the tracker and `PHASE_2_RELEASE.md` are reconciled in #26, unmerged. `supabase/README.md`'s six-migration text arrives with #25. `PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot |
 | 13 | Tracker reflects the actual state | IN PROGRESS: correct only once #26 is merged |
 | 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in production; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (#25, unmerged, blocks unverified accounts from reading and writing; it relies on "Confirm email" being on, T-10); production RLS and permissions can't be verified until the schema is deployed (T-08, T-13). **Accepted limitation:** existing Auth accounts are trusted as they stand (decision M). Under-18 sync stays separately blocked (T-23b); that isn't an adult-sync blocker |
 
