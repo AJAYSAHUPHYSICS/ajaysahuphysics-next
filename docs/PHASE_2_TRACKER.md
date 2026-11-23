@@ -34,7 +34,7 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 | T-08 | Production read-only inventory | **BLOCKED** | Owner (CLI access) | T-25 | Approved (decision C), **not run**. The production project is confirmed (T-25), but the CLI login can't reach its organisation yet. No other project is used as a substitute | Run it once access is confirmed |
 | T-09 | Production backup | **BLOCKED** | Owner | T-25 | Approved (decision D), **not taken**. It waits for CLI access (T-25). The connection method must not create a temporary login role in production, which the CLI's default dump path does; that is unauthorised | Find a method with no production write, or request approval for the exact role change |
 | T-09b | Restore rehearsal | POST-LAUNCH | Owner (separate approval) | T-09 | Owner decision E | — |
-| T-10 | F3: production Auth settings (redirect URLs, Site URL, password minimum 10, "Confirm email") | AWAITING OWNER APPROVAL | Owner | T-25 | Decision K makes verification mandatory. Changing the Auth settings still needs explicit authorisation | Authorise the F3 checklist (runbook 9, A.1) |
+| T-10 | F3: production Auth settings ("Confirm email" on; redirect URLs, Site URL, password minimum 10) | AWAITING OWNER APPROVAL | Owner | T-25 | Decision K makes verification mandatory. **"Confirm email" must be on before #25 is merged and before any production migration**: while it's off, Supabase confirms new users automatically at sign-up, so "verified" wouldn't prove the address for new accounts. Changing the setting needs explicit authorisation | Authorise the F3 checklist (runbook 9, A.1); then read the setting back to verify it |
 | T-11 | Public sign-ups | COMPLETED (kept on) | — | — | Owner decision B: keep public sign-ups enabled; no change made | — |
 | T-12 | Production `delete-account` function, with the gate off | AWAITING OWNER APPROVAL | Owner | T-08, T-09 | Not in the approval register: production Edge Function deployment, and the `ATLAS_DELETION_SWEEP_SECRET` production secret. It must come **before** the migrations | Approve the deployment and the secret |
 | T-13 | Production migrations: six, each separately approved (below) | AWAITING OWNER APPROVAL (each) | Owner | T-08 go / no-go, T-09, T-12; #25 merged for the sixth | 0 of 6 in production. Staging: 5 of 6 (the sixth isn't merged). A private approval package exists; migration 1 isn't ready for approval until the inventory | Approve each, then run them consecutively in one window |
@@ -47,11 +47,11 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 | T-20 | F8: frame protection and security headers | AWAITING OWNER APPROVAL | Owner (hosting) | — | GitHub Pages sends only HSTS | Hosting decision, or the interim in-page guard |
 | T-21 | Accounts UI activation | BLOCKED | Engineering, then launch | T-10, T-13, T-22, T-24 | Decision H keeps it in scope; decision L authorises launch once the technical gates pass. `ACCOUNTS_UI_ENABLED = false` | Activate after the gates |
 | T-22 | E1: the 7 email checks | BLOCKED | Engineering (inbox) | T-10 | None recorded | Run on staging, then on production |
-| T-23 | Cloud sync for adults | BLOCKED | Engineering, then launch | T-13 (including the sixth migration), T-21 | Decision H. `CLOUD_SYNC_ENABLED = false`; switches `'false'`. Activation needs the `adult_sync_permitted` switch, a production database write | Activate after the gates |
-| T-23b | **Cloud sync for under-18s** | **BLOCKED** | Owner (decision), engineering | Parental-consent verification | `minor_sync_permitted` also requires `parental_consent_verified()`, which only a verified server process can satisfy, and **no such process exists**. Under-18 sync can't launch as built | Owner: build verification, or launch adult sync first |
+| T-23 | Cloud sync for adults | BLOCKED | Engineering, then launch | T-10 ("Confirm email" on), T-13 (all six migrations, including #25's), T-21 | Decision H. `CLOUD_SYNC_ENABLED = false`; switches `'false'`. Activation needs the `adult_sync_permitted` switch, a production database write. **Not blocked by T-23b** | Activate after these gates |
+| T-23b | **Cloud sync for under-18s** | **BLOCKED** (separately) | Owner (decision), engineering | A verified parental-consent process | `minor_sync_permitted` also requires `parental_consent_verified()`, which only a verified server process can satisfy, and **no such process exists**. Under-18 students aren't silently excluded: they keep their account, device progress, export and deletion, and `enable_sync()` tells them cloud copies aren't available for under-18s yet. **It doesn't block adult sync** (owner decision O) | A parental-consent proposal for owner decision |
 | T-24 | Privacy notice and consent screens for accounts and sync | IN PROGRESS | Engineering | — | Decision J: approved before launch. The live notice is an accurate draft for the dormant platform; it doesn't yet describe live accounts and sync | Update the notice; check the consent flow on staging |
 | T-25 | **Production access (CLI login)** | **BLOCKED** | Owner | — | **The production project is confirmed** by the owner (2026-11-23): the one the live site uses. The CLI login can't yet see that project's organisation; the owner intends to grant access. Until then nothing is run against production, or against any other project as a substitute | Owner grants access; engineering then verifies the project ID, name, organisation and access level |
-| T-26 | Verified email required for cloud sync (decision K) | AWAITING OWNER APPROVAL | Owner (merge #25) | — | `sync_allowed()` never checked verification. #25 (`60b636c`, open): migration `20261124000000` adds `email_verified()` and checks it in `sync_allowed()` (every RLS write policy) and `enable_sync()`. 9 tests, 6 of which fail without it; CI green | Merge #25; then the sixth migration in T-13 |
+| T-26 | Verified email required for cloud sync (decision K) | AWAITING OWNER APPROVAL | Owner (merge #25, after T-10) | T-10 | #25 (`f2cf667`, open), migration `20261124000000`. **Unverified accounts can neither read nor write** cloud-sync rows: the SELECT policies require `email_verified()`; the INSERT and UPDATE policies call `sync_allowed()`, which requires it. Export and deletion stay available. 15 tests: existing, newly verified and unverified accounts; reads, writes, export, deletion. 3 fail against the previous write-only version. Unit 674 passed, 1 skipped. **Known limitation (owner decision M):** existing Auth accounts are trusted as they stand, including any auto-confirmed while "Confirm email" was off | Turn "Confirm email" on (T-10), then merge #25; then the sixth migration in T-13 |
 
 ### Production migrations (T-13): six, in filename order
 | # | Migration | Purpose | `main` | Staging | Production |
@@ -72,17 +72,17 @@ This is the only current procedure. Where any older text in this file or in `PHA
 1. **CLI access to the confirmed production project** (T-25), with its ID verified.
 2. **Read-only inventory** (T-08, approved). A go / no-go on collisions and on the objects migration 1's schema-wide revokes would affect.
 3. **Secured backup and integrity check** (T-09, approved), with no temporary production role. No restore before launch (decision E).
-4. **Merge #25** (owner approval), so the sixth migration is on `main`.
-5. **`delete-account` function and its secret** (T-12, separate approvals).
-6. **The six migrations** (T-13), **each separately approved**, applied consecutively in one window.
-7. **Production Auth settings, including "Confirm email"** (T-10, separate approval).
+4. **Production Auth settings, with "Confirm email" on** (T-10, separate approval), then read back. This **must precede steps 5 and 7**: #25's check is only meaningful for new accounts once Supabase stops auto-confirming.
+5. **Merge #25** (owner approval), so the sixth migration is on `main`.
+6. **`delete-account` function and its secret** (T-12, separate approvals).
+7. **The six migrations** (T-13), **each separately approved**, applied consecutively in one window.
 8. **Deletion sweep workflow** (T-15) and the production deletion stages (T-17), each approved.
 9. **Privacy notice and consent screens** (T-24), then the 7 email checks (T-22).
 10. **Activation** (decision L, once every technical gate passes):
     - accounts UI (T-21);
     - adult cloud sync (T-23).
 
-    Under-18 sync only after a verified parental-consent process exists (T-23b).
+    Under-18 sync is separate. It's offered only after a verified parental-consent process exists (T-23b), and it doesn't hold back the adult activation.
 
 **Legal review isn't a gate for these steps.** Owner decision I moved formal counsel review to after launch. The privacy notice stays labelled a draft, and no legal approval is claimed (T-06).
 
@@ -106,7 +106,7 @@ This is the only current procedure. Where any older text in this file or in `PHA
 | 11 | Cloud sync live and verified | BLOCKED (T-23, T-23b) |
 | 12 | Documentation matches the release | IN PROGRESS: the corrections are in #26, unmerged. Known remaining mismatch: `PHASE_2_RELEASE.md` section 9 (see "Current release procedure") |
 | 13 | Tracker reflects the actual state | IN PROGRESS: correct only once #26 is merged |
-| 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in production; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (without #25, which is unmerged, an unverified account would get cloud-sync access once the switches open); T-23b (no verified parental-consent process for under-18s); production RLS and permissions can't be verified until the schema is deployed (T-08, T-13) |
+| 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in production; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (#25, unmerged, blocks unverified accounts from reading and writing; it relies on "Confirm email" being on, T-10); production RLS and permissions can't be verified until the schema is deployed (T-08, T-13). **Accepted limitation:** existing Auth accounts are trusted as they stand (decision M). Under-18 sync stays separately blocked (T-23b); that isn't an adult-sync blocker |
 
 **Met: 3 of 14** (criteria 2, 3 and 4). Criterion 4 covers the public site only. Criteria 12 and 13 wait for #26 to merge; criterion 14 holds only while the platform is dormant. The production-database criteria haven't started.
 
@@ -150,6 +150,9 @@ All six were merged in the authorised order:
 | K | Mandatory email verification; no sync for unverified accounts | T-10, T-26 |
 | L | Phase 2 launch once the technical gates pass; individual migration approvals still required | T-21, T-23 |
 | — | Production project identity confirmed by the owner (2026-11-23): the project the live site uses | T-25 (CLI access still pending) |
+| M | Existing Supabase Auth accounts are trusted as they stand; no re-verification migration (2026-11-23) | T-26 (accepted limitation) |
+| N | Unverified accounts blocked from both reading and writing cloud-sync records; export and deletion preserved (2026-11-23) | T-26 (#25) |
+| O | Under-18 sync stays separately blocked until a verified parental-consent process exists; it doesn't silently exclude minors or block adult sync (2026-11-23) | T-23b, T-23 |
 
 **Not covered by any approval yet:**
 - CLI access to the production project's organisation (T-25; owner action);
@@ -157,7 +160,7 @@ All six were merged in the authorised order:
 - the Edge Function deployment and its secret (T-12);
 - the F3 Auth settings changes (T-10);
 - each of the six production migrations;
-- merging #25;
+- merging #25 (after "Confirm email" is on);
 - a decision on under-18 sync (T-23b).
 
 ## Audit record (2026-11-21 to 2026-11-23)
