@@ -1,0 +1,24 @@
+-- ═══════════════════════════════════════════════════════════════════
+-- Least privilege on the deletion log's identity sequence (tracker T-14).
+--
+-- 20261120000000_student_accounts.sql ends with
+--   grant usage on all sequences in schema public to authenticated;
+-- so signed-in students received USAGE on public.deletion_log_id_seq,
+-- although deletion_log is written only by purge_user_data() (security
+-- definer, as the owner) and students have no privilege on the table.
+-- USAGE allows nextval(), so a student could advance the sequence. No data
+-- is exposed, but it isn't least privilege. Found by the read-only schema
+-- inventory on staging, 2026-11-23.
+--
+-- This removes every client privilege on that sequence. The owner keeps
+-- its privileges, so purge_user_data() still writes the log. Inserts into
+-- an identity column don't check sequence privileges, so nothing else
+-- changes. consents_id_seq keeps its grant: students insert their own
+-- consent rows.
+--
+-- Additive and idempotent: REVOKE of a privilege that isn't held is a
+-- no-op. Tested in src/lib/__tests__/db-sequence-privileges.test.ts.
+-- Rollback: dropping deletion_log (supabase/rollback/student_accounts_down.sql)
+-- drops the sequence with it; nothing else to undo.
+-- ═══════════════════════════════════════════════════════════════════
+revoke all on sequence public.deletion_log_id_seq from public, anon, authenticated;
