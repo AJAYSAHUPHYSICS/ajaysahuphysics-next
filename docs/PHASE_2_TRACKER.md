@@ -11,7 +11,7 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 |---|---|---|---|---|---|---|
 | T-01 | Release baseline: `main` = deployed | COMPLETE | — | — | `9019a1c` = deployment `7988286758`; re-checked 2026-11-23 | Re-check after every merge |
 | T-02 | Seven student tools, local-first (Chromium) | COMPLETE | — | — | Unit 622 passed and 1 skipped, E2E 90/90 and keyboard 22/22 on a tree identical to `9019a1c`; live 14/14 on 2026-11-23 | — |
-| T-03 | Seven tools: browsers beyond Chromium | NOT STARTED | Engineering | — | Only Chromium has been tested | Run the E2E suite in Firefox and WebKit |
+| T-03 | Seven tools: browsers beyond Chrome | IN PROGRESS | Engineering | — | Microsoft Edge (Chromium engine), 2026-11-23, on `516f1db` (`main` + #20): E2E 90/90, 0 console errors; keyboard 22/22 (5 skipped by design). Firefox and Safari/WebKit: NOT STARTED. The suite drives the browser over CDP, which Firefox no longer supports | Add a WebDriver BiDi or Playwright runner for Firefox and WebKit |
 | T-04 | Documentation reconciled with the release | IN PROGRESS | Engineering, then owner (merge) | — | #19 | Owner reviews and merges #19 |
 | T-05 | Privacy notice: accurate statements (F13 follow-up, L-16) | WAITING FOR OWNER | Owner (merge) | — | #20: two inaccurate statements fixed; guard test (3 of 4 checks fail on the old text); E2E 90/90 | Merge #20. The page stays a draft, `noindex` and out of the sitemap |
 | T-06 | F12: legal review package | WAITING FOR LEGAL REVIEW | Owner (engage counsel), counsel | — | Private checklist, questions L-1 to L-20, updated 2026-11-23 | Send to qualified counsel |
@@ -37,7 +37,7 @@ Statuses: NOT STARTED · IN PROGRESS · COMPLETE · BLOCKED · WAITING FOR OWNER
 | # | Criterion | Status |
 |---|---|---|
 | 1 | All agreed functionality implemented | Code COMPLETE; accounts and sync inactive (T-21, T-23) |
-| 2 | Seven tools verified | COMPLETE in Chromium; other browsers NOT STARTED (T-03) |
+| 2 | Seven tools verified | COMPLETE in Chrome and Edge; Firefox and WebKit NOT STARTED (T-03) |
 | 3 | Tests pass on the release SHA | COMPLETE for `9019a1c` |
 | 4 | Production deployment verified | COMPLETE for the public site and local tools; real accounts NOT VERIFIED |
 | 5 | Qualified legal approval | WAITING FOR LEGAL REVIEW (T-06) |
