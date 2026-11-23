@@ -27,6 +27,7 @@ const ENABLE_REASONS: Record<string, string> = {
   "not-available-for-under-18": "Cloud copies aren't available for students under 18 yet.",
   "parental-consent-required": "A parent or guardian needs to give verified consent first.",
   "deletion-pending": "Your account is being deleted.",
+  "email-not-verified": "Verify your email address first: open the link we sent you, then try again.",
 };
 
 function syncMessage(r: SyncResult): string {

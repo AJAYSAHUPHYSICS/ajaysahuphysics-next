@@ -2,9 +2,11 @@
 -- ROLLBACK for migrations 20261120000000_student_accounts.sql,
 -- 20261121000000_service_role_grants.sql,
 -- 20261122000000_account_deletion_gate.sql,
--- 20261122010000_deletion_rate_limit.sql and
+-- 20261122010000_deletion_rate_limit.sql,
 -- 20261123000000_deletion_log_sequence_privilege.sql (its revoke goes
--- with the sequence when deletion_log is dropped).
+-- with the sequence when deletion_log is dropped) and
+-- 20261124000000_require_verified_email_for_sync.sql (email_verified() is
+-- dropped below; to undo only that migration, use verified_email_down.sql).
 --
 -- NOT a migration: it lives outside supabase/migrations/ so the CLI can
 -- never apply it by accident. It is DESTRUCTIVE: it deletes every
@@ -39,10 +41,10 @@
 -- cleanly.
 --
 -- Afterwards, remove the rows for 20261120000000, 20261121000000,
--- 20261122000000, 20261122010000 and 20261123000000 (whichever are applied)
--- from supabase_migrations.schema_migrations, so the CLI's
--- history matches (the CLI tracks applied migrations there):
---   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000', '20261123000000');
+-- 20261122000000, 20261122010000, 20261123000000 and 20261124000000
+-- (whichever are applied) from supabase_migrations.schema_migrations, so
+-- the CLI's history matches (the CLI tracks applied migrations there):
+--   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000', '20261123000000', '20261124000000');
 -- ═══════════════════════════════════════════════════════════════════
 begin;
 
@@ -87,7 +89,8 @@ drop function if exists public.enable_sync(), public.disable_sync(), public.expo
   public.request_account_deletion(), public.purge_user_data(uuid), public.sync_allowed(),
   public.account_deletion_enabled(), public.deletion_rate_wait(uuid, text),
   public.latest_consent(text), public.parental_consent_verified(),
-  public.atlas_touch(), public.atlas_row_cap(), public.atlas_protect_profile(), public.atlas_consents_append_only();
+  public.atlas_touch(), public.atlas_row_cap(), public.atlas_protect_profile(), public.atlas_consents_append_only(),
+  public.email_verified();
 
 commit;
 

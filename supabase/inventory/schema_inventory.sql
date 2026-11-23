@@ -45,7 +45,7 @@ atlas_functions(name) as (
   values ('atlas_touch'), ('atlas_row_cap'), ('atlas_protect_profile'), ('atlas_consents_append_only'),
          ('latest_consent'), ('parental_consent_verified'), ('sync_allowed'), ('enable_sync'), ('disable_sync'),
          ('export_my_data'), ('request_account_deletion'), ('purge_user_data'), ('account_deletion_enabled'),
-         ('deletion_rate_wait')
+         ('deletion_rate_wait'), ('email_verified')
 ),
 atlas_indexes(name) as (
   values ('consents_user_kind_idx'), ('mistakes_user_question_idx'), ('bookmarks_user_updated_idx'),

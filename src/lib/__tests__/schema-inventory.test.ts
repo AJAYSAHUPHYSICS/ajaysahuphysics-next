@@ -106,7 +106,7 @@ describe("schema inventory script: runs and reports", () => {
     for (const m of migrations) await db.exec(m);
     const inv = await run();
     expect(inv.atlas_conflicts.tables).toHaveLength(12);
-    expect(inv.atlas_conflicts.functions).toHaveLength(14);
+    expect(inv.atlas_conflicts.functions).toHaveLength(15);
     expect(inv.atlas_conflicts.indexes).toHaveLength(8);
     expect(inv.public_tables.filter((t) => !UNRELATED.includes(t.name)).every((t) => t.rls)).toBe(true);
     expect(inv.policies.length).toBeGreaterThan(10);
