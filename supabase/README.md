@@ -9,8 +9,9 @@
 | `migrations/20261121000000_service_role_grants.sql` | Least privilege for the server role: SELECT on the Atlas tables, UPDATE of `app_config.value`, INSERT into `consents` (the verified parental-consent process). No table is created. |
 | `migrations/20261122000000_account_deletion_gate.sql` | The server-side deletion gate: `app_config` key `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()`, true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` replaced so it refuses with `deletion-disabled` while the gate is off. |
 | `migrations/20261122010000_deletion_rate_limit.sql` | Per-user deletion rate limits: the `deletion_rate` table (RLS on, no client access, server role read-only) and `deletion_rate_wait()` (server role only); `request_account_deletion()` replaced again, adding 5 calls per hour after the sign-in and gate checks. |
+| `migrations/20261123000000_deletion_log_sequence_privilege.sql` | Least privilege (T-14): removes every client privilege on `deletion_log_id_seq`. The blanket sequence grant in the first migration had given `authenticated` `USAGE` on it. **Not applied anywhere yet**; staging and production need the owner's approval |
 | `config.toml` | Only the `delete-account` function's `verify_jwt = false` pin. Never run `supabase config push` with it. |
-| `rollback/student_accounts_down.sql` | **Destructive** rollback of all four migrations (owner approval only; tested in PGlite). |
+| `rollback/student_accounts_down.sql` | **Destructive** rollback of all five migrations (owner approval only; tested in PGlite). |
 | `functions/delete-account/` | Edge Function that deletes a student's account after they request it (service-role key stays in Supabase secrets). `handler.ts` is the tested core. |
 | `tests/supabase-auth-shim.sql` | **Test-only** stand-in for Supabase's `auth` schema and roles, so the migration can be tested in PGlite. Never apply it to a real project. |
 
@@ -22,7 +23,7 @@
 - Students under 18 can't enable cloud copies without the minors switch **and** a `parental` consent recorded with method `parent-verified`, which only a verified server process can insert.
 
 ## Tests (no Docker needed)
-`npx vitest run src/lib/__tests__/db-rls.test.ts` applies all four migrations, in order, to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
+`npx vitest run src/lib/__tests__/db-rls.test.ts` applies all five migrations, in order, to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
 - anonymous visitors get no access;
 - students are isolated from each other;
 - the consent gate can't be bypassed through direct API calls;
@@ -72,8 +73,9 @@ npx supabase@2.122.1 db push --linked                       # applies supabase/m
 2. **`20261121000000`** depends on those tables (grants).
 3. **`20261122000000`** depends on `app_config` and replaces `request_account_deletion()`.
 4. **`20261122010000`** depends on the gate function and replaces `request_account_deletion()` again.
+5. **`20261123000000`** depends on `deletion_log` (from the first) and revokes client privileges on its sequence (T-14).
 
-The CLI applies them in filename order. Apply all four together. In production, deploy the gated `delete-account` function (step 5) **before** applying them. Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, all four are applied (history matches local, 2026-11-22). Production: none applied.
+The CLI applies them in filename order. Apply all five together in production. In production, deploy the gated `delete-account` function (step 5) **before** applying them. Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, the first four are applied (history matches local, 2026-11-22); `20261123000000` is **not** applied there yet (owner approval). Production: none applied.
 
 ### 5. Deploy the deletion function (staging)
 ```

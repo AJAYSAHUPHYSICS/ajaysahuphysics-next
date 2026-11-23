@@ -1,8 +1,10 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- ROLLBACK for migrations 20261120000000_student_accounts.sql,
 -- 20261121000000_service_role_grants.sql,
--- 20261122000000_account_deletion_gate.sql and
--- 20261122010000_deletion_rate_limit.sql.
+-- 20261122000000_account_deletion_gate.sql,
+-- 20261122010000_deletion_rate_limit.sql and
+-- 20261123000000_deletion_log_sequence_privilege.sql (its revoke goes
+-- with the sequence when deletion_log is dropped).
 --
 -- NOT a migration: it lives outside supabase/migrations/ so the CLI can
 -- never apply it by accident. It is DESTRUCTIVE: it deletes every
@@ -20,9 +22,10 @@
 -- cleanly.
 --
 -- Afterwards, remove the rows for 20261120000000, 20261121000000,
--- 20261122000000 and 20261122010000 from supabase_migrations.schema_migrations, so the CLI's
+-- 20261122000000, 20261122010000 and 20261123000000 (whichever are applied)
+-- from supabase_migrations.schema_migrations, so the CLI's
 -- history matches (the CLI tracks applied migrations there):
---   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000');
+--   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000', '20261123000000');
 -- ═══════════════════════════════════════════════════════════════════
 begin;
 
