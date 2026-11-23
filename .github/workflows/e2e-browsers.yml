@@ -1,0 +1,52 @@
+name: E2E browsers
+
+# The same end-to-end and keyboard checks as the required "ci" job, in
+# Firefox and WebKit (Safari's engine) through Playwright (tracker T-03).
+# It is NOT a required check, so a browser-engine download problem can't
+# block a merge. It NEVER deploys: read-only permissions, no secrets, and
+# only synthetic local data against the static build.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-browsers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: e2e-${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Downloads the engine pinned by the `playwright` dev dependency, plus
+      # its system libraries.
+      - name: Install the browser engine
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      # Built without Supabase secrets, as in ci.yml.
+      - name: Build static site
+        run: npm run build
+
+      - name: End-to-end and keyboard checks (${{ matrix.browser }})
+        run: npm run test:e2e:${{ matrix.browser }}
