@@ -254,7 +254,19 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 **C. Production database. Only after legal sign-off (F12).**
 1. **Before any production database change:**
    - legal sign-off for what will be stored;
-   - a read-only inventory of production's `public` schema (M-4, F10), with the owner's approval. **Use `supabase/inventory/schema_inventory.sql`:** a single read-only `SELECT`, enforced by `schema-inventory.test.ts`, that returns one JSON summary and no data. Run it in the production SQL editor inside `begin transaction read only; … rollback;`, and save the output privately. **Go / no-go:**
+   - the four production-database approvals below. **Each is separate: approving one never approves the next.**
+
+   **C.1a doesn't wait for F12:** it reads no personal data and changes nothing, so it can be approved now. C.1b (the backup copies personal data) and C.1c follow the owner's decision, ideally after counsel's view on handling the existing accounts (L-13). C.1d needs F12.
+
+   **C.1a. Approval 1: the read-only inventory (F10).** It reads system catalogs and two counts. It reads no table rows, emails or other personal data, and it changes nothing.
+   1. In the Supabase dashboard, open the **production** project. Check its name and the project ref in Project Settings → General against the production site's Supabase URL. Don't continue if it's the staging project.
+   2. Open SQL Editor → New query. Paste `set transaction read only;` as the **first line**, then the whole of `supabase/inventory/schema_inventory.sql`, then run it.
+      - The editor shows only the last statement's result, so don't wrap the query in `begin … rollback`: the `rollback` would hide the output.
+      - **Checked on staging on 2026-11-23** through the same SQL API: with that first line, `transaction_read_only` is `on`, a write is refused (`25006: cannot execute CREATE TABLE in a read-only transaction`), and the inventory still returns in full.
+   3. Expect one row, `inventory`. Copy the JSON and store it privately. It names objects but contains no data.
+   4. Hand it to engineering for the go / no-go below. Nothing else happens under this approval.
+
+   **Go / no-go:**
      - `atlas_conflicts` must be empty (tables, functions **and** the 8 index names): the migrations use `CREATE`, not `CREATE IF NOT EXISTS`, so any listed object would make them fail. An index name collides with a relation of any kind in `public`;
      - review every object in `other_public`. These are selected by kind, never by name, so an object called `…_seq` or `…_pkey` is still listed. The first migration removes client privileges from the whole `public` schema (M-4), so any app relying on those objects would break;
      - review `sequences` and the `kind: "S"` rows of `client_grants`: the first migration's `grant usage on all sequences … to authenticated` also gives `authenticated` usage on **every** existing sequence, including unrelated ones;
@@ -266,13 +278,25 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
      - `other_public` is empty; RLS is on for every public table; 23 policies;
      - 35 client grants: 33 on tables, plus `authenticated:USAGE` on the 2 identity sequences.
 
-     **Finding (low):** `authenticated` has `USAGE` on `deletion_log_id_seq`, although `deletion_log` is service-only. It exposes no data, because there is no table privilege, but it isn't least-privilege. It comes from the blanket sequence grant. Fixing it needs a new, reviewed migration (`revoke usage on sequence public.deletion_log_id_seq from authenticated`). That's an owner decision; it doesn't block the migrations.
-   - **a backup, and a tested restore.** A backup counts only once a restore has been proven:
-     1. take a logical dump of the production project. Either use the CLI twice, `npx supabase@2.122.1 db dump --linked -f schema.sql` (schema only, the default) and `… db dump --linked --data-only -f data.sql`, including the `auth` schema's users; or use the dashboard backup on paid plans. Store both files privately and encrypted: the data dump contains personal data;
-     2. restore it into a new, isolated, throwaway project. **Never into staging, and never into production;**
-     3. run `schema_inventory.sql` on the restored copy and compare it with the production output;
-     4. compare `auth_user_count` and the row estimates;
-     5. record the date, the method and the comparison privately, then delete the throwaway project.
+     **Finding (low):** `authenticated` has `USAGE` on `deletion_log_id_seq`, although `deletion_log` is service-only. It exposes no data, because there is no table privilege, but it isn't least-privilege. It comes from the blanket sequence grant. The fix is prepared as #22 (migration `20261123000000`, applied nowhere yet); it goes into production with the other four.
+   **C.1b. Approval 2: the backup.** Unlike the inventory, a backup **reads every row, including personal data** (emails and sign-in records in `auth.users`), and produces sensitive files.
+   1. Take a logical dump from a **separate, clean checkout**. Never link the main checkout to production: a later `db push` there would reach production. Use `npx supabase@2.122.1 db dump --db-url "<production connection string>" -f schema.sql` (schema only, the default), then the same command with `--data-only -f data.sql`. Both must include the `auth` schema's users.
+      - The connection string contains the database password. The owner supplies it at run time. It's never written to a file in the repository or pasted into a shared channel.
+   2. Store both files privately and **encrypted**. Record their size and SHA-256 privately.
+   3. Daily dashboard backups exist only on paid plans, and a plan's own backup isn't a tested restore either.
+
+   **C.1c. Approval 3: the restore rehearsal.** A backup counts **only once a restore has been proven**.
+   1. Create a new, isolated, throwaway project. **Never restore into staging or production.**
+      - Supabase's Free plan allows two active free projects, and production and staging use both. The rehearsal needs a paid plan or a temporarily paused project: an owner decision.
+   2. Restore `schema.sql`, then `data.sql`.
+   3. Run the C.1a inventory on the restored copy and compare it with production's:
+      - the same tables, functions, policies and grants;
+      - the same `auth_user_count`;
+      - row estimates within normal drift.
+   4. Record privately the date, who ran it, the method, the file hashes and the comparison.
+   5. Delete the throwaway project, and the local decrypted copies.
+
+   **C.1d. Approval 4: the production migrations.** These are C.2 below, under their own approval, and only after F12, a C.1a go, and C.1b and C.1c both recorded.
 2. **Production Supabase**, after verifying the project ref:
    1. Deploy `delete-account` with `--use-api` (`verify_jwt` off comes from `supabase/config.toml`; `--no-verify-jwt` is harmless to add) and set `ATLAS_DELETION_SWEEP_SECRET` (no `ATLAS_ALLOWED_ORIGINS`) **before** the migrations. Without the tables, the function can't read the gate, so it refuses requests (503) and changes nothing.
    2. Confirm the production server key (new or legacy) is available to the function.

@@ -8,9 +8,9 @@
 -- statement.
 --
 -- PRODUCTION: run only with the owner's explicit approval, in the SQL
--- editor of the right project, after checking its name and ref. Run it
--- inside a read-only transaction:
---   begin transaction read only;  <this file>  ;  rollback;
+-- editor of the right project, after checking its name and ref, with
+-- this as the FIRST line of the same run (runbook section 9, C.1a):
+--   set transaction read only;
 -- Save the JSON output privately. It names objects; it contains no data.
 --
 -- What it answers before the four Phase 2B migrations are applied:
