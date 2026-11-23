@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────
-// Keyboard end-to-end checks (dependency-free; headless Chrome over the
-// DevTools protocol, like study-tools.mjs). Run by npm run test:e2e.
+// Keyboard end-to-end checks (headless browser through scripts/e2e/driver.mjs,
+// like study-tools.mjs). Run by npm run test:e2e (Chrome) and
+// npm run test:e2e:firefox / test:e2e:webkit.
 //   - the first Tab stop is the skip link, and it leads into <main>
 //   - every Tab stop on key pages has a visible focus indicator
 //   - while the accounts UI is off (H1): no login or sign-up control is
@@ -8,65 +9,61 @@
 //   - the login dialog opens from the keyboard, traps focus, closes on
 //     Escape and returns focus to its trigger
 //   - the mobile menu is reachable, reports aria-expanded, closes on Escape
-// Usage: node scripts/e2e/keyboard.mjs [outDir]   (CHROME_PATH to override)
+// Usage: node scripts/e2e/keyboard.mjs [outDir]   (E2E_BROWSER, CHROME_PATH)
 // ─────────────────────────────────────────────────────────────────
-import http from "node:http";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { BROWSER, openBrowser, createServer, SCHEME, segmentFile } from "./driver.mjs";
 
 const OUT = path.resolve(process.argv[2] ?? "out");
 const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".txt": "text/plain", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
-const server = http.createServer((req, res) => {
-  let f = path.join(OUT, decodeURIComponent(new URL(req.url, "http://x").pathname));
+const server = createServer((req, res) => {
+  let f = segmentFile(path.join(OUT, decodeURIComponent(new URL(req.url, "http://x").pathname)));
   if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, "index.html");
   if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
   res.writeHead(200, { "content-type": types[path.extname(f)] ?? "application/octet-stream" });
   fs.createReadStream(f).pipe(res);
 }).listen(8769);
-const BASE = "http://localhost:8769";
+const BASE = `${SCHEME}://localhost:8769`;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-// CI runners (recent Ubuntu) restrict the unprivileged user namespaces Chrome's
-// sandbox needs, so Chrome exits at start. These scripts load only the local
-// static build, so the sandbox is turned off in CI only.
-const CI_FLAGS = process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : [];
-let chromeErr = "";
-const chrome = spawn(process.env.CHROME_PATH ?? ({ win32: "C:/Program Files/Google/Chrome/Application/chrome.exe", darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" }[process.platform] ?? "google-chrome"), ["--headless=new", "--disable-gpu", "--no-first-run", ...CI_FLAGS, `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), "atlas-kb-"))}`, "--remote-debugging-port=9338", "about:blank"], { stdio: ["ignore", "ignore", "pipe"] });
-chrome.stderr.on("data", (d) => (chromeErr += d));
-for (let i = 0; i < 120; i++) { try { await (await fetch("http://127.0.0.1:9338/json/version")).json(); break; } catch { if (i === 119) { console.error("Chrome did not start: " + chromeErr.slice(-800)); process.exit(1); } await sleep(250); } }
-const t = (await (await fetch("http://127.0.0.1:9338/json/list")).json()).find((x) => x.type === "page");
-const ws = new WebSocket(t.webSocketDebuggerUrl);
-await new Promise((r) => (ws.onopen = r));
-let id = 0; const pending = new Map();
-ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d.result); pending.delete(d.id); } };
-const send = (method, params = {}) => new Promise((r) => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
-const ev = async (e) => (await send("Runtime.evaluate", { expression: e, returnByValue: true, awaitPromise: true })).result?.value;
-const key = async (k, code, keyCode, shift = false) => { const text = k === "Enter" ? String.fromCharCode(13) : undefined; for (const type of ["keyDown", "keyUp"]) await send("Input.dispatchKeyEvent", { type: type === "keyDown" && text ? "keyDown" : type, key: k, code, windowsVirtualKeyCode: keyCode, modifiers: shift ? 8 : 0, ...(type === "keyDown" && text ? { text } : {}) }); await sleep(60); };
-const tab = (shift) => key("Tab", "Tab", 9, shift);
-const go = async (p, w = 1280, h = 800) => { await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile: w < 600 }); await send("Page.navigate", { url: BASE + p }); await sleep(2500); };
+let browser;
+try { browser = await openBrowser({ debugPort: 9338 }); }
+catch (e) { console.error(e.message); server.close(); process.exit(1); }
+const { ev } = browser;
+const key = (name, shift = false) => browser.key(name, { shift });
+const tab = (shift) => key("Tab", shift);
+const go = async (p, w = 1280, h = 800) => { await browser.viewport(w, h); await browser.go(BASE + p); };
 const FOCUS = `(() => { const el = document.activeElement; if (!el || el === document.body) return null; const s = getComputedStyle(el); const ring = (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0) || (s.boxShadow && s.boxShadow !== "none"); const r = el.getBoundingClientRect(); return { tag: el.tagName.toLowerCase(), text: (el.getAttribute("aria-label") || el.textContent || el.value || "").trim().replace(/[ \\n]+/g, " ").slice(0, 40), ring, inDialog: !!el.closest("[role=dialog]"), onScreen: r.width > 0 && r.height > 0 }; })()`;
 const out = []; const fail = (m) => out.push("FAIL " + m); const ok = (m) => out.push("ok   " + m); const skip = (m) => out.push("skip " + m);
 // The account page and the login dialog's focus trap come with the accounts
 // platform (PR #7). Without it in the build, those checks are reported as skipped.
 const ACCOUNTS = fs.existsSync(path.join(OUT, "account", "index.html"));
+// WebKit, like Safari by default, doesn't make links Tab stops (Safari users
+// press Option+Tab, or turn on "Press Tab to highlight each item"), and
+// Playwright can't change that. Checks that need Tab to reach a link are
+// reported as skipped there, never as passed; all the others still run.
+const TAB_SKIPS_LINKS = BROWSER === "webkit";
+const LINK_SKIP = " (WebKit: Tab skips links, as in Safari by default)";
 
-await send("Page.enable");
 for (const [p, w] of [["/", 1280], ["/dashboard/", 1280], ["/dashboard/mistakes/", 1280], ["/class-11/", 1280], ["/", 360]]) {
   await go(p, w);
   const seen = []; let noRing = [];
   for (let i = 0; i < 40; i++) { await tab(); const f = await ev(FOCUS); if (!f) continue; seen.push(f); if (!f.ring || !f.onScreen) noRing.push(`${f.tag} "${f.text}"${f.onScreen ? "" : " (off-screen)"}`); }
   const first = seen[0];
-  (first && /skip to main/i.test(first.text) ? ok : fail)(`${p} @${w}: first Tab stop is the skip link (got ${first?.tag} "${first?.text}")`);
+  if (TAB_SKIPS_LINKS) skip(`${p} @${w}: first Tab stop is the skip link${LINK_SKIP}`);
+  else (first && /skip to main/i.test(first.text) ? ok : fail)(`${p} @${w}: first Tab stop is the skip link (got ${first?.tag} "${first?.text}")`);
   noRing = [...new Set(noRing)];
   (noRing.length === 0 ? ok : fail)(`${p} @${w}: visible focus on all ${seen.length} tab stops${noRing.length ? " — missing: " + noRing.slice(0, 8).join(", ") : ""}`);
 }
 
 // Skip link moves focus to main
-await go("/");
-await tab(); await key("Enter", "Enter", 13); await sleep(300); await tab();
-const afterSkip = await ev(`(() => { const m = document.querySelector("main"); return location.hash + " " + (m && m.contains(document.activeElement)); })()`);
-(/ true$/.test(afterSkip) ? ok : fail)(`after the skip link, the next Tab lands inside <main> (${afterSkip})`);
+if (TAB_SKIPS_LINKS) skip("after the skip link, the next Tab lands inside <main>" + LINK_SKIP);
+else {
+  await go("/");
+  await tab(); await key("Enter"); await sleep(300); await tab();
+  const afterSkip = await ev(`(() => { const m = document.querySelector("main"); return location.hash + " " + (m && m.contains(document.activeElement)); })()`);
+  (/ true$/.test(afterSkip) ? ok : fail)(`after the skip link, the next Tab lands inside <main> (${afterSkip})`);
+}
 
 // Login and sign-up entry points (owner decision H1). While the accounts UI
 // switch (src/lib/auth/accounts-ui.ts) is off, no login or sign-up control may
@@ -91,7 +88,7 @@ if (!ACCOUNTS_UI) {
 // Auth dialog via keyboard
 await go("/");
 let opened = false;
-for (let i = 0; i < 40 && !opened; i++) { await tab(); const f = await ev(FOCUS); if (f && /Login \/ Sign Up/.test(f.text)) { await key("Enter", "Enter", 13); await sleep(500); opened = await ev("!!document.querySelector('[role=dialog]')"); } }
+for (let i = 0; i < 40 && !opened; i++) { await tab(); const f = await ev(FOCUS); if (f && /Login \/ Sign Up/.test(f.text)) { await key("Enter"); await sleep(500); opened = await ev("!!document.querySelector('[role=dialog]')"); } }
 (opened ? ok : fail)("auth dialog opens from the keyboard");
 if (!ACCOUNTS) for (const m of ["focus moves into the dialog on open", "Tab and Shift+Tab stay inside the dialog", "Escape closes the dialog", "focus returns to the trigger", "/account/ tab stops"]) skip(m + " (needs the accounts platform, PR #7)");
 if (opened && ACCOUNTS) {
@@ -100,7 +97,7 @@ if (opened && ACCOUNTS) {
     (seen[0] && /skip to main/i.test(seen[0].text) ? ok : fail)("/account/: first Tab stop is the skip link");
     (noRing.length === 0 ? ok : fail)(`/account/: visible focus on all ${seen.length} tab stops ${[...new Set(noRing)].slice(0, 8).join(", ")}`); }
   await go("/");
-  for (let i = 0; i < 40; i++) { await tab(); const f = await ev(FOCUS); if (f && /Login [/] Sign Up/.test(f.text)) { await key("Enter", "Enter", 13); await sleep(500); break; } }
+  for (let i = 0; i < 40; i++) { await tab(); const f = await ev(FOCUS); if (f && /Login [/] Sign Up/.test(f.text)) { await key("Enter"); await sleep(500); break; } }
   const f0 = await ev(FOCUS);
   (f0?.inDialog ? ok : fail)(`focus moves into the dialog on open (${f0?.tag} "${f0?.text}")`);
   let escaped = false;
@@ -108,10 +105,10 @@ if (opened && ACCOUNTS) {
   for (let i = 0; i < 10; i++) { await tab(true); const f = await ev(FOCUS); if (!f?.inDialog) escaped = true; }
   (!escaped ? ok : fail)("Tab and Shift+Tab stay inside the dialog");
   await ev(`document.getElementById("auth-email")?.focus()`);
-  await key("Enter", "Enter", 13); await sleep(300);
+  await key("Enter"); await sleep(300);
   const invalid = await ev(`(() => { const e = document.getElementById("auth-email"); return e ? !e.checkValidity() : null; })()`);
   (invalid ? ok : fail)("empty form is not submitted (email required)");
-  await key("Escape", "Escape", 27); await sleep(400);
+  await key("Escape"); await sleep(400);
   const closed = await ev("!document.querySelector('[role=dialog]')");
   const back = await ev(FOCUS);
   (closed ? ok : fail)("Escape closes the dialog");
@@ -125,21 +122,22 @@ let menuBtn = null;
 for (let i = 0; i < 15 && !menuBtn; i++) { await tab(); const f = await ev(FOCUS); if (f && /menu/i.test(f.text)) menuBtn = f; }
 (menuBtn ? ok : fail)(`mobile menu button reachable by keyboard (${menuBtn?.text})`);
 if (menuBtn) {
-  await key("Enter", "Enter", 13); await sleep(400);
+  await key("Enter"); await sleep(400);
   const exp = await ev(`document.activeElement.getAttribute("aria-expanded")`);
   (exp === "true" ? ok : fail)(`menu button reports aria-expanded=true when open (${exp})`);
   await tab(); const f = await ev(FOCUS);
-  (f && ["a","button"].includes(f.tag) ? ok : fail)(`next Tab reaches the first menu item (${f?.tag} "${f?.text}")`);
-  await key("Escape", "Escape", 27); await sleep(300);
+  if (TAB_SKIPS_LINKS) skip("next Tab reaches the first menu item (a link)" + LINK_SKIP);
+  else (f && ["a","button"].includes(f.tag) ? ok : fail)(`next Tab reaches the first menu item (${f?.tag} "${f?.text}")`);
+  await key("Escape"); await sleep(300);
   const expAfter = await ev(`document.querySelector("button[aria-label$=menu]")?.getAttribute("aria-expanded")`);
   (expAfter === "false" ? ok : fail)(`Escape closes the mobile menu (aria-expanded=${expAfter})`);
   const backTo = await ev(FOCUS);
   (backTo && /menu/i.test(backTo.text) ? ok : fail)(`focus returns to the menu button (${backTo?.tag} "${backTo?.text}")`);
 }
 
-ws.close(); chrome.kill(); server.close();
+await browser.close(); server.close();
 for (const l of out) console.log(l);
 const n = out.filter((l) => l.startsWith("FAIL")).length;
 const k = out.filter((l) => l.startsWith("skip")).length;
-console.log(`keyboard: ${out.length - n - k}/${out.length - k} passed${k ? `, ${k} skipped` : ""}`);
+console.log(`keyboard (${browser.name}): ${out.length - n - k}/${out.length - k} passed${k ? `, ${k} skipped` : ""}`);
 process.exit(n ? 1 : 0);
