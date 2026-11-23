@@ -155,6 +155,12 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - browser login (the F9 evidence).
 
 ## 6. Security controls
+- **Verified email for cloud sync** (migration `20261124000000`; owner decisions, 2026-11-23):
+  - an unverified account can neither read nor write cloud-sync records (the six study tables). It's enforced by RLS, whatever the client does;
+  - export and account deletion remain available to it (security-definer functions);
+  - profiles and consents keep ownership-only policies.
+  - **Known limitation, accepted by the owner:** existing Supabase Auth accounts are trusted as they stand. While "Confirm email" is off, Supabase marks new users confirmed at sign-up without checking the address, so `email_confirmed_at` proves verification only for accounts created while "Confirm email" is on. **Production "Confirm email" must be turned on before #25 is merged and before the production migrations** (tracker, current release procedure).
+  - Under-18 cloud sync is separately blocked: no verified parental-consent process exists. That doesn't block adult sync.
 - **Content Security Policy** on every page; no `unsafe-inline` or `unsafe-eval` for scripts; verified in a browser with an injection control.
 - **RLS, the consent gate and least-privilege grants**, as in section 3.
 - **Authentication:**

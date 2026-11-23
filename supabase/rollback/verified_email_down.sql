@@ -1,13 +1,24 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- ROLLBACK for 20261124000000_require_verified_email_for_sync.sql only.
 -- NOT a migration (it lives outside supabase/migrations/). Non-destructive:
--- it changes no table or row. It restores sync_allowed() and enable_sync()
--- exactly as 20261120000000 created them, then drops email_verified().
+-- it changes no table or row. It restores the six study tables' SELECT
+-- policies, sync_allowed() and enable_sync() exactly as 20261120000000
+-- created them, then drops email_verified() (the policies depend on it, so
+-- they're restored first).
 -- Owner approval only; run in the SQL editor of the intended project after
 -- checking its name and ref. Afterwards remove the 20261124000000 row from
 -- supabase_migrations.schema_migrations. Tested in db-verified-email.test.ts.
 -- ═══════════════════════════════════════════════════════════════════
 begin;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['bookmarks', 'checklist_items', 'revision_rounds', 'mistakes', 'goals', 'streaks'] loop
+    execute format('drop policy if exists %I on public.%I', t || '_own_select', t);
+    execute format('create policy %I on public.%I for select to authenticated using (user_id = (select auth.uid()))', t || '_own_select', t);
+  end loop;
+end $$;
 
 create or replace function public.sync_allowed() returns boolean
 language sql stable security definer set search_path = '' as $$

@@ -2,32 +2,57 @@
 -- Cloud copies require a verified email address (owner decision K,
 -- 2026-11-23: "Unverified accounts must not receive cloud-sync access").
 --
--- Enforced in the database, independently of the Auth "Confirm email"
--- setting, so it also covers accounts created before that setting was on
--- and accounts created through the API:
+-- Owner decisions, 2026-11-23:
+--   * unverified accounts are blocked from READING and WRITING cloud-sync
+--     records (the six study tables);
+--   * export and account deletion stay available to them;
+--   * existing Auth accounts are trusted as they stand: email_confirmed_at is
+--     taken as Supabase Auth records it. LIMITATION: while "Confirm email"
+--     is off, Supabase confirms new users automatically at sign-up, so for
+--     those accounts "verified" doesn't prove the address. Production
+--     "Confirm email" must be on before this migration is relied on.
+--
+-- Enforced in the database, whatever the client does:
 --   * public.email_verified(): true only when auth.users.email_confirmed_at
 --     is set for the caller (auth.uid()). No row, or no caller: false.
---   * sync_allowed() now also requires it. Every RLS write policy on the six
---     study tables calls sync_allowed(), so an unverified account can't
---     upload, whatever the client does.
---   * enable_sync() returns 'email-not-verified' before any other sync
---     condition is checked, after the deletion check, and doesn't turn sync on.
--- Reading, exporting and deleting your own data never needed sync, and are
--- unchanged.
+--     `authenticated` may call it (it reports only the caller's own status;
+--     the read policies below run as that role); `anon` may not.
+--   * Reads: the six study tables' SELECT policies now also require it, so
+--     an unverified account sees no cloud rows, not even its own.
+--   * Writes: sync_allowed() now requires it. Every INSERT and UPDATE policy
+--     on the six study tables calls sync_allowed() (there are no DELETE
+--     policies), so an unverified account can't upload.
+--   * enable_sync() returns 'email-not-verified' (after the deletion check)
+--     and doesn't turn sync on.
+--   * Unchanged: export_my_data(), request_account_deletion() and
+--     purge_user_data() are security definer, so RLS doesn't limit them.
+--     An unverified account can still export everything stored about it,
+--     and request and complete deletion. profiles and consents keep their
+--     ownership-only policies (the account page needs them).
 --
--- Both functions keep their existing privileges: CREATE OR REPLACE keeps the
--- ACL. email_verified() is callable only through them (no client grant).
--- Additive: no table, column or row changes. Tested in
+-- Both functions keep their existing privileges (CREATE OR REPLACE keeps the
+-- ACL). No table, column or row changes. Tested in
 -- src/lib/__tests__/db-verified-email.test.ts.
--- Rollback: re-create both functions from 20261120000000 and drop
--- email_verified() (see supabase/rollback/verified_email_down.sql).
+-- Rollback: supabase/rollback/verified_email_down.sql (restores both
+-- functions and the original SELECT policies, then drops email_verified()).
 -- ═══════════════════════════════════════════════════════════════════
 
 create function public.email_verified() returns boolean
 language sql stable security definer set search_path = '' as $$
   select coalesce((select u.email_confirmed_at is not null from auth.users u where u.id = auth.uid()), false)
 $$;
-revoke execute on function public.email_verified() from public, anon, authenticated;
+revoke execute on function public.email_verified() from public, anon;
+grant execute on function public.email_verified() to authenticated;
+
+-- Reads of cloud-sync records need a verified address (ownership as before).
+do $$
+declare t text;
+begin
+  foreach t in array array['bookmarks', 'checklist_items', 'revision_rounds', 'mistakes', 'goals', 'streaks'] loop
+    execute format('drop policy %I on public.%I', t || '_own_select', t);
+    execute format('create policy %I on public.%I for select to authenticated using (user_id = (select auth.uid()) and (select public.email_verified()))', t || '_own_select', t);
+  end loop;
+end $$;
 
 create or replace function public.sync_allowed() returns boolean
 language sql stable security definer set search_path = '' as $$
