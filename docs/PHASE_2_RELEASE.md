@@ -223,6 +223,27 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
    - note whether email confirmation is on.
 
    This **must be done before #7**. Without the redirect URLs, Supabase falls back to the Site URL. Email-link codes then land on a page that doesn't complete sign-in, and password reset can't be finished at all (F3).
+
+   **Status (2026-11-23):** #7 is merged with login hidden (H1), so no email flow can start from the site. The settings above are **still required before the accounts UI is turned on**. None of them has been read or changed.
+
+   **F3 readiness checklist** (Supabase dashboard of the production project, settings only; each change needs the owner's approval):
+
+   | Setting | Recommended | Why |
+   |---|---|---|
+   | Redirect URLs | `https://ajaysahuphysics.com/auth/callback/` and `https://ajaysahuphysics.com/auth/reset-password/` only (plus nothing for localhost in production) | PKCE email links must land on these pages (#7) |
+   | Site URL | `https://ajaysahuphysics.com` | The fallback for any link without an allowed redirect |
+   | Minimum password length | 10 (matches `auth-policy.ts`) | Today only the browser enforces 10 |
+   | Email confirmation | On | Proves the address belongs to the student before an account is usable |
+   | "Allow new users to sign up" | **Off until the accounts UI is approved**, then on | See the exposure below |
+   | Rate limits (Auth → Rate limits) | Keep the defaults or lower them for sign-up and password reset | Abuse of the email endpoints |
+   | CAPTCHA | Optional: Turnstile, with the site key in the build **first** (F7) | Bot sign-ups. The other order blocks every login |
+   | Email sender | A custom SMTP sender on the site's domain before launch | Supabase's default sender is for testing and is heavily rate limited |
+   | Sessions | Keep refresh-token rotation and reuse detection on (defaults) | Stolen refresh tokens stop working |
+
+   **The API sign-up exposure (H1 limitation):** hiding the website's controls doesn't disable sign-up. Every page ships the public Supabase URL and key, as it must for login, so anyone can call `POST /auth/v1/signup` directly and create a production account, outside the site's notice and consent flow. The mitigation options, for the owner:
+   1. **Turn off "Allow new users to sign up"** until the accounts UI is approved. This closes the API path completely. Existing accounts can still sign in through the API, but the site offers no login while H1 is in force. Turn it back on in the same release that turns the accounts UI on. *(Recommended.)*
+   2. Keep sign-ups on, but require email confirmation and CAPTCHA. That reduces abuse, but doesn't stop deliberate sign-ups.
+   3. Accept the risk and record it with counsel (legal checklist L-17).
 2. Optional, in a reviewed PR: pass `NEXT_PUBLIC_ANALYTICS` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` to the build step in `deploy.yml`, from repository variables (F7).
 3. Run the production-configured build test from section 8 against staging (F9). **Done on staging**, 15/15.
 
@@ -233,8 +254,18 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 **C. Production database. Only after legal sign-off (F12).**
 1. **Before any production database change:**
    - legal sign-off for what will be stored;
-   - a read-only inventory of production's `public` schema (M-4, F10), with the owner's approval;
-   - a backup.
+   - a read-only inventory of production's `public` schema (M-4, F10), with the owner's approval. **Use `supabase/inventory/schema_inventory.sql`:** a single read-only `SELECT`, enforced by `schema-inventory.test.ts`, that returns one JSON summary and no data. Run it in the production SQL editor inside `begin transaction read only; … rollback;`, and save the output privately. **Go / no-go:**
+     - `atlas_conflicts` must be empty: the migrations use `CREATE`, not `CREATE IF NOT EXISTS`, so any listed object would make them fail;
+     - review every object in `other_public`: the first migration removes client privileges from the whole `public` schema (M-4), so any app relying on those objects would break;
+     - record `migration_history` and `auth_user_count` (a number only).
+
+     Validated on staging on 2026-11-23: 12 of 12 tables and 14 of 14 functions reported, as expected there; RLS on every public table; 23 policies.
+   - **a backup, and a tested restore.** A backup counts only once a restore has been proven:
+     1. take a logical dump of the production project. Either use the CLI twice, `npx supabase@2.122.1 db dump --linked -f schema.sql` (schema only, the default) and `… db dump --linked --data-only -f data.sql`, including the `auth` schema's users; or use the dashboard backup on paid plans. Store both files privately and encrypted: the data dump contains personal data;
+     2. restore it into a new, isolated, throwaway project. **Never into staging, and never into production;**
+     3. run `schema_inventory.sql` on the restored copy and compare it with the production output;
+     4. compare `auth_user_count` and the row estimates;
+     5. record the date, the method and the comparison privately, then delete the throwaway project.
 2. **Production Supabase**, after verifying the project ref:
    1. Deploy `delete-account` with `--use-api` (`verify_jwt` off comes from `supabase/config.toml`; `--no-verify-jwt` is harmless to add) and set `ATLAS_DELETION_SWEEP_SECRET` (no `ATLAS_ALLOWED_ORIGINS`) **before** the migrations. Without the tables, the function can't read the gate, so it refuses requests (503) and changes nothing.
    2. Confirm the production server key (new or legacy) is available to the function.
