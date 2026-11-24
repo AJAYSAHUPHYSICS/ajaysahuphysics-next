@@ -35,6 +35,8 @@ function syncMessage(r: SyncResult): string {
     case "disabled": return "Cloud copies aren't available yet.";
     case "needs-link-confirmation": return `This device has ${r.localRecords} saved items. Confirm below to add them to your account.`;
     case "linked-to-another-account": return "This device's progress is linked to a different account. Nothing was synced.";
+    case "not-allowed": return "Cloud copies aren't on for this account yet (they need a verified email address and your consent). Nothing was synced, and nothing on this device was changed.";
+    case "cloud-incomplete": return "We couldn't read your full cloud copy, so nothing was synced and nothing on this device was changed. Try again later.";
     case "error": return "We couldn't sync right now. Nothing on this device was changed; try again later.";
     case "ok": return r.changedLocal || r.pushed ? `Synced: ${r.pushed} uploaded, ${r.changedLocal} updated on this device.` : "Everything is up to date.";
   }

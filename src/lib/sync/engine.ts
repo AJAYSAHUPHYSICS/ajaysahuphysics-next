@@ -2,16 +2,24 @@
 // Sync engine: one sync pass between this device and the student's cloud copy.
 //
 // Order (crash-safe):
-//   1. refuse unless sync is enabled in code AND (checked by the caller via
-//      the database) for this student;
-//   2. refuse if this device is linked to a different account, or has
-//      progress and hasn't been linked yet (asks the student first);
-//   3. pull every synced table; compute every merge in memory;
-//   4. push upserts and tombstones;
-//   5. only then write each changed local store, skipping a store the
+//   1. refuse unless sync is enabled in code;
+//   2. refuse if this device is linked to a different account;
+//   3. refuse unless the database explicitly answers `true` to "may this
+//      student sync?" (remote.syncAllowed()). An error, false or any other
+//      value means no: nothing is read or written;
+//   4. refuse if this device has progress and hasn't been linked yet (asks
+//      the student first);
+//   5. pull every synced table. If a record this device and the cloud last
+//      agreed on is MISSING from the pull (neither a row nor a tombstone),
+//      the cloud copy is unreadable or incomplete (for example, Row Level
+//      Security now hides it, or a response was truncated), not deleted:
+//      stop, and change nothing. Only a tombstone can delete local data;
+//   6. compute every merge in memory;
+//   7. push upserts and tombstones;
+//   8. only then write each changed local store, skipping a store the
 //      student changed during the sync (it's merged next time), and save
 //      the new base fingerprints.
-// A failure at 3–4 leaves the device untouched; the next run converges
+// A failure or refusal at 3–7 leaves the device untouched; the next run converges
 // because uploads are idempotent (same keys, same values).
 // ─────────────────────────────────────────────────────────────────
 import { ADAPTERS, type Adapter, type Row, type Storage } from "./adapters";
@@ -19,6 +27,11 @@ import { threeWayMerge } from "./merge";
 import { CLOUD_SYNC_ENABLED, SYNC_META_KEY } from "./policy";
 
 export interface RemoteStore {
+  /**
+   * Whether the database allows this student to sync now (public.sync_allowed()).
+   * Must resolve to exactly `true` to proceed; anything else, or a rejection, refuses the sync.
+   */
+  syncAllowed(): Promise<boolean>;
   /** All rows the signed-in student owns in a table (RLS-limited), tombstones included. */
   pull(table: string): Promise<Row[]>;
   /** Idempotent upsert of the student's rows (including tombstones). */
@@ -38,6 +51,10 @@ export type SyncResult =
   | { status: "disabled" }
   | { status: "needs-link-confirmation"; localRecords: number }
   | { status: "linked-to-another-account" }
+  /** The database didn't explicitly allow sync (e.g. an unverified email address). Nothing read or written. */
+  | { status: "not-allowed" }
+  /** Records previously synced are missing from the cloud's answer: unreadable or incomplete, never treated as deletions. Nothing written. */
+  | { status: "cloud-incomplete"; table: string; missing: number }
   | { status: "error"; stage: "pull" | "push"; message: string }
   | { status: "ok"; pushed: number; deletedRemote: number; changedLocal: number; conflicts: number; skippedStores: string[] };
 
@@ -70,6 +87,14 @@ export async function syncOnce(opts: {
 
   const meta = readMeta(storage);
   if (meta && meta.accountId !== userId) return { status: "linked-to-another-account" };
+  // Only an explicit `true` from the database lets the sync proceed: a successful call is not enough.
+  let allowed: unknown = false;
+  try {
+    allowed = await remote.syncAllowed();
+  } catch {
+    allowed = false;
+  }
+  if (allowed !== true) return { status: "not-allowed" };
   if (!meta && !opts.confirmLink) {
     const n = countLocal(storage);
     if (n > 0) return { status: "needs-link-confirmation", localRecords: n };
@@ -94,6 +119,12 @@ export async function syncOnce(opts: {
       if (rec === null) remoteDeleted.add(k);
       else remoteMap.set(k, rec);
     }
+    // A record both sides last agreed on always comes back, live or as a tombstone (the only server-side hard
+    // delete is the account-deletion purge). If it's absent, the cloud copy is hidden or incomplete: stop before
+    // the merge could read the absence as a deletion, and before anything is written anywhere.
+    const agreed = Object.keys(meta?.base?.[a.key] ?? {});
+    const missing = agreed.filter((k) => !remoteRows.has(k)).length;
+    if (missing > 0) return { status: "cloud-incomplete", table: a.table, missing };
     const rawBefore = storage.getItem(a.key);
     const outcome = threeWayMerge({
       base: new Map(Object.entries(meta?.base?.[a.key] ?? {})),
