@@ -30,34 +30,47 @@
 
 ---
 
-## Current status (re-verified 2026-11-25, 07:48 UTC)
+## Current status (re-verified 2026-11-25, 08:03 UTC)
 Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run them before relying on this section; it goes stale with the next push.**
 
-| Item | State at 07:48 UTC | Evidence |
+| Item | State at 08:03 UTC | Evidence |
 |---|---|---|
-| `main` | `b3f7168405d1fa0ed0fee232c524783fc2c3add2`: the squash merge of #26, 2026-11-25 07:45 UTC; parent `b18b62e` (#27) | `git fetch origin`; `git rev-parse origin/main` |
-| Last deployment | Deploy run `45570635616` (push to `main`, for `b3f7168`): **completed, success**, 07:45:28–07:46:56 UTC. Jobs `build` and `deploy` both succeeded | `gh run view 45570635616` |
-| Live site | `/`, `/privacy/` and `/dashboard/` returned HTTP 200 after that deployment. **This shows reachability only, not a verified live journey.** The live journeys were last run after `0244587` (2026-11-23) and weren't re-run after #27 or #26. Neither changed page source: #26 changed only `README.md` and two files in `docs/` | `curl`; `git diff --stat b18b62e b3f7168` |
+| `main` | `b3f7168405d1fa0ed0fee232c524783fc2c3add2`: the squash merge of #26, 2026-11-25 07:45 UTC; parent `b18b62e` (#27). Unchanged since 07:45 | `git fetch origin`; `git rev-parse origin/main` |
+| Last deployment | Deploy run `45570635616` (push to `main`, for `b3f7168`): **completed, success**, 07:45:28–07:46:56 UTC. Jobs `build` and `deploy` both succeeded. No deployment since | `gh run view 45570635616`; `gh run list --workflow deploy.yml` |
+| Live site | `/`, `/privacy/` and `/dashboard/` returned HTTP 200 at 08:03 UTC. **Reachability only, not a verified live journey.** The live journeys were last run after `0244587` (2026-11-23) and weren't re-run after #27 or #26. Neither changed page source: #26 changed only `README.md` and two files in `docs/` | `curl`; `git diff --stat b18b62e b3f7168` |
 | Deletion sweep | Inert. Latest scheduled run `45537151036` (2026-11-25 03:02 UTC): skipped | `gh run list --workflow deletion-sweep.yml` |
 | Open PRs | Exactly #25 and #28 | `gh pr list --state open` |
-| Tracker on `main` | `docs/PHASE_2_TRACKER.md` at `b3f7168` is #26's reconciled version. Its release procedure (steps 1–11) matches section 17. It was written before its own merge, so it still says `main` = `b18b62e` (Live status), "#26 … All unmerged" (T-04, criterion 12) and "Open: #25, #26, #28". **Those lines are out of date since 07:45 UTC;** the next tracker update should record the #26 merge | `git show origin/main:docs/PHASE_2_TRACKER.md` |
 
 | PR | Title | State | Head | Merge state | CI on that head (all completed 2026-11-25) |
 |---|---|---|---|---|---|
-| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN, 0 reviews | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN. 1 commit behind `main` (lacks #26); no conflicts (`git merge-tree`) | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
+| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN, 0 reviews | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN. **1 commit behind `main`** (lacks #26); no conflicts (`git merge-tree`). Update it with `main` before merging | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
 | #26 | docs: reconcile the tracker, release doc and README with the current evidence | **MERGED** 2026-11-25 07:45:25 UTC, at approved head `3e0c93b8d58b8f83e1c1fc251465a875213419ae` (squash, pinned) | — | Merge commit `b3f7168405d1fa0ed0fee232c524783fc2c3add2`; its tree equals the approved head's | Before merging: `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
-| #28 | docs: add Project Atlas master project audit (this file) | OPEN, 0 reviews | `d2a206648719357a9aea14d15ec61eab5a0c977e` before this update; the commit that adds this table is newer, and its CI is reported in the PR | MERGEABLE, CLEAN. 1 commit behind `main` (lacks #26); no conflicts | `ci` pass (runs `45569021873`, `45569028891`); `e2e-firefox`, `e2e-webkit` pass (run `45569028964`) |
+| #28 | docs: add Project Atlas master project audit (this file) | OPEN, 0 reviews | Up to date with `main`: `main` merged in at `e2a39d4` (a normal merge commit, no rebase). The head that adds this table is newer; its SHA and CI are in the PR. Previous head `0bfdb2f` | MERGEABLE, CLEAN before the update. Against `main` the PR changes only this file | Previous head `0bfdb2f`: `ci` pass (runs `45571461831`, `45571468594`); `e2e-firefox`, `e2e-webkit` pass (run `45571468591`) |
 
-**Before merging #25 or #28,** update the branch with `main` and wait for green `ci` on the new head. The required `ci` check doesn't require branches to be up to date.
+**The required `ci` check doesn't require branches to be up to date,** so update a branch with `main` and wait for green `ci` on the new head before merging it.
 
-**Not re-verified at 07:48 UTC:**
-- **Staging:** last recorded 2026-11-23 (switches `'false'`, 0 users) and 2026-11-24 (dry run listed only migration 6). Function ownership is NOT VERIFIED.
-- **Both production projects:** last checked by the owner's read-only inventories, 2026-11-24.
-- **Production Auth settings:** NOT VERIFIED in either project.
-- **Repository variables for the sweep:** last recorded 2026-11-23 (none set); consistent with the skipped runs.
-- **Reviews:** #25 and #28 have none and aren't approved. #26 was merged on the owner's explicit authorisation (2026-11-25).
+### Outstanding documentation issue: the tracker on `main` is stale (open, D-13)
+- **What's current:** `docs/PHASE_2_TRACKER.md` at `b3f7168` is #26's reconciled version, and its release procedure (steps 1–11) matches section 17.
+- **What isn't:** it was written before its own merge, so these lines have been **out of date since 07:45 UTC**:
+  - Live status says `main` = `b18b62e`;
+  - T-04 and criterion 12 say "#26 … All unmerged";
+  - "**Open:** #25 (T-26), #26 (this tracker), #28".
+- **Status: NOT FIXED.** This PR doesn't change the tracker, by design. The next tracker update should record the #26 merge (and #28's, once it happens).
+- **Last verified:** 2026-11-25 08:03 UTC, with `git show origin/main:docs/PHASE_2_TRACKER.md`.
 
-*Previous check, 07:29 UTC:* `main` was `b18b62e`; #26 was open at `3e0c93b`; the last deployment was run `45378204301` (2026-11-24).
+### Not verified at 08:03 UTC
+| Area | Last evidence | Status |
+|---|---|---|
+| Staging state | Switches `'false'`, 0 users (2026-11-23); migration 6 dry run listed only it (2026-11-24) | Not re-verified |
+| Staging function ownership and rollback prerequisites (T-28) | One attempt, 2026-11-24, gave no usable result | **NOT VERIFIED** |
+| Staging "Confirm email" | Setup instructions say on | **NOT VERIFIED** |
+| Both production projects | The owner's read-only inventories, 2026-11-24 | Not re-verified |
+| Production Auth settings (T-10) | Never read | **NOT VERIFIED** in either project |
+| Live journeys after #27 and #26 | Last run after `0244587`, 2026-11-23 | **NOT VERIFIED** (only HTTP 200) |
+| Sweep repository variables | None set (2026-11-23) | Not re-verified; consistent with the skipped runs |
+| Reviews | #25 and #28 have none and aren't approved. #26 was merged on the owner's explicit authorisation | — |
+
+*Previous checks:* 07:48 UTC: `main` `b3f7168`, #28 at `0bfdb2f` and 1 behind `main`. 07:29 UTC: `main` was `b18b62e`, #26 was open at `3e0c93b`, and the last deployment was run `45378204301` (2026-11-24).
 
 ---
 
@@ -437,6 +450,7 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | D-10 | `src/lib/sync/policy.ts` comment | Launch "after legal review" | Decision I (a code comment; not changed by this audit) |
 | D-11 | Private migration notes §15.6 | The staging-guard PR is still blocking | Merged as #27 on 2026-11-24 |
 | D-12 | PR #26 tracker T-08 and T-09 | Inventory and backup of the current production project are the next steps | Inventories done 2026-11-24; under the fresh start a backup is optional, for retirement only |
+| D-13 | `docs/PHASE_2_TRACKER.md` (`main`, since `b3f7168`) *(found 2026-11-25 07:48 UTC, after the snapshot)* | `main` = `b18b62e`; "#26 … All unmerged" (T-04, criterion 12); "Open: #25, #26, #28" | #26 was merged as `b3f7168` at 07:45 UTC; only #25 and #28 are open. See "Current status" |
 
 Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-11-23) and is correctly labelled as historical.
 
@@ -451,6 +465,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 | D-9 | #26 | `PHASE_2_RELEASE.md`: status, the new project, the staging rehearsal and the cutover |
 | D-10 | Not changed | A code comment in `src/lib/sync/policy.ts`; harmless, left for a code PR |
 | D-11 | Not changed | Private, git-excluded notes; outside the repository |
+| D-13 | **Not fixed (open)** | Needs a tracker update recording the #26 merge (and #28's, once merged). Deliberately not changed in #28, which changes only this file |
 
 ---
 
@@ -607,6 +622,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | 2026-11-25 | Reconciliation | #25 (`74e3ca0`), #26 (`3e0c93b`), #28 | The discrepancies in section 16 are fixed in the PRs shown there (unmerged). The "6 of 14" finding was corrected: its source is #26's first commit |
 | 2026-11-25 | Temporal accuracy pass | #28 | Snapshot labels added; "Current status" section (07:29 UTC); section 17 re-ordered to the tracker's procedure in #26; no historical finding removed |
 | 2026-11-25 | #26 merged | `b3f7168` (main); deploy run `45570635616` | Owner-authorised squash merge at 07:45 UTC; build and deploy succeeded. "Current status" re-verified at 07:48 UTC. Notes in sections 14–18 and 22 now say the #26 fixes are merged; the snapshot findings are unchanged |
+| 2026-11-25 | #28 brought up to date | `e2a39d4` (merge of `main` `b3f7168`) | Normal merge, no rebase. "Current status" re-verified at 08:03 UTC, with a separate open item for the stale tracker (D-13) and a table of what's not verified |
 
 ---
 
