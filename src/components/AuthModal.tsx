@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import { MESSAGES, authRedirect, passwordProblems, requestOutcome, signInErrorMessage } from "@/lib/auth/auth-policy";
 import { CAPTCHA_MESSAGE, CAPTCHA_SITE_KEY, captchaOptions } from "@/lib/auth/captcha";
 import CaptchaWidget from "./CaptchaWidget";
+import FrameGuard from "./FrameGuard";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -109,6 +110,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-navy-deep/60 px-4" onClick={onClose}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="bg-white rounded-lg max-w-sm w-full p-7" onClick={(e) => e.stopPropagation()}>
+        <FrameGuard>
         {sentMessage ? (
           <div className="text-center">
             <span aria-hidden="true" className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/15 text-gold-deep font-display text-xl mb-4">
@@ -224,6 +226,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
             </button>
           </>
         )}
+        </FrameGuard>
       </div>
     </div>
   );
