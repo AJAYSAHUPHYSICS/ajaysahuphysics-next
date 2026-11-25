@@ -2,23 +2,28 @@
 
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until its release gates pass (tracker T-23) and the owner's launch conditions are met (decision L). **Formal legal review is scheduled after launch** (owner decision I, 2026-11-23): an accepted legal and privacy risk. The privacy notice stays labelled "Draft notice, pending legal review", and no legal approval or compliance is claimed.
 
-**Release status (2026-11-23):**
-- **Deployed:** `main` = production = `0244587` (Pages deployment `7995693613`). All Phase 2 PRs up to #24 are merged and deployed; the account code is live but **dormant**:
+**Release status (2026-11-25):**
+- **Deployed:** `main` = production = `b18b62e` (#27, the staging guard allow-list; deploy run `45378204301`). All Phase 2 PRs up to #27 are merged and deployed; the account code is live but **dormant**:
   - login is hidden (H1);
   - account deletion shows as not set up, with the Contact-page fallback;
   - cloud sync is off;
   - `/privacy` is a labelled draft.
-- **Production Supabase project:** it has **existing Supabase Auth users** (accounts created before 2026-11-22). **The Phase 2 application schema hasn't been deployed there:** none of the six migrations has been run, to be confirmed by the read-only inventory. The current status is in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
+- **Supabase projects** (details in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), Live status):
+  - **the Phase 2 database goes to a new production project,** `fuznyurpfqgjricivopd`, as a fresh start (owner decision, 2026-11-24): no old Auth account or data is copied;
+  - **the current project,** `dykhwagloqxawgfkmjmc` (the one the live site's build uses), has a legacy schema with no application rows, and existing Auth accounts. It's only read until its approved retirement;
+  - **both owner-run read-only inventories were done on 2026-11-24.** Neither project has any of the six migrations;
+  - **staging** has the first five.
 - **What's open:**
-  - #25: cloud sync needs a verified email, the sixth migration;
-  - #26: the tracker and this document.
+  - #25: cloud sync needs a verified email (the sixth migration), plus the M1 sync fix;
+  - #26: the tracker, this document and `README.md`;
+  - #28: the master audit.
 - **Blocked or awaiting the owner,** in procedure order:
-  - CLI access to the production project;
-  - the read-only inventory and the secured backup (already approved);
-  - production "Confirm email" (before #25 merges);
+  - the staging rehearsal of migration 6 (ownership check, then the approved apply);
+  - the new project's Auth settings with "Confirm email" on (before #25 merges);
   - merging #25;
   - the `delete-account` function and its secret;
   - each of the six migrations, approved separately;
+  - the cutover of the site to the new project;
   - the deletion sweep;
   - the 7 email checks;
   - activation.
@@ -33,7 +38,7 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
   - `minor_sync_permitted` has never been enabled.
   - `adult_sync_permitted` was set to `'true'` on staging only once: temporarily, during the 2026-11-21 `npm run test:staging` run, which restored it. That suite is no longer used.
   - The deletion gate is opened on staging only by `test:staging:deletion-gate`, for its own run, and it always closes it again.
-- Production has none of the six migrations applied, and no production Supabase or Auth setting has been changed. Staging has the first five; the sixth (#25) isn't applied anywhere.
+- Neither production project has any of the six migrations applied, and no production Supabase or Auth setting has been changed. Staging has the first five; the sixth (#25) isn't applied anywhere.
 
 Each finding is tracked in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 
@@ -85,7 +90,7 @@ Each merge into `main` deploys the site. #7, #10 and #15 belong together: #10 ho
 - **Static export.** Next.js `output: "export"` on GitHub Pages; there is no server code in the site.
 - **Local-first.** Study progress lives in the browser in 11 `atlas:*` localStorage stores. Their formats are frozen and tested (`student-data-compat.test.ts`).
 - **Optional accounts** with Supabase Auth (PKCE email links). The Supabase client (~60 KB gzipped) loads only when needed: a saved session, the login dialog, or the account and auth pages (`src/lib/supabase-loader.ts`).
-- **Accounts in production.** Before #7, `main` shipped a live "Login / Sign Up" button with the implicit flow. Production builds have Supabase configured through repository secrets, so accounts may already exist in production Auth (the F10 inventory counts them; no user data is read). Since `9019a1c`, production runs #7's PKCE flow, with email links to `/auth/callback/` and `/auth/reset-password/`, and the UI is hidden (H1). Those redirect URLs must be on production's allow-list before the UI is turned on (F3).
+- **Accounts in production.** Before #7, `main` shipped a live "Login / Sign Up" button with the implicit flow. Production builds have Supabase configured through repository secrets, so accounts were created in the current production project's Auth (the owner's read-only inventory of 2026-11-24 recorded them; no user data was read). Under the fresh start they aren't migrated to the new project. Since `9019a1c`, production runs #7's PKCE flow, with email links to `/auth/callback/` and `/auth/reset-password/`, and the UI is hidden (H1). Those redirect URLs must be on production's allow-list before the UI is turned on (F3).
 - **Login hidden until the release (H1, owner decision 2026-11-22).** `ACCOUNTS_UI_ENABLED = false` (`src/lib/auth/accounts-ui.ts`, added in #16, kept by #7).
   - Signed-out visitors see no login or sign-up control, on desktop or mobile.
   - A signed-in visitor keeps "Log out" (and "Account" in the stack).
@@ -242,17 +247,28 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
 The required `ci` check doesn't require branches to be up to date with `main` (F2), so update each branch before merging.
 
 ## 9. Production release runbook (each step needs the owner's explicit approval)
-**Authoritative order** (the same as the tracker's "Current release procedure"). Each production step has its own approval; approving one never approves the next. A, C and D below give the details.
-1. **Access:** CLI access to the confirmed production project, with its ID verified before anything runs.
-2. **C.1a:** the read-only inventory (approved), and its go / no-go.
-3. **C.1b:** the secured backup and integrity check (approved). It must not create a temporary production role.
-4. **A:** production Auth settings with **"Confirm email" on**, read back afterwards. This comes **before merging #25** and before any migration.
-5. **Merge #25,** so the sixth migration is on `main`.
-6. **C.2.1:** deploy the `delete-account` function and set its secret, **before the migrations**.
-7. **C.2.4:** the **six migrations, each separately approved**, applied consecutively in one window.
+**Authoritative order** (the same as the tracker's "Current release procedure", 2026-11-25). Each production step has its own approval; approving one never approves the next. A, C and D below give the details.
+
+**The target is the new production project `fuznyurpfqgjricivopd`** (fresh start, owner decision 2026-11-24). Wherever the details below say "the production project", read the new project, and confirm its ref in the dashboard address bar before every step. The current project `dykhwagloqxawgfkmjmc` is only read until its approved retirement.
+1. **Staging rehearsal of migration 6:**
+   - the read-only ownership check (tracker T-28);
+   - staging "Confirm email" read back;
+   - the approved staging apply, with a `test:staging:verified-email` check that never enables sync (T-29).
+2. **A:** the new project's Auth settings with **"Confirm email" on**, read back afterwards. This comes **before merging #25** and before any migration.
+3. **Merge #25,** so the sixth migration and the M1 sync fix are on `main`.
+4. **C.1a:** re-run the new project's read-only inventory and preflight just before the first migration. Expect an empty project apart from the platform function `rls_auto_enable()`, and an empty migration history.
+5. **C.2.1:** deploy the `delete-account` function and set its secret, **before the migrations**.
+6. **C.2.4:** the **six migrations, each separately approved**, applied consecutively in one window, then the post-migration verification.
+7. **Cutover:**
+   - record the two GitHub secrets' current values privately;
+   - point `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` at the new project;
+   - redeploy and check the live site.
+
+   Rollback is restoring the two values and redeploying.
 8. **C.2.5 and C.3:** the sweep scheduler, then the staged deletion verification.
 9. **The privacy notice and consent screens,** then the 7 email checks.
 10. **D:** activation. The accounts UI and adult cloud sync go first; **under-18 sync stays independently blocked** until a verified parental-consent process exists.
+11. **Retirement** of the current project, only with its own approval after an observation period. The C.1b backup becomes an optional safeguard at that point.
 
 **Not gates:**
 - **Legal sign-off:** formal review is after launch (decision I), and the notice stays a labelled draft.
@@ -299,7 +315,13 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 1. **Before any production database change:**
    - the four production-database approvals below. **Each is separate: approving one never approves the next.**
 
-   **Status (2026-11-23):** C.1a and C.1b are approved and wait only for CLI access to the production project. C.1c is after launch (decision E). C.1d needs each migration's own approval.
+   **Status (2026-11-25):**
+   - **C.1a:** done for both projects on 2026-11-24 by the owner, in each dashboard's SQL editor, read-only, with private inventory scripts. The comparison found 0 blockers and 0 conflicts for a fresh start. Re-run it on the new project just before the first migration.
+   - **C.1b:** not needed for the migration, because nothing is copied. A backup of the current project is an optional safeguard before its retirement.
+   - **C.1c:** after launch (decision E).
+   - **C.1d:** needs each migration's own approval.
+
+   The text below is the 2026-11-23 procedure, kept for its details.
 
    **C.1a. Approval 1: the read-only inventory (F10).** It reads system catalogs and two counts. It reads no table rows, emails or other personal data, and it changes nothing.
    1. In the Supabase dashboard, open the **production** project. Check its name and the project ref in Project Settings → General against the production site's Supabase URL. Don't continue if it's the staging project.
@@ -321,7 +343,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
      - `other_public` is empty; RLS is on for every public table; 23 policies;
      - 35 client grants: 33 on tables, plus `authenticated:USAGE` on the 2 identity sequences.
 
-     **Finding (low):** `authenticated` has `USAGE` on `deletion_log_id_seq`, although `deletion_log` is service-only. It exposes no data, because there is no table privilege, but it isn't least-privilege. It comes from the blanket sequence grant. The fix is prepared as #22 (migration `20261123000000`, applied nowhere yet); it goes into production with the other four.
+     **Finding (low):** `authenticated` has `USAGE` on `deletion_log_id_seq`, although `deletion_log` is service-only. It exposes no data, because there is no table privilege, but it isn't least-privilege. It comes from the blanket sequence grant. The fix is #22 (migration `20261123000000`): merged as `561cb22` and applied to staging on 2026-11-23 (decision F). In production it goes in with the other five (T-13).
    **C.1b. Approval 2: the backup.** Unlike the inventory, a backup **reads every row, including personal data** (emails and sign-in records in `auth.users`), and produces sensitive files.
    1. Take a logical dump from a **separate, clean checkout**. Never link the main checkout to production: a later `db push` there would reach production. Use `npx supabase@2.122.1 db dump --db-url "<production connection string>" -f schema.sql` (schema only, the default), then the same command with `--data-only -f data.sql`. Both must include the `auth` schema's users.
       - The connection string contains the database password. The owner supplies it at run time. It's never written to a file in the repository or pasted into a shared channel.
