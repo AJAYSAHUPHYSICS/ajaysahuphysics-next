@@ -3,7 +3,10 @@
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until its release gates pass (tracker T-23) and the owner's launch conditions are met (decision L). **Formal legal review is scheduled after launch** (owner decision I, 2026-11-23): an accepted legal and privacy risk. The privacy notice stays labelled "Draft notice, pending legal review", and no legal approval or compliance is claimed.
 
 **Release status (2026-11-25):**
-- **Deployed:** `main` = production = `b3f7168` (#26, the documentation reconciliation, merged 2026-11-25; deploy run `45570635616`, success). Before it: `b18b62e` (#27, the staging guard allow-list; run `45378204301`). All Phase 2 PRs up to #27, plus #26, are merged and deployed; the account code is live but **dormant**:
+- **Deployed** (verified 2026-11-25 09:12 UTC): `main` = production = `b9527e2`.
+  - That's #29, the tracker correction, merged 2026-11-25 09:04 UTC. Deploy run `45581909462`: success, with both its `build` and `deploy` jobs.
+  - Before it: `b3f7168` (#26, the documentation reconciliation; run `45570635616`); `b18b62e` (#27, the staging guard allow-list; run `45378204301`).
+  - The Phase 2 PRs through #27, plus #26 and #29, are merged and deployed; #25 isn't. The account code is live but **dormant**:
   - login is hidden (H1);
   - account deletion shows as not set up, with the Contact-page fallback;
   - cloud sync is off;
@@ -13,12 +16,13 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
   - **the current project,** `dykhwagloqxawgfkmjmc` (the one the live site's build uses), has a legacy schema with no application rows, and existing Auth accounts. It's only read until its approved retirement;
   - **both owner-run read-only inventories were done on 2026-11-24.** Neither project has any of the six migrations;
   - **staging** has the first five.
-- **What's open:**
+- **Open as of 2026-11-25 09:12 UTC:**
   - #25: cloud sync needs a verified email (the sixth migration), plus the M1 sync fix;
-  - #28: the master audit;
-  - this correction to the tracker and this document's status lines.
+  - #28: the master audit, which also carries this status update.
 
-  (#26, which reconciled the tracker, this document and `README.md`, was merged on 2026-11-25 as `b3f7168`.)
+  **Merged on 2026-11-25:**
+  - #26 reconciled the tracker, this document and `README.md` (`b3f7168`);
+  - #29 corrected their status lines (`b9527e2`).
 - **Blocked or awaiting the owner,** in procedure order:
   - the staging rehearsal of migration 6 (ownership check, then the approved apply);
   - the new project's Auth settings with "Confirm email" on (before #25 merges);

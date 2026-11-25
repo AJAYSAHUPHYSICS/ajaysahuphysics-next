@@ -30,35 +30,33 @@
 
 ---
 
-## Current status (re-verified 2026-11-25, 08:03 UTC)
+## Current status (re-verified 2026-11-25, 09:12 UTC)
 Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run them before relying on this section; it goes stale with the next push.**
 
-| Item | State at 08:03 UTC | Evidence |
+| Item | State at 09:12 UTC | Evidence |
 |---|---|---|
-| `main` | `b3f7168405d1fa0ed0fee232c524783fc2c3add2`: the squash merge of #26, 2026-11-25 07:45 UTC; parent `b18b62e` (#27). Unchanged since 07:45 | `git fetch origin`; `git rev-parse origin/main` |
-| Last deployment | Deploy run `45570635616` (push to `main`, for `b3f7168`): **completed, success**, 07:45:28–07:46:56 UTC. Jobs `build` and `deploy` both succeeded. No deployment since | `gh run view 45570635616`; `gh run list --workflow deploy.yml` |
-| Live site | `/`, `/privacy/` and `/dashboard/` returned HTTP 200 at 08:03 UTC. **Reachability only, not a verified live journey.** The live journeys were last run after `0244587` (2026-11-23) and weren't re-run after #27 or #26. Neither changed page source: #26 changed only `README.md` and two files in `docs/` | `curl`; `git diff --stat b18b62e b3f7168` |
+| `main` | `b9527e28d31d774c3ff243a08e2daa3688c45aaf`: the squash merge of #29, 2026-11-25 09:04:16 UTC; parent `b3f7168` (#26) | `git fetch origin`; `gh pr view 29` |
+| Last deployment | Deploy run `45581909462` (push to `main`, for `b9527e2`): **completed, success**, 09:04:18–09:06:11 UTC. Jobs `build` and `deploy` both succeeded. It's the latest deploy on `main` | `gh run view 45581909462`; `gh api …/runs/45581909462/jobs` |
+| Live site | `/`, `/privacy/` and `/dashboard/` returned HTTP 200 at 09:12 UTC. **Reachability only, not a verified live journey.** The live journeys were last run after `0244587` (2026-11-23), not after #27, #26 or #29. None of those changed page source: #29 changed only `docs/PHASE_2_TRACKER.md` and `docs/PHASE_2_RELEASE.md` | `curl`; `git diff --name-only b3f7168 b9527e2` |
 | Deletion sweep | Inert. Latest scheduled run `45537151036` (2026-11-25 03:02 UTC): skipped | `gh run list --workflow deletion-sweep.yml` |
 | Open PRs | Exactly #25 and #28 | `gh pr list --state open` |
 
 | PR | Title | State | Head | Merge state | CI on that head (all completed 2026-11-25) |
 |---|---|---|---|---|---|
-| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN, 0 reviews | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN. **1 commit behind `main`** (lacks #26); no conflicts (`git merge-tree`). Update it with `main` before merging | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
-| #26 | docs: reconcile the tracker, release doc and README with the current evidence | **MERGED** 2026-11-25 07:45:25 UTC, at approved head `3e0c93b8d58b8f83e1c1fc251465a875213419ae` (squash, pinned) | — | Merge commit `b3f7168405d1fa0ed0fee232c524783fc2c3add2`; its tree equals the approved head's | Before merging: `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
-| #28 | docs: add Project Atlas master project audit (this file) | OPEN, 0 reviews | Up to date with `main`: `main` merged in at `e2a39d4` (a normal merge commit, no rebase). The head that adds this table is newer; its SHA and CI are in the PR. Previous head `0bfdb2f` | MERGEABLE, CLEAN before the update. Against `main` the PR changes only this file | Previous head `0bfdb2f`: `ci` pass (runs `45571461831`, `45571468594`); `e2e-firefox`, `e2e-webkit` pass (run `45571468591`) |
+| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN, 0 reviews | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | **2 commits behind `main`** (lacks #26 and #29); no conflicts (`git merge-tree`). Update it with `main` before merging | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
+| #26 | docs: reconcile the tracker, release doc and README with the current evidence | **MERGED** 2026-11-25 07:45:25 UTC, at approved head `3e0c93b` (squash, pinned) | — | Merge commit `b3f7168405d1fa0ed0fee232c524783fc2c3add2`; its tree equals the approved head's; deploy run `45570635616` succeeded | Before merging: `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
+| #29 | docs(tracker): record the #26 merge (master audit D-13) | **MERGED** 2026-11-25 09:04:16 UTC, at approved head `08ee50d2b2dd62e2017fab6d79414f03a13dd181` (squash, pinned) | — | Merge commit `b9527e28d31d774c3ff243a08e2daa3688c45aaf`; its tree equals the approved head's (`7c31439`); deploy run `45581909462` succeeded | Before merging: `ci` pass (runs `45579906589`, `45579959757`); `e2e-firefox`, `e2e-webkit` pass (run `45579959639`); 0 reviews, 0 threads |
+| #28 | Master audit, plus this status update to the tracker and release doc | OPEN, 0 reviews | Up to date with `main`: merged in at `abd6f49` (a normal merge commit, no rebase). The head that adds this table is newer; its SHA and CI are in the PR. Previous head `5278c30` | No conflicts with `main` | Previous head `5278c30`: `ci` pass (runs `45573273118`, `45573284655`); `e2e-firefox`, `e2e-webkit` pass (run `45573284852`) |
 
 **The required `ci` check doesn't require branches to be up to date,** so update a branch with `main` and wait for green `ci` on the new head before merging it.
 
-### Outstanding documentation issue: the tracker on `main` is stale (open, D-13)
-- **What's current:** `docs/PHASE_2_TRACKER.md` at `b3f7168` is #26's reconciled version, and its release procedure (steps 1–11) matches section 17.
-- **What isn't:** it was written before its own merge, so these lines have been **out of date since 07:45 UTC**:
-  - Live status says `main` = `b18b62e`;
-  - T-04 and criterion 12 say "#26 … All unmerged";
-  - "**Open:** #25 (T-26), #26 (this tracker), #28".
-- **Status: NOT FIXED.** This PR doesn't change the tracker, by design. The next tracker update should record the #26 merge (and #28's, once it happens).
-- **Last verified:** 2026-11-25 08:03 UTC, with `git show origin/main:docs/PHASE_2_TRACKER.md`.
+### D-13 (the tracker on `main` was stale): FIXED by #29
+- **The problem:** `docs/PHASE_2_TRACKER.md` at `b3f7168` said `main` = `b18b62e`, "#26 … All unmerged" (T-04, criterion 12), and "Open: #25, #26, #28". So did `PHASE_2_RELEASE.md`'s status lines.
+- **The fix:** #29 corrected all of these. Merged 2026-11-25 09:04:16 UTC as `b9527e2` (approved head `08ee50d`, tree `7c31439` on both); deploy run `45581909462` succeeded.
+- **Verified 09:12 UTC:** on `main` at `b9527e2`, none of the stale strings remains (`grep` for `` = production = `b18b62e` ``, "All unmerged" and "#26 (this tracker)" finds nothing).
+- **What #29 left behind:** seven "this correction" self-references, true while #29 was open. **This PR (#28) replaces them** with dated wording ("Open as of 2026-11-25 09:12 UTC") that stays true after merging. They're not counted as a new discrepancy.
 
-### Not verified at 08:03 UTC
+### Not verified at 09:12 UTC
 | Area | Last evidence | Status |
 |---|---|---|
 | Staging state | Switches `'false'`, 0 users (2026-11-23); migration 6 dry run listed only it (2026-11-24) | Not re-verified |
@@ -66,11 +64,11 @@ Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run 
 | Staging "Confirm email" | Setup instructions say on | **NOT VERIFIED** |
 | Both production projects | The owner's read-only inventories, 2026-11-24 | Not re-verified |
 | Production Auth settings (T-10) | Never read | **NOT VERIFIED** in either project |
-| Live journeys after #27 and #26 | Last run after `0244587`, 2026-11-23 | **NOT VERIFIED** (only HTTP 200) |
+| Production or live journeys after #27, #26 and #29 | Last run after `0244587`, 2026-11-23 | **NOT VERIFIED** (HTTP 200 only) |
 | Sweep repository variables | None set (2026-11-23) | Not re-verified; consistent with the skipped runs |
-| Reviews | #25 and #28 have none and aren't approved. #26 was merged on the owner's explicit authorisation | — |
+| Reviews | #25 and #28 have none and aren't approved. #26 and #29 were each merged on the owner's explicit authorisation | — |
 
-*Previous checks:* 07:48 UTC: `main` `b3f7168`, #28 at `0bfdb2f` and 1 behind `main`. 07:29 UTC: `main` was `b18b62e`, #26 was open at `3e0c93b`, and the last deployment was run `45378204301` (2026-11-24).
+*Previous checks:* 08:03 UTC: `main` was `b3f7168`, #28 was at `5278c30`, and D-13 was open. 07:48 UTC: `main` was `b3f7168`, #28 was at `0bfdb2f`. 07:29 UTC: `main` was `b18b62e`, and #26 was open at `3e0c93b`.
 
 ---
 
@@ -454,7 +452,7 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 
 Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-11-23) and is correctly labelled as historical.
 
-**Where each discrepancy is fixed** (updated 2026-11-25, after this audit). **Update, 07:48 UTC:** the #26 fixes (D-1 to D-6, D-9, D-12) are **merged** in `b3f7168`. The #25 fixes (D-7, D-8) are **not merged**.
+**Where each discrepancy is fixed** (updated 2026-11-25, after this audit). **Update, 07:48 UTC:** the #26 fixes (D-1 to D-6, D-9, D-12) are **merged** in `b3f7168`. The #25 fixes (D-7, D-8) are **not merged**. **Update, 09:12 UTC:** D-13 is **fixed and merged** by #29 (`b9527e2`).
 
 | # | Fixed in | How |
 |---|---|---|
@@ -465,7 +463,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 | D-9 | #26 | `PHASE_2_RELEASE.md`: status, the new project, the staging rehearsal and the cutover |
 | D-10 | Not changed | A code comment in `src/lib/sync/policy.ts`; harmless, left for a code PR |
 | D-11 | Not changed | Private, git-excluded notes; outside the repository |
-| D-13 | **Not fixed (open)** | Needs a tracker update recording the #26 merge (and #28's, once merged). Deliberately not changed in #28, which changes only this file |
+| D-13 | **FIXED:** #29 (approved head `08ee50d`), merged 2026-11-25 09:04:16 UTC as `b9527e2`; deploy run `45581909462` succeeded | #29 corrected the tracker (Live status, T-01, T-02, T-04, criteria 3, 12 and 13, "Since then", Open, the approval register) and `PHASE_2_RELEASE.md`'s status lines. Verified on `main` at 09:12 UTC: none of the stale strings remains. #29's seven "this correction" self-references are replaced with dated wording in #28 *(08:03 UTC: "Not fixed (open)")* |
 
 ---
 
@@ -623,6 +621,8 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | 2026-11-25 | Temporal accuracy pass | #28 | Snapshot labels added; "Current status" section (07:29 UTC); section 17 re-ordered to the tracker's procedure in #26; no historical finding removed |
 | 2026-11-25 | #26 merged | `b3f7168` (main); deploy run `45570635616` | Owner-authorised squash merge at 07:45 UTC; build and deploy succeeded. "Current status" re-verified at 07:48 UTC. Notes in sections 14–18 and 22 now say the #26 fixes are merged; the snapshot findings are unchanged |
 | 2026-11-25 | #28 brought up to date | `e2a39d4` (merge of `main` `b3f7168`) | Normal merge, no rebase. "Current status" re-verified at 08:03 UTC, with a separate open item for the stale tracker (D-13) and a table of what's not verified |
+| 2026-11-25 | #29 merged; D-13 fixed | `b9527e2` (main); deploy run `45581909462` | Owner-authorised squash merge at 09:04 UTC; build and deploy succeeded |
+| 2026-11-25 | Post-#29 reconciliation | `abd6f49` (merge of `main` `b9527e2` into #28) | #28 now also updates the tracker and `PHASE_2_RELEASE.md`: `main` = `b9527e2`, #29 in the merged history and approval register, the seven self-references replaced by dated wording, open PRs #25 and #28. "Current status" re-verified at 09:12 UTC; D-13 marked FIXED. No count, gate, decision or safeguard changed |
 
 ---
 
