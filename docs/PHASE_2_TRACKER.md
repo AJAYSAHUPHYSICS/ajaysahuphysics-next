@@ -10,10 +10,10 @@ Last updated 2026-11-25. No legal approval, production database change or produc
 
 ## Live status (2026-11-25)
 **Overall: RELEASE-INCOMPLETE.** Phase 2 is the complete scope: student accounts, verified email, account management, cloud sync, security, privacy and deletion (owner decision H, reaffirmed 2026-11-25).
-- **Deployment:** `main` = production = `b18b62e` (#27; deploy run `45378204301`, success, 2026-11-24).
-  - #27 changed only the staging guard, its script and tests, so no page changed.
+- **Deployment:** `main` = production = `b3f7168` (#26, this tracker's reconciliation, squash-merged 2026-11-25 07:45 UTC; deploy run `45570635616`, success, with both its `build` and `deploy` jobs). Before it: `b18b62e` (#27; deploy run `45378204301`, 2026-11-24).
+  - #27 changed only the staging guard, its script and tests; #26 changed only `README.md` and two files in `docs/`. So no page changed in either.
   - The live journeys were last run after `0244587` (2026-11-23): seven tools 14/14, hidden login 15/15, 0 console errors, and no Supabase request reached production.
-  - After #27, only the site's reachability was re-checked (HTTP 200, 2026-11-25).
+  - After #27 and #26, only the site's reachability was re-checked (HTTP 200 on `/`, `/privacy/` and `/dashboard/`, 2026-11-25). **That's not a live-journey check.**
 - **Live behaviour:** login is hidden (H1), account deletion shows as not set up, and cloud sync is off (`CLOUD_SYNC_ENABLED = false`).
 - **Supabase projects:**
 
@@ -30,10 +30,10 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 
 | ID | Workstream | Status | Owner | Dependency | Evidence | Next action |
 |---|---|---|---|---|---|---|
-| T-01 | Release baseline: `main` = deployed | COMPLETED | — | — | `b18b62e` (#27) = deploy run `45378204301` (success, 2026-11-24); site reachable 2026-11-25. Before it: `0244587` = deployment `7995693613` | Re-check after every merge |
-| T-02 | Seven student tools, local-first | COMPLETED | — | — | Live 14/14 after the last deploy. E2E 90/90 in Chrome, Edge, Firefox and WebKit on the combined tree of #19–#24 (2026-11-23) | — |
+| T-01 | Release baseline: `main` = deployed | COMPLETED | — | — | `b3f7168` (#26) = deploy run `45570635616` (success, 2026-11-25); site reachable 2026-11-25. Before it: `b18b62e` (#27) = run `45378204301`; `0244587` = deployment `7995693613` | Re-check after every merge |
+| T-02 | Seven student tools, local-first | COMPLETED | — | — | Live 14/14 after the `0244587` deploy (2026-11-23); #27 and #26 changed no page. E2E 90/90 in Chrome, Edge, Firefox and WebKit on the combined tree of #19–#24 (2026-11-23) | — |
 | T-03 | Seven tools: browsers beyond Chrome | COMPLETED (engine level) | — | — | #23 merged (`86e3d59`). Firefox 157 and WebKit 27.2 at E2E 90/90; keyboard 22/22 and 15/15 (12 skipped: 5 H1, 7 Tab-to-link). Non-required `e2e-firefox` and `e2e-webkit` CI on every PR. **Not covered:** real Safari on macOS or iOS | — |
-| T-04 | Documentation reconciled with the release | IN PROGRESS | Owner (merge #26, #28; #25 for `supabase/README.md`) | — | #19 merged (`0244587`). This tracker, `PHASE_2_RELEASE.md` and `README.md` are reconciled in #26; `supabase/README.md` in #25; the master audit is #28. **All unmerged** | Merge them; COMPLETED only once merged |
+| T-04 | Documentation reconciled with the release | IN PROGRESS | Owner (merge #28, this correction; #25 for `supabase/README.md`) | — | #19 merged (`0244587`). This tracker, `PHASE_2_RELEASE.md` and `README.md` were reconciled in #26, **merged** 2026-11-25 as `b3f7168`. Their status lines then still described #26 as open; this correction fixes that. **Still unmerged:** `supabase/README.md` (#25), the master audit (#28) and this correction | Merge them; COMPLETED only once merged |
 | T-05 | Privacy notice: accurate statements | COMPLETED | — | — | #20 merged (`b238489`); live `/privacy` shows both corrected sentences, still a labelled draft, `noindex`, outside the sitemap | Update it for accounts and cloud sync before activation (T-24) |
 | T-06 | Legal review (F12) | POST-LAUNCH | Owner, counsel | — | Owner decision I: formal counsel review after launch. A dispatch-ready question set (L-1 to L-20) is held privately. **Not legally approved**; a known, owner-accepted risk | Engage counsel after launch |
 | T-07 | F10: read-only inventory tooling and procedure | COMPLETED | — | — | #21 merged (`6d39449`): `schema_inventory.sql` (10 tests); runbook 9, C.1a–C.1d. Read-only first line verified on staging | — |
@@ -109,7 +109,7 @@ This is the only current procedure. `PHASE_2_RELEASE.md` section 9 gives the sam
 |---|---|---|
 | 1 | All agreed functionality implemented | IN PROGRESS: code built; T-26 open (#25); under-18 verification not built (T-23b) |
 | 2 | Seven tools verified | COMPLETED at engine level; real Safari devices not tested |
-| 3 | Tests pass on the release SHA | COMPLETED for `b18b62e`: `ci`, `e2e-firefox` and `e2e-webkit` passed on #27's head `7a47353`, whose tree is identical to `b18b62e` |
+| 3 | Tests pass on the release SHA | COMPLETED for `b3f7168`: `ci` (runs `45566799220`, `45566809431`), `e2e-firefox` and `e2e-webkit` (run `45566809426`) passed on #26's head `3e0c93b`, whose tree is identical to `b3f7168`. Before it: `b18b62e`, via #27's head `7a47353` |
 | 4 | Production deployment verified | PARTIAL: COMPLETED for the public site and local tools; the accounts and sync in scope aren't active |
 | 5 | Legal approval | POST-LAUNCH (decision I) |
 | 6 | Production schema verified | NOT STARTED: the new project's read-only inventory is done (T-08); no migration applied (T-13). Under the fresh start a backup is only an optional retirement safeguard (T-09) |
@@ -118,11 +118,11 @@ This is the only current procedure. `PHASE_2_RELEASE.md` section 9 gives the sam
 | 9 | Security and RLS verified | Staging and PGlite COMPLETED; production BLOCKED |
 | 10 | Accounts UI live and verified | BLOCKED (T-21) |
 | 11 | Cloud sync live and verified | BLOCKED (T-23, T-23b) |
-| 12 | Documentation matches the release | IN PROGRESS: this tracker, `PHASE_2_RELEASE.md` and `README.md` are reconciled in #26; `supabase/README.md` in #25; the master audit is #28. All unmerged. `PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot |
-| 13 | Tracker reflects the actual state | IN PROGRESS: correct only once #26 is merged |
+| 12 | Documentation matches the release | IN PROGRESS: this tracker, `PHASE_2_RELEASE.md` and `README.md` were reconciled in #26, merged 2026-11-25 as `b3f7168`. Still unmerged: `supabase/README.md` (#25), the master audit (#28) and this correction. `PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot |
+| 13 | Tracker reflects the actual state | IN PROGRESS: #26 merged, but its status lines still described #26 as open (master audit D-13). Correct once this correction is merged |
 | 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in either production project; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (#25, unmerged: the verified-email gate, and the M1 fix that stops hidden cloud rows deleting device data; it relies on "Confirm email" being on, T-10); production RLS and permissions can't be verified until the schema is deployed (T-13); function ownership on staging NOT VERIFIED (T-28). **Accepted limitation:** existing Auth accounts are trusted as they stand (decision M). Under-18 sync stays separately blocked (T-23b); that isn't an adult-sync blocker |
 
-**Met: 2 of 14** (criteria 2 and 3). Criterion 4 is partial: met for the public site only, which is how the 2026-11-23 version of this table reached 3 of 14. Criteria 13 and 14 were counted as met in `main`'s 2026-11-23 version (4 of 14) and no longer hold. The **6 of 14** in this PR's first commit (`8deef97`: criteria 2, 3, 4, 12, 13 and 14) was withdrawn by the owner's review corrections (`df57534`): 12 and 13 can't be met while the documentation is unmerged, and 14 holds only while the platform is dormant. Staging-only results (criteria 8 and 9) don't count, because staging doesn't prove production readiness.
+**Met: 2 of 14** (criteria 2 and 3). Criterion 4 is partial: met for the public site only, which is how the 2026-11-23 version of this table reached 3 of 14. Criteria 13 and 14 were counted as met in `main`'s 2026-11-23 version (4 of 14) and no longer hold. The **6 of 14** in #26's first commit (`8deef97`: criteria 2, 3, 4, 12, 13 and 14) was withdrawn by the owner's review corrections (`df57534`): 12 and 13 can't be met while the documentation is unmerged, and 14 holds only while the platform is dormant. The #26 merge doesn't change the count: 12 and 13 still wait for #25, #28 and this correction. Staging-only results (criteria 8 and 9) don't count, because staging doesn't prove production readiness.
 
 ### Merged PRs (2026-11-23)
 All six were merged in the authorised order:
@@ -146,9 +146,16 @@ All six were merged in the authorised order:
 - E2E 90/90 in Chrome, Edge, Firefox and WebKit; keyboard 22/22 (WebKit 15/15, 12 skipped);
 - of 228 built pages, only `/privacy` changed in visible text.
 
-**Since then:** #27 (staging guard allow-list), approved head `7a47353`, squash commit `b18b62e`, deploy run `45378204301`, 2026-11-24. No visitor-visible change.
+**Since then:**
 
-**Open:** #25 (T-26), #26 (this tracker), #28 (the master audit).
+| PR | Approved head | Squash commit | Deploy run | Merged | Visitor-visible change |
+|---|---|---|---|---|---|
+| #27 (staging guard allow-list) | `7a47353` | `b18b62e` | `45378204301` (success) | 2026-11-24 | None |
+| #26 (tracker, release doc and README reconciliation) | `3e0c93b` | `b3f7168` | `45570635616` (success; `build` and `deploy`) | 2026-11-25 07:45 UTC | None |
+
+#26 was merged on the owner's explicit authorisation. Before merging: up to date with `main`, all four checks green on `3e0c93b`, no reviews or open threads. It was squash-merged pinned with `--match-head-commit`, and the merged tree equals the approved head's.
+
+**Open:** #25 (T-26), #28 (the master audit), and this tracker correction.
 
 ### Owner approval register (2026-11-25)
 | ID | Decision | Effect here |
@@ -171,12 +178,13 @@ All six were merged in the authorised order:
 | O | Under-18 sync stays separately blocked until a verified parental-consent process exists; it doesn't silently exclude minors or block adult sync (2026-11-23) | T-23b, T-23 |
 | — | Fresh start: the Phase 2 database goes to the new project `fuznyurpfqgjricivopd`; no old Auth account or data is migrated (2026-11-24) | T-08, T-09, T-25, T-30 |
 | — | Merge #27, the staging guard allow-list (2026-11-24) | T-27 (done) |
+| — | Merge #26, the documentation reconciliation (2026-11-25) | T-04 (done: `b3f7168`) |
 | — | Phase 2 is the complete scope; keep a GitHub master audit (#28) and a separate management dashboard (2026-11-25) | Decision H; T-04 |
 
 **Not covered by any approval yet:**
 - the staging ownership check's run, the staging apply of migration 6, and the `test:staging:verified-email` check (T-28, T-29);
 - the new project's Auth settings (T-10);
-- merging #25 (after "Confirm email" is on), #26 and #28;
+- merging #25 (after "Confirm email" is on), #28 and this correction;
 - the Edge Function deployment and its secret (T-12);
 - each of the six migrations in the new project (T-13);
 - the cutover (T-30), and later the current project's retirement;
