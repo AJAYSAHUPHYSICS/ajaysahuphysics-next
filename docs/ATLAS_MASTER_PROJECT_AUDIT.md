@@ -30,29 +30,34 @@
 
 ---
 
-## Current status (re-verified 2026-11-25, 07:29 UTC)
-Read-only checks with `git fetch`, `gh` and one HTTP request to the site. **Re-run them before relying on this section; it goes stale with the next push.**
+## Current status (re-verified 2026-11-25, 07:48 UTC)
+Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run them before relying on this section; it goes stale with the next push.**
 
-| Item | State at 07:29 UTC | Evidence |
+| Item | State at 07:48 UTC | Evidence |
 |---|---|---|
-| `main` | `b18b62e811fe0144c849cef94b9a6784bedb7454` (#27, committed 2026-11-24) | `git fetch origin`; `git rev-parse origin/main` |
-| Last deployment | Deploy run `45378204301`: success, 2026-11-24 10:48 UTC, for `b18b62e`. No deployment since | `gh run list --workflow deploy.yml` |
-| Live site | `https://ajaysahuphysics.com/` returned HTTP 200. Reachability only; **the live journeys weren't re-run** (last run after `0244587`, 2026-11-23) | `curl` |
+| `main` | `b3f7168405d1fa0ed0fee232c524783fc2c3add2`: the squash merge of #26, 2026-11-25 07:45 UTC; parent `b18b62e` (#27) | `git fetch origin`; `git rev-parse origin/main` |
+| Last deployment | Deploy run `45570635616` (push to `main`, for `b3f7168`): **completed, success**, 07:45:28–07:46:56 UTC. Jobs `build` and `deploy` both succeeded | `gh run view 45570635616` |
+| Live site | `/`, `/privacy/` and `/dashboard/` returned HTTP 200 after that deployment. **This shows reachability only, not a verified live journey.** The live journeys were last run after `0244587` (2026-11-23) and weren't re-run after #27 or #26. Neither changed page source: #26 changed only `README.md` and two files in `docs/` | `curl`; `git diff --stat b18b62e b3f7168` |
 | Deletion sweep | Inert. Latest scheduled run `45537151036` (2026-11-25 03:02 UTC): skipped | `gh run list --workflow deletion-sweep.yml` |
-| Open PRs | Exactly #25, #26 and #28 | `gh pr list --state open` |
+| Open PRs | Exactly #25 and #28 | `gh pr list --state open` |
+| Tracker on `main` | `docs/PHASE_2_TRACKER.md` at `b3f7168` is #26's reconciled version. Its release procedure (steps 1–11) matches section 17. It was written before its own merge, so it still says `main` = `b18b62e` (Live status), "#26 … All unmerged" (T-04, criterion 12) and "Open: #25, #26, #28". **Those lines are out of date since 07:45 UTC;** the next tracker update should record the #26 merge | `git show origin/main:docs/PHASE_2_TRACKER.md` |
 
 | PR | Title | State | Head | Merge state | CI on that head (all completed 2026-11-25) |
 |---|---|---|---|---|---|
-| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
-| #26 | docs: reconcile the tracker, release doc and README with the current evidence | OPEN | `3e0c93b8d58b8f83e1c1fc251465a875213419ae` | MERGEABLE, CLEAN | `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
-| #28 | docs: add Project Atlas master project audit (this file) | OPEN | `e644f620b12eae11f46989f53d5ea8785d1ce858` before this update; the commit that adds this section is newer, and its CI is reported in the PR | MERGEABLE, CLEAN | `ci` pass (runs `45567088314`, `45567094930`); `e2e-firefox`, `e2e-webkit` pass (run `45567094941`) |
+| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN, 0 reviews | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN. 1 commit behind `main` (lacks #26); no conflicts (`git merge-tree`) | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
+| #26 | docs: reconcile the tracker, release doc and README with the current evidence | **MERGED** 2026-11-25 07:45:25 UTC, at approved head `3e0c93b8d58b8f83e1c1fc251465a875213419ae` (squash, pinned) | — | Merge commit `b3f7168405d1fa0ed0fee232c524783fc2c3add2`; its tree equals the approved head's | Before merging: `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
+| #28 | docs: add Project Atlas master project audit (this file) | OPEN, 0 reviews | `d2a206648719357a9aea14d15ec61eab5a0c977e` before this update; the commit that adds this table is newer, and its CI is reported in the PR | MERGEABLE, CLEAN. 1 commit behind `main` (lacks #26); no conflicts | `ci` pass (runs `45569021873`, `45569028891`); `e2e-firefox`, `e2e-webkit` pass (run `45569028964`) |
 
-**Not re-verified at 07:29 UTC:**
+**Before merging #25 or #28,** update the branch with `main` and wait for green `ci` on the new head. The required `ci` check doesn't require branches to be up to date.
+
+**Not re-verified at 07:48 UTC:**
 - **Staging:** last recorded 2026-11-23 (switches `'false'`, 0 users) and 2026-11-24 (dry run listed only migration 6). Function ownership is NOT VERIFIED.
 - **Both production projects:** last checked by the owner's read-only inventories, 2026-11-24.
 - **Production Auth settings:** NOT VERIFIED in either project.
 - **Repository variables for the sweep:** last recorded 2026-11-23 (none set); consistent with the skipped runs.
-- **No PR has a review;** none is approved or merged.
+- **Reviews:** #25 and #28 have none and aren't approved. #26 was merged on the owner's explicit authorisation (2026-11-25).
+
+*Previous check, 07:29 UTC:* `main` was `b18b62e`; #26 was open at `3e0c93b`; the last deployment was run `45378204301` (2026-11-24).
 
 ---
 
@@ -338,7 +343,7 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 - **PR #26's tracker (unmerged) says "Met: 3 of 14" (2, 3, 4).** It no longer counts 13 and 14 and adds 4, on public-site scope.
 - *(Superseded by the correction below.)* **"6 of 14" was searched for and not found** anywhere in the repository, any branch or the private notes, so it's **NOT VERIFIED.** If it comes from the external dashboard, it probably counts the staging-only results for criteria 8 and 9 as met. **Staging results don't prove production readiness, so this audit doesn't count them.**
 - **Correction (2026-11-25, after this audit): "6 of 14" does have a source.** PR #26's first commit `8deef97` (2026-11-23) said "Met: 6 of 14 (criteria 2, 3, 4, 12, 13 and 14)", and #26's PR description repeated it. The owner's review corrections (`df57534`) replaced it with 3 of 14, but the PR description wasn't updated. The search above covered branch heads, not their history or PR descriptions, and so missed it. The guess about criteria 8 and 9 is withdrawn. Criteria 12, 13 and 14 aren't met (rows below), so 6 of 14 isn't supported by the evidence.
-- **Update (2026-11-25, after this audit):** PR #26 was revised (`48e942c`, `3e0c93b`) to match this table: 2 of 14 met, criterion 4 partial. The "PR #26 (11-23)" column below shows its earlier version.
+- **Update (2026-11-25, after this audit):** PR #26 was revised (`48e942c`, `3e0c93b`) to match this table: 2 of 14 met, criterion 4 partial. It was merged at 07:45 UTC as `b3f7168`, so `main`'s tracker now says 2 of 14. The "PR #26 (11-23)" column below shows its earlier version.
 
 | # | Criterion | `main` tracker (11-23) | PR #26 (11-23) | **This audit (11-25)** | Evidence |
 |---|---|---|---|---|---|
@@ -373,7 +378,7 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 - **#25:** head `74e3ca0` (adds the `supabase/README.md` fixes). Local checks on its tree: `tsc`, lint, unit 692 passed and 1 skipped, build, `verify-build`, build-output 11 passed and 2 skipped, Chrome E2E and keyboard (exit 0).
 - **#26:** retitled "docs: reconcile the tracker, release doc and README with the current evidence". Merged with `main` (`8549da9`), then reconciled (`48e942c`, `3e0c93b`).
 - **#28:** this audit, opened on 2026-11-25.
-- **All three** are open and unmerged. Their heads and CI, re-verified at 07:29 UTC, are in "Current status".
+- **At 07:29 UTC all three were open.** #26 was then merged at 07:45 UTC as `b3f7168` (deploy run `45570635616`, success). Current heads and CI are in "Current status".
 
 Closed without merging: #12, which a rebased PR #13 replaced.
 
@@ -435,7 +440,7 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 
 Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-11-23) and is correctly labelled as historical.
 
-**Where each discrepancy is fixed** (updated 2026-11-25, after this audit; **every fix is unmerged** until the owner approves):
+**Where each discrepancy is fixed** (updated 2026-11-25, after this audit). **Update, 07:48 UTC:** the #26 fixes (D-1 to D-6, D-9, D-12) are **merged** in `b3f7168`. The #25 fixes (D-7, D-8) are **not merged**.
 
 | # | Fixed in | How |
 |---|---|---|
@@ -452,8 +457,8 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 ## 17. Production migration runbook (summary; each step needs its own explicit approval)
 **Where the authoritative procedure lives:**
 - **The tracker's "Current release procedure",** with `docs/PHASE_2_RELEASE.md` §9 for each step's details, is authoritative.
-- **On `main` both files are stale:** they predate the new-project plan.
-- **The reconciled versions are in PR #26** (head `3e0c93b`, unmerged). They target the new project and match the order below.
+- **The reconciled versions are on `main`:** #26 (approved head `3e0c93b`) was merged at 07:45 UTC on 2026-11-25 as `b3f7168`. They target the new project and match the order below; re-checked on `main` at 07:48 UTC.
+- *Before that merge (07:29 UTC update):* `main`'s copies predated the new-project plan, and the reconciled versions were only in the unmerged #26.
 - **Correction (2026-11-25):** the initial snapshot said #26 "predates the new-project plan". That was true of its head then, `baff61d`, not of `3e0c93b`.
 - **This summary follows #26's order** and adds detail from the private migration notes, marked as such.
 
@@ -495,7 +500,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 ## 18. Phase 2 completion roadmap
 | Order | Work | Criteria it moves | Needs |
 |---|---|---|---|
-| 1 | Documentation PR: reconcile the tracker, README, `supabase/README.md` and `PHASE_2_RELEASE.md` with this audit (supersede or rebase #26). **Update 2026-11-25:** done in #26 (`3e0c93b`) and #25 (`74e3ca0`), both unmerged | 12, 13 | Engineering (done); owner merge |
+| 1 | Documentation PR: reconcile the tracker, README, `supabase/README.md` and `PHASE_2_RELEASE.md` with this audit (supersede or rebase #26). **Update 2026-11-25:** done in #26 (`3e0c93b`, **merged** as `b3f7168` at 07:45 UTC) and #25 (`74e3ca0`, not merged). The merged tracker's self-references now need a follow-up ("Current status") | 12, 13 | Engineering (done); owner merge (#25) |
 | 2 | Run the read-only staging ownership check (revision 4) | — (de-risks 9) | Owner runs it |
 | 3 | Verify staging "Confirm email"; apply migration 6 to staging; add the `test:staging:verified-email` check (it doesn't exist yet) | 1, 9 (staging) | Separate approvals |
 | 4 | Merge #25 | 1, 14 | Owner approval, after T-10 |
@@ -570,7 +575,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 ## 22. Owner action register
 | # | Action | Type | Authorises | Prerequisite |
 |---|---|---|---|---|
-| OA-1 | Review this audit (#28) and the reconciled documentation in #26 and #25. *(At the snapshot: decide whether a documentation PR should supersede #26. Overtaken: #26 itself was reconciled on 2026-11-25)* | Review | Merging #26 and #28 (each deploys, no page change) | — |
+| OA-1 | Review this audit (#28) and the reconciled documentation in #25. *(At the snapshot: decide whether a documentation PR should supersede #26. Overtaken: #26 itself was reconciled, then merged on 2026-11-25 as `b3f7168`)* | Review | Merging #28 (deploys, no page change; update it with `main` first) | — |
 | OA-2 | Run the read-only revision 4 ownership check in the **staging** SQL Editor; share the result | Read-only, staging | Nothing else | Confirm `wtuifivaxnhdnfwjsayk` in the address bar |
 | OA-3 | Read back staging "Confirm email" | Read-only, staging | — | — |
 | OA-4 | Approve applying migration 6 to staging | Staging change | That one apply | OA-2, OA-3 |
@@ -601,6 +606,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | **2026-11-25** | **This master audit** | `docs/ATLAS_MASTER_PROJECT_AUDIT.md` (#28) | Read-only; GitHub state re-verified |
 | 2026-11-25 | Reconciliation | #25 (`74e3ca0`), #26 (`3e0c93b`), #28 | The discrepancies in section 16 are fixed in the PRs shown there (unmerged). The "6 of 14" finding was corrected: its source is #26's first commit |
 | 2026-11-25 | Temporal accuracy pass | #28 | Snapshot labels added; "Current status" section (07:29 UTC); section 17 re-ordered to the tracker's procedure in #26; no historical finding removed |
+| 2026-11-25 | #26 merged | `b3f7168` (main); deploy run `45570635616` | Owner-authorised squash merge at 07:45 UTC; build and deploy succeeded. "Current status" re-verified at 07:48 UTC. Notes in sections 14–18 and 22 now say the #26 fixes are merged; the snapshot findings are unchanged |
 
 ---
 
