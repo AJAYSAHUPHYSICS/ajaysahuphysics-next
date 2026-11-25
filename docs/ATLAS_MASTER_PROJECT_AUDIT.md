@@ -308,7 +308,9 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 **Why the two numbers differ:**
 - **`main`'s tracker says "Met: 4 of 14" (2, 3, 13, 14).** It was written 2026-11-23, before the six merges and the later decisions.
 - **PR #26's tracker (unmerged) says "Met: 3 of 14" (2, 3, 4).** It no longer counts 13 and 14 and adds 4, on public-site scope.
-- **"6 of 14" was searched for and not found** anywhere in the repository, any branch or the private notes, so it's **NOT VERIFIED.** If it comes from the external dashboard, it probably counts the staging-only results for criteria 8 and 9 as met. **Staging results don't prove production readiness, so this audit doesn't count them.**
+- *(Superseded by the correction below.)* **"6 of 14" was searched for and not found** anywhere in the repository, any branch or the private notes, so it's **NOT VERIFIED.** If it comes from the external dashboard, it probably counts the staging-only results for criteria 8 and 9 as met. **Staging results don't prove production readiness, so this audit doesn't count them.**
+- **Correction (2026-11-25, after this audit): "6 of 14" does have a source.** PR #26's first commit `8deef97` (2026-11-23) said "Met: 6 of 14 (criteria 2, 3, 4, 12, 13 and 14)", and #26's PR description repeated it. The owner's review corrections (`df57534`) replaced it with 3 of 14, but the PR description wasn't updated. The search above covered branch heads, not their history or PR descriptions, and so missed it. The guess about criteria 8 and 9 is withdrawn. Criteria 12, 13 and 14 aren't met (rows below), so 6 of 14 isn't supported by the evidence.
+- **Update (2026-11-25, after this audit):** PR #26 was revised (`48e942c`, `3e0c93b`) to match this table: 2 of 14 met, criterion 4 partial. The "PR #26 (11-23)" column below shows its earlier version.
 
 | # | Criterion | `main` tracker (11-23) | PR #26 (11-23) | **This audit (11-25)** | Evidence |
 |---|---|---|---|---|---|
@@ -336,6 +338,12 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 |---|---|---|---|---|---|---|---|
 | #25 | feat(db): cloud copies require a verified email address (decision K) | `178bac8` (6 commits; includes the merge of `main` `b18b62e`) | `main` | `ci` ×2, `e2e-firefox`, `e2e-webkit`: success | MERGEABLE, CLEAN | 0 | Migration 6, `verified_email_down.sql`, M1 sync fix (`2f2a9d9`). Local at `2f2a9d9`: unit 683 passed, 1 skipped; build 233 pages. **Don't merge without explicit approval.** Before merging: "Confirm email" on in the target project (T-10) |
 | #26 | docs(tracker): record the six merges, T-14 on staging, six-migration plan and blockers | `baff61d` | `main` (1 commit behind: lacks #27) | success | MERGEABLE, CLEAN | 0 | **Don't merge without explicit approval.** Its content is now partly stale (section 16) |
+
+**Update (later on 2026-11-25, after this audit):**
+- **#25:** head `74e3ca0` (adds the `supabase/README.md` fixes). Local checks on its tree: `tsc`, lint, unit 692 passed and 1 skipped, build, `verify-build`, build-output 11 passed and 2 skipped, Chrome E2E and keyboard (exit 0).
+- **#26:** retitled "docs: reconcile the tracker, release doc and README with the current evidence". Merged with `main` (`8549da9`), then reconciled (`48e942c`, `3e0c93b`).
+- **#28:** this audit, opened on 2026-11-25.
+- **All three** are open and unmerged; see each PR for its current CI.
 
 Closed without merging: #12, which a rebased PR #13 replaced.
 
@@ -385,7 +393,7 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | D-1 | `docs/PHASE_2_TRACKER.md` (`main`) | `main` = production = `9019a1c`; six PRs open; "Met: 4 of 14" | `main` is `b18b62e`; all six merged 2026-11-23; 2 of 14 met (section 14) |
 | D-2 | `docs/PHASE_2_TRACKER.md` (PR #26) | `main` = `0244587`; #25 head `f2cf667`; production = "the project the live site uses" | `main` `b18b62e`; #25 head `178bac8`; the destination is now `fuznyurpfqgjricivopd` (2026-11-24) |
 | D-3 | PR #26 | Says nothing of #27 or the new production project | #27 merged 2026-11-24; PR #26 is 1 commit behind `main` |
-| D-4 | Any committed source | "6 of 14" | No source exists; NOT VERIFIED |
+| D-4 | PR #26's description, and its first commit `8deef97` | "6 of 14 criteria met" | Withdrawn by the owner's corrections (`df57534`: 3 of 14); 2 of 14 on current evidence. *(This row first said no source existed; corrected 2026-11-25.)* |
 | D-5 | `README.md` (`main`), CI section | CI runs "type-check, lint, unit tests, production build, and `verify-build.mjs`" | `ci.yml` also runs `test:build-output` and `test:e2e`; `e2e-browsers.yml` adds Firefox and WebKit |
 | D-6 | `README.md` (`main`) | Lists `npm run test:staging` with no warning; sync off "until legal sign-off" | The owner prohibited `test:staging` (2026-11-22); decision I moved legal review after launch (only in unmerged #26) |
 | D-7 | `supabase/README.md` (`main`) | Migration 5 "not applied anywhere yet"; "apply all five together" | Applied to staging 2026-11-23; six migrations, each approved separately (fixed in PR #25) |
@@ -396,6 +404,18 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | D-12 | PR #26 tracker T-08 and T-09 | Inventory and backup of the current production project are the next steps | Inventories done 2026-11-24; under the fresh start a backup is optional, for retirement only |
 
 Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-11-23) and is correctly labelled as historical.
+
+**Where each discrepancy is fixed** (updated 2026-11-25, after this audit; **every fix is unmerged** until the owner approves):
+
+| # | Fixed in | How |
+|---|---|---|
+| D-1, D-2, D-3, D-12 | #26 (`48e942c`) | The tracker's live status, T-rows, criteria (2 of 14) and approval register now match the evidence; it's up to date with `main` |
+| D-4 | #26 | The tracker explains the withdrawn 6 of 14; #26's PR description is updated to 2 of 14 |
+| D-5, D-6 | #26 | `README.md`: the full CI steps, the safe staging checks, a warning not to run `test:staging`, decision I |
+| D-7, D-8 | #25 | `supabase/README.md`: migration 5 applied to staging; six migrations, each approved separately; the content-integrity ack |
+| D-9 | #26 | `PHASE_2_RELEASE.md`: status, the new project, the staging rehearsal and the cutover |
+| D-10 | Not changed | A code comment in `src/lib/sync/policy.ts`; harmless, left for a code PR |
+| D-11 | Not changed | Private, git-excluded notes; outside the repository |
 
 ---
 
@@ -538,7 +558,8 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | 2026-11-24 | Source and destination inventory comparison; fresh-start plan | Private migration notes | Nothing executed |
 | 2026-11-24 | PR #25 security review; M1 found and fixed | PR #25; private review notes | `2f2a9d9` |
 | 2026-11-24 to 25 | Staging function-ownership investigation; read-only query revisions 1–4 | This session; not run | B-3 |
-| **2026-11-25** | **This master audit** | `docs/ATLAS_MASTER_PROJECT_AUDIT.md` | Read-only; GitHub state re-verified |
+| **2026-11-25** | **This master audit** | `docs/ATLAS_MASTER_PROJECT_AUDIT.md` (#28) | Read-only; GitHub state re-verified |
+| 2026-11-25 | Reconciliation | #25 (`74e3ca0`), #26 (`3e0c93b`), #28 | The discrepancies in section 16 are fixed in the PRs shown there (unmerged). The "6 of 14" finding was corrected: its source is #26's first commit |
 
 ---
 
