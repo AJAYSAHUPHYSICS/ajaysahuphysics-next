@@ -3,8 +3,10 @@
 | | |
 |---|---|
 | **Audit date** | 2026-11-25 |
+| **Snapshot** | Sections 1–23 record the **initial snapshot**: evidence gathered on 2026-11-25 before this file's first commit, `fd06645` (06:35 UTC). PR heads, CI results and "open" states in those sections are **as of that snapshot**, not current |
+| **Current status** | The section "Current status", below the legend, re-checks GitHub and the live site and states its own time. Later corrections inside sections 1–23 are marked **Update** or **Correction**, with a date |
 | **Repository** | `AJAYSAHUPHYSICS/ajaysahuphysics-next` (public) |
-| **`main` at audit time** | `b18b62e811fe0144c849cef94b9a6784bedb7454` (#27), verified against GitHub on 2026-11-25 |
+| **`main` at the snapshot** | `b18b62e811fe0144c849cef94b9a6784bedb7454` (#27), verified against GitHub on 2026-11-25 |
 | **Method** | Read-only. GitHub was read through `gh` and `git fetch`; files were read at `origin/main` and at the open PR heads. No Supabase connection, SQL, test run against staging or production, merge, push or deployment |
 | **Companion** | The owner also keeps a management dashboard outside GitHub (owner decision, 2026-11-25). **This file is the GitHub master audit.** Where the two disagree, re-check the evidence cited here |
 | **Private material** | Some evidence lives in git-excluded working notes (`docs/phase-2/`, never committed). It is cited by file name only. Nothing private is copied here |
@@ -25,6 +27,32 @@
 | **NOT VERIFIED** | Claimed somewhere, or plausible, but no evidence was found |
 
 "Last verified" dates are the dates the cited evidence was produced. Dates on 2026-11-25 were re-checked during this audit.
+
+---
+
+## Current status (re-verified 2026-11-25, 07:29 UTC)
+Read-only checks with `git fetch`, `gh` and one HTTP request to the site. **Re-run them before relying on this section; it goes stale with the next push.**
+
+| Item | State at 07:29 UTC | Evidence |
+|---|---|---|
+| `main` | `b18b62e811fe0144c849cef94b9a6784bedb7454` (#27, committed 2026-11-24) | `git fetch origin`; `git rev-parse origin/main` |
+| Last deployment | Deploy run `45378204301`: success, 2026-11-24 10:48 UTC, for `b18b62e`. No deployment since | `gh run list --workflow deploy.yml` |
+| Live site | `https://ajaysahuphysics.com/` returned HTTP 200. Reachability only; **the live journeys weren't re-run** (last run after `0244587`, 2026-11-23) | `curl` |
+| Deletion sweep | Inert. Latest scheduled run `45537151036` (2026-11-25 03:02 UTC): skipped | `gh run list --workflow deletion-sweep.yml` |
+| Open PRs | Exactly #25, #26 and #28 | `gh pr list --state open` |
+
+| PR | Title | State | Head | Merge state | CI on that head (all completed 2026-11-25) |
+|---|---|---|---|---|---|
+| #25 | feat(db): cloud copies require a verified email address (decision K) | OPEN | `74e3ca08766caa9e659c70d950bcb747c59dda1e` | MERGEABLE, CLEAN | `ci` pass (runs `45566960697`, `45566968642`); `e2e-firefox`, `e2e-webkit` pass (run `45566968968`) |
+| #26 | docs: reconcile the tracker, release doc and README with the current evidence | OPEN | `3e0c93b8d58b8f83e1c1fc251465a875213419ae` | MERGEABLE, CLEAN | `ci` pass (runs `45566799220`, `45566809431`); `e2e-firefox`, `e2e-webkit` pass (run `45566809426`) |
+| #28 | docs: add Project Atlas master project audit (this file) | OPEN | `e644f620b12eae11f46989f53d5ea8785d1ce858` before this update; the commit that adds this section is newer, and its CI is reported in the PR | MERGEABLE, CLEAN | `ci` pass (runs `45567088314`, `45567094930`); `e2e-firefox`, `e2e-webkit` pass (run `45567094941`) |
+
+**Not re-verified at 07:29 UTC:**
+- **Staging:** last recorded 2026-11-23 (switches `'false'`, 0 users) and 2026-11-24 (dry run listed only migration 6). Function ownership is NOT VERIFIED.
+- **Both production projects:** last checked by the owner's read-only inventories, 2026-11-24.
+- **Production Auth settings:** NOT VERIFIED in either project.
+- **Repository variables for the sweep:** last recorded 2026-11-23 (none set); consistent with the skipped runs.
+- **No PR has a review;** none is approved or merged.
 
 ---
 
@@ -73,7 +101,7 @@ The formal measure is the 14 Phase 2 completion criteria (section 14).
 | Phase 2B: study tools | Seven local-first tools; dashboard | PRODUCTION VERIFIED | #8, #13, #17, #18; `study-tools.test.ts`, `scripts/e2e/study-tools.mjs` |
 | Phase 2B: accounts platform | Auth, RLS schema, sync engine, export, deletion (dormant) | CODE COMPLETE; STAGING VERIFIED (migrations 1–5) | #7 (`9019a1c`, includes #10 and #15), #22, #24, #21 |
 | Phase 2.5: platform hardening | Phone overflow, hydration, a11y, hidden login | PRODUCTION VERIFIED | #11, #14, #16, #17 |
-| Verified-email sync (decision K) | Migration 6 plus the M1 sync fix | CODE COMPLETE, **OPEN PR #25** | PR #25, head `178bac8` |
+| Verified-email sync (decision K) | Migration 6 plus the M1 sync fix | CODE COMPLETE, **OPEN PR #25** | PR #25 (head `178bac8` at the snapshot; current head in "Current status") |
 | Staging guard allow-list | Only staging can be targeted by the staging scripts | VERIFIED (merged and deployed) | #27 (`b18b62e`); `staging-guard.test.ts` |
 | Supabase project migration | Old production → new production, fresh start | PENDING (plan only; nothing executed) | Private notes `docs/phase-2/migration/` (v2, 2026-11-24) |
 | Academic content rebuild | Original, reviewed chapters | PENDING (one chapter in private review) | Section 19 |
@@ -115,8 +143,8 @@ The formal measure is the 14 Phase 2 completion criteria (section 14).
 ## 5. GitHub workflow and deployment architecture
 | Workflow | Trigger | What it does | Status |
 |---|---|---|---|
-| `.github/workflows/ci.yml` (job `ci`, **required**) | Every PR; pushes to non-`main` branches | `npm ci`, `tsc --noEmit`, lint, `npm test`, build, `verify-build.mjs`, `test:build-output`, `test:e2e` (headless Chrome). Read-only permissions, no secrets | VERIFIED (green on #25, #26 and #27 heads, 2026-11-25) |
-| `.github/workflows/e2e-browsers.yml` (`e2e-firefox`, `e2e-webkit`) | Every PR | Builds, then runs E2E and keyboard checks in Firefox and WebKit. **Not required** | VERIFIED (green on #25, #26 and #27) |
+| `.github/workflows/ci.yml` (job `ci`, **required**) | Every PR; pushes to non-`main` branches | `npm ci`, `tsc --noEmit`, lint, `npm test`, build, `verify-build.mjs`, `test:build-output`, `test:e2e` (headless Chrome). Read-only permissions, no secrets | VERIFIED at the snapshot: green on #25 `178bac8`, #26 `baff61d` and #27 `7a47353` (2026-11-25). Current heads: "Current status" |
+| `.github/workflows/e2e-browsers.yml` (`e2e-firefox`, `e2e-webkit`) | Every PR | Builds, then runs E2E and keyboard checks in Firefox and WebKit. **Not required** | VERIFIED at the snapshot, on the same three heads |
 | `.github/workflows/deploy.yml` | Push to `main` | Builds with secrets `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, then deploys `out/` to GitHub Pages. Jobs run only on `refs/heads/main` | VERIFIED: run `45378204301` (2026-11-24) deployed `b18b62e` |
 | `.github/workflows/deletion-sweep.yml` | Hourly (`17 * * * *`) and manual | Runs `scripts/deletion-sweep.mjs` only if the repository variable `ATLAS_DELETION_SWEEP_ENABLED == 'true'` | Inert: every scheduled run is `skipped` (latest `45537151036`, 2026-11-25) |
 
@@ -333,7 +361,9 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 
 ---
 
-## 15. Open PRs and review status (verified 2026-11-25)
+## 15. Open PRs and review status (snapshot: verified 2026-11-25, before 06:35 UTC)
+**This table is historical.** Both heads below have since moved; the current heads, states and CI are in "Current status".
+
 | PR | Title | Head | Base | CI | Mergeable | Reviews | Notes |
 |---|---|---|---|---|---|---|---|
 | #25 | feat(db): cloud copies require a verified email address (decision K) | `178bac8` (6 commits; includes the merge of `main` `b18b62e`) | `main` | `ci` ×2, `e2e-firefox`, `e2e-webkit`: success | MERGEABLE, CLEAN | 0 | Migration 6, `verified_email_down.sql`, M1 sync fix (`2f2a9d9`). Local at `2f2a9d9`: unit 683 passed, 1 skipped; build 233 pages. **Don't merge without explicit approval.** Before merging: "Confirm email" on in the target project (T-10) |
@@ -343,7 +373,7 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 - **#25:** head `74e3ca0` (adds the `supabase/README.md` fixes). Local checks on its tree: `tsc`, lint, unit 692 passed and 1 skipped, build, `verify-build`, build-output 11 passed and 2 skipped, Chrome E2E and keyboard (exit 0).
 - **#26:** retitled "docs: reconcile the tracker, release doc and README with the current evidence". Merged with `main` (`8549da9`), then reconciled (`48e942c`, `3e0c93b`).
 - **#28:** this audit, opened on 2026-11-25.
-- **All three** are open and unmerged; see each PR for its current CI.
+- **All three** are open and unmerged. Their heads and CI, re-verified at 07:29 UTC, are in "Current status".
 
 Closed without merging: #12, which a rebased PR #13 replaced.
 
@@ -391,8 +421,8 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | # | Where | What it says | What's true (evidence) |
 |---|---|---|---|
 | D-1 | `docs/PHASE_2_TRACKER.md` (`main`) | `main` = production = `9019a1c`; six PRs open; "Met: 4 of 14" | `main` is `b18b62e`; all six merged 2026-11-23; 2 of 14 met (section 14) |
-| D-2 | `docs/PHASE_2_TRACKER.md` (PR #26) | `main` = `0244587`; #25 head `f2cf667`; production = "the project the live site uses" | `main` `b18b62e`; #25 head `178bac8`; the destination is now `fuznyurpfqgjricivopd` (2026-11-24) |
-| D-3 | PR #26 | Says nothing of #27 or the new production project | #27 merged 2026-11-24; PR #26 is 1 commit behind `main` |
+| D-2 | `docs/PHASE_2_TRACKER.md` (PR #26) | `main` = `0244587`; #25 head `f2cf667`; production = "the project the live site uses" | `main` `b18b62e`; #25 head `178bac8` at the snapshot (since `74e3ca0`); the destination is now `fuznyurpfqgjricivopd` (2026-11-24) |
+| D-3 | PR #26 | Says nothing of #27 or the new production project | #27 merged 2026-11-24; at the snapshot PR #26 was 1 commit behind `main` (brought up to date in `8549da9`) |
 | D-4 | PR #26's description, and its first commit `8deef97` | "6 of 14 criteria met" | Withdrawn by the owner's corrections (`df57534`: 3 of 14); 2 of 14 on current evidence. *(This row first said no source existed; corrected 2026-11-25.)* |
 | D-5 | `README.md` (`main`), CI section | CI runs "type-check, lint, unit tests, production build, and `verify-build.mjs`" | `ci.yml` also runs `test:build-output` and `test:e2e`; `e2e-browsers.yml` adds Firefox and WebKit |
 | D-6 | `README.md` (`main`) | Lists `npm run test:staging` with no warning; sync off "until legal sign-off" | The owner prohibited `test:staging` (2026-11-22); decision I moved legal review after launch (only in unmerged #26) |
@@ -409,7 +439,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 
 | # | Fixed in | How |
 |---|---|---|
-| D-1, D-2, D-3, D-12 | #26 (`48e942c`) | The tracker's live status, T-rows, criteria (2 of 14) and approval register now match the evidence; it's up to date with `main` |
+| D-1, D-2, D-3, D-12 | #26 (`48e942c`, `3e0c93b`) | The tracker's live status, T-rows, criteria (2 of 14) and approval register now match the evidence; it's up to date with `main` |
 | D-4 | #26 | The tracker explains the withdrawn 6 of 14; #26's PR description is updated to 2 of 14 |
 | D-5, D-6 | #26 | `README.md`: the full CI steps, the safe staging checks, a warning not to run `test:staging`, decision I |
 | D-7, D-8 | #25 | `supabase/README.md`: migration 5 applied to staging; six migrations, each approved separately; the content-integrity ack |
@@ -420,31 +450,41 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 ---
 
 ## 17. Production migration runbook (summary; each step needs its own explicit approval)
-The detailed procedure lives in `docs/PHASE_2_RELEASE.md` §9. PR #26 has the reconciled version, but it isn't merged and predates the new-project plan. The new-project plan is in the private notes.
+**Where the authoritative procedure lives:**
+- **The tracker's "Current release procedure",** with `docs/PHASE_2_RELEASE.md` §9 for each step's details, is authoritative.
+- **On `main` both files are stale:** they predate the new-project plan.
+- **The reconciled versions are in PR #26** (head `3e0c93b`, unmerged). They target the new project and match the order below.
+- **Correction (2026-11-25):** the initial snapshot said #26 "predates the new-project plan". That was true of its head then, `baff61d`, not of `3e0c93b`.
+- **This summary follows #26's order** and adds detail from the private migration notes, marked as such.
 
-**This summary orders the steps; it authorises none of them.**
-1. **Clear the repository gates:** the owner approves and merges PR #25 (after step 3 is ready), so `main` carries all six migrations and the M1 sync fix.
-2. **Confirm the target.** Check `fuznyurpfqgjricivopd` in the dashboard address bar. **Never infer a project's identity from its Postgres version.** Re-run the read-only destination inventory and compare (expect 0 blockers, 0 conflicts).
-3. **Configure the new project's Auth** (F3 checklist): Site URL, redirect URLs, **"Confirm email" on**, minimum password length 10, rate limits, CAPTCHA order, SMTP and templates. Read them back.
-4. **Run the read-only preflight** (expect go: no users, no `public` relations, only `rls_auto_enable`, empty migration history).
-5. **Deploy `delete-account`** with its secret, gate off.
-6. **Apply migrations 1–6,** each approved separately, consecutively, in one window. Stop at the first error; each file is atomic.
-7. **Verify:**
+**This summary orders the steps; it authorises none of them.** Confirm the new project's ref, `fuznyurpfqgjricivopd`, in the dashboard address bar before every step. **Never infer a project's identity from its Postgres version.**
+1. **Staging rehearsal of migration 6** (T-28, T-29):
+   - the read-only revision 4 ownership check;
+   - staging "Confirm email" read back;
+   - the approved staging apply, with a `test:staging:verified-email` check that never enables sync (the check doesn't exist yet).
+2. **Configure the new project's Auth** (T-10, F3 checklist): Site URL, redirect URLs, **"Confirm email" on**, minimum password length 10, rate limits, CAPTCHA order, SMTP and templates. Read them back. This must come before steps 3 and 6.
+3. **Merge PR #25** (owner approval), so `main` carries all six migrations and the M1 sync fix.
+4. **Re-run the read-only destination inventory and the preflight** (T-08). Expect 0 blockers and 0 conflicts; no users, no `public` relations, only `rls_auto_enable`, and an empty migration history.
+5. **Deploy `delete-account`** with its secret, gate off (T-12).
+6. **Apply migrations 1–6** (T-13), each approved separately, consecutively, in one window. Stop at the first error; each file is atomic. Then verify:
    - the inventory again;
    - `supabase/inventory/schema_inventory.sql`;
    - the `app_config` seed rows;
    - all tables with RLS, and no `anon` or PUBLIC grants;
    - function ownership (the revision 4 query, adapted to the target).
-8. **Run the synthetic journeys** in the new project (sign-up, confirmation email, verified-email and under-18 gates, export, deletion), each approved.
-9. **Cut over:**
+
+   *From the private verification checklist (not a separate tracker step):* synthetic journeys in the new project (sign-up, confirmation email, the verified-email and under-18 gates, export, deletion), each approved.
+7. **Cut over** (T-30):
    - privately record the current values of the two GitHub secrets for rollback;
    - change `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
    - redeploy (a merge or manual dispatch, approved);
    - run the live checks.
-10. **Configure the deletion sweep** (T-15), then the production deletion stages 2–5 (T-17), each approved.
-11. **Notice and consent screens** (T-24), then the 7 email checks (E1).
-12. **Activate** (decision L): the accounts UI, then adult sync. Each is a code change plus a production switch, each approved. Under-18 sync stays off (T-23b).
-13. **Observe, then retire the old project** only with explicit authorisation. Never delete `dykhwagloqxawgfkmjmc` otherwise. Decide on a backup or erasure of its existing accounts.
+8. **Configure the deletion sweep** (T-15), then the production deletion stages 2–5 (T-17), each approved.
+9. **Notice and consent screens** (T-24), then the 7 email checks (T-22, E1).
+10. **Activate** (decision L): the accounts UI (T-21), then adult sync (T-23). Each is a code change plus a production switch, each approved. Under-18 sync stays off (T-23b).
+11. **Observe, then retire the old project** only with explicit authorisation. Never delete `dykhwagloqxawgfkmjmc` otherwise. Decide then on a backup or erasure of its existing accounts (T-09).
+
+*(Before 2026-11-25 this list put "merge #25" first and had no staging-rehearsal step. The steps are the same; only the order and the step references changed, to match the tracker.)*
 
 **Rollback:**
 - **Before the cutover:** the site is unchanged. Use `verified_email_down.sql` for migration 6 alone, or the guarded `student_accounts_down.sql` after `export_before_rollback.sql`.
@@ -455,7 +495,7 @@ The detailed procedure lives in `docs/PHASE_2_RELEASE.md` §9. PR #26 has the re
 ## 18. Phase 2 completion roadmap
 | Order | Work | Criteria it moves | Needs |
 |---|---|---|---|
-| 1 | Documentation PR: reconcile the tracker, README, `supabase/README.md` and `PHASE_2_RELEASE.md` with this audit (supersede or rebase #26) | 12, 13 | Engineering; owner merge |
+| 1 | Documentation PR: reconcile the tracker, README, `supabase/README.md` and `PHASE_2_RELEASE.md` with this audit (supersede or rebase #26). **Update 2026-11-25:** done in #26 (`3e0c93b`) and #25 (`74e3ca0`), both unmerged | 12, 13 | Engineering (done); owner merge |
 | 2 | Run the read-only staging ownership check (revision 4) | — (de-risks 9) | Owner runs it |
 | 3 | Verify staging "Confirm email"; apply migration 6 to staging; add the `test:staging:verified-email` check (it doesn't exist yet) | 1, 9 (staging) | Separate approvals |
 | 4 | Merge #25 | 1, 14 | Owner approval, after T-10 |
@@ -530,7 +570,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 ## 22. Owner action register
 | # | Action | Type | Authorises | Prerequisite |
 |---|---|---|---|---|
-| OA-1 | Review this audit; decide whether a documentation PR should supersede #26 | Review | Engineering drafts a PR | — |
+| OA-1 | Review this audit (#28) and the reconciled documentation in #26 and #25. *(At the snapshot: decide whether a documentation PR should supersede #26. Overtaken: #26 itself was reconciled on 2026-11-25)* | Review | Merging #26 and #28 (each deploys, no page change) | — |
 | OA-2 | Run the read-only revision 4 ownership check in the **staging** SQL Editor; share the result | Read-only, staging | Nothing else | Confirm `wtuifivaxnhdnfwjsayk` in the address bar |
 | OA-3 | Read back staging "Confirm email" | Read-only, staging | — | — |
 | OA-4 | Approve applying migration 6 to staging | Staging change | That one apply | OA-2, OA-3 |
@@ -538,7 +578,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | OA-6 | Authorise the new project's Auth settings (F3), then read back | Production setting | Those settings | — |
 | OA-7 | Approve merging #25 | Merge (deploys) | That merge | OA-6 |
 | OA-8 | Approve deploying `delete-account` and its secret to the new project | Production | That deployment | OA-7 |
-| OA-9 | Approve each of migrations 1–6 in the new project | Production | One migration each | OA-8 |
+| OA-9 | Approve each of migrations 1–6 in the new project | Production | One migration each | OA-8, and the re-run inventory and preflight (section 17, step 4) |
 | OA-10 | Approve the cutover (two GitHub secrets, redeploy) | Production | Cutover | OA-9 and verification |
 | OA-11 | Configure the deletion sweep (variables, secret) | Repository settings | Sweep | OA-9 |
 | OA-12 | Decide F7 (analytics and CAPTCHA switches) and F8 (hosting and headers) | Decisions | Follow-up PRs | — |
@@ -560,6 +600,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | 2026-11-24 to 25 | Staging function-ownership investigation; read-only query revisions 1–4 | This session; not run | B-3 |
 | **2026-11-25** | **This master audit** | `docs/ATLAS_MASTER_PROJECT_AUDIT.md` (#28) | Read-only; GitHub state re-verified |
 | 2026-11-25 | Reconciliation | #25 (`74e3ca0`), #26 (`3e0c93b`), #28 | The discrepancies in section 16 are fixed in the PRs shown there (unmerged). The "6 of 14" finding was corrected: its source is #26's first commit |
+| 2026-11-25 | Temporal accuracy pass | #28 | Snapshot labels added; "Current status" section (07:29 UTC); section 17 re-ordered to the tracker's procedure in #26; no historical finding removed |
 
 ---
 
