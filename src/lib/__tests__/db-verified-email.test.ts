@@ -202,6 +202,43 @@ describe("privileges", () => {
       expect(pol.some((p) => p.tablename === t && p.cmd === "DELETE"), t).toBe(false);
     }
   });
+
+  // The SELECT test above uses .find() and a loose pattern: a second, broader
+  // SELECT policy, or a weakened expression such as `true OR email_verified()`,
+  // would still pass it. Postgres ORs permissive policies together, so either
+  // would bypass the gate. This pins the exact shape.
+  const readPolicies = async () => (await db.query<{ tablename: string; policyname: string; permissive: string; roles: string; q: string }>(
+    "select tablename, policyname, permissive, roles::text as roles, regexp_replace(regexp_replace(coalesce(qual, ''), '\\s', '', 'g'), '(public|auth)\\.', '', 'g') as q from pg_policies where schemaname = 'public' and tablename = any($1) and cmd in ('SELECT', 'ALL')",
+    [STUDY as unknown as string[]])).rows;
+
+  it("each study table has exactly one read policy: permissive, for authenticated only, ownership AND email_verified()", async () => {
+    const pol = await readPolicies();
+    for (const t of STUDY) {
+      const mine = pol.filter((p) => p.tablename === t);
+      expect(mine.map((p) => p.policyname), t).toEqual([`${t}_own_select`]);
+      expect(mine[0].permissive, t).toBe("PERMISSIVE");
+      expect(mine[0].roles, t).toBe("{authenticated}");
+      expect(mine[0].q, t).toBe("((user_id=(SELECTuid()ASuid))AND(SELECTemail_verified()ASemail_verified))");
+    }
+  });
+
+  it("the read-policy guard catches a broader policy added beside the gated one", async () => {
+    await db.exec("begin");
+    try {
+      await db.exec("create policy bookmarks_wide_select on public.bookmarks for select to authenticated using (true)");
+      const added = (await readPolicies()).filter((p) => p.tablename === "bookmarks").map((p) => p.policyname).sort();
+      expect(added).toEqual(["bookmarks_own_select", "bookmarks_wide_select"]);
+    } finally {
+      await db.exec("rollback");
+    }
+    expect((await readPolicies()).filter((p) => p.tablename === "bookmarks")).toHaveLength(1);
+  });
+
+  it("email_verified() is security definer with search_path pinned to empty", async () => {
+    const f = await one<string>("select prosecdef::text as d, array_to_string(proconfig, ',') as c from pg_proc where oid = 'public.email_verified()'::regprocedure");
+    expect(f.d).toBe("true");
+    expect(f.c).toBe('search_path=""');
+  });
 });
 
 describe("rollback", () => {
