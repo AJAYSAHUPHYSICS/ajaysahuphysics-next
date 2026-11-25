@@ -1,6 +1,6 @@
 # Supabase: student accounts (Phase 2B)
 
-**Staging first. Never apply anything here to production** without the owner's written approval and the legal sign-off tracked privately. The production site keeps working with none of this applied: progress stays in the browser.
+**Staging first. Never apply anything here to production** without the owner's explicit approval of that exact step. Formal legal review comes after launch (owner decision I), so no legal approval is claimed. The production site keeps working with none of this applied: progress stays in the browser.
 
 ## Contents
 | Path | What |
@@ -9,17 +9,17 @@
 | `migrations/20261121000000_service_role_grants.sql` | Least privilege for the server role: SELECT on the Atlas tables, UPDATE of `app_config.value`, INSERT into `consents` (the verified parental-consent process). No table is created. |
 | `migrations/20261122000000_account_deletion_gate.sql` | The server-side deletion gate: `app_config` key `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()`, true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` replaced so it refuses with `deletion-disabled` while the gate is off. |
 | `migrations/20261122010000_deletion_rate_limit.sql` | Per-user deletion rate limits: the `deletion_rate` table (RLS on, no client access, server role read-only) and `deletion_rate_wait()` (server role only); `request_account_deletion()` replaced again, adding 5 calls per hour after the sign-in and gate checks. |
-| `migrations/20261123000000_deletion_log_sequence_privilege.sql` | Least privilege (T-14): removes every client privilege on `deletion_log_id_seq`. The blanket sequence grant in the first migration had given `authenticated` `USAGE` on it. **Not applied anywhere yet**; staging and production need the owner's approval |
+| `migrations/20261123000000_deletion_log_sequence_privilege.sql` | Least privilege (T-14): removes every client privilege on `deletion_log_id_seq`. The blanket sequence grant in the first migration had given `authenticated` `USAGE` on it. **Applied to staging on 2026-11-23** (owner decision F); not applied in production |
 | `config.toml` | Only the `delete-account` function's `verify_jwt = false` pin. Never run `supabase config push` with it. |
 | `migrations/20261124000000_require_verified_email_for_sync.sql` | Cloud copies need a verified email address (owner decisions, 2026-11-23). An unverified account can neither **read** nor **write** its cloud-sync rows: the six study tables' SELECT policies require `email_verified()`, and their INSERT and UPDATE policies call `sync_allowed()`, which requires it. `enable_sync()` returns `email-not-verified`. Export and account deletion stay available. **Limitation:** existing Auth accounts are trusted as Supabase records them, and while "Confirm email" is off Supabase confirms new users automatically. So production "Confirm email" must be on before this is relied on. **Not applied anywhere yet** |
 | `rollback/verified_email_down.sql` | Non-destructive rollback of `20261124000000` only (restores both functions, drops `email_verified()`; tested in PGlite) |
 | `rollback/student_accounts_down.sql` | **Destructive** rollback of all six migrations (owner approval only; tested in PGlite). |
 | `functions/delete-account/` | Edge Function that deletes a student's account after they request it (service-role key stays in Supabase secrets). `handler.ts` is the tested core. |
 | `tests/supabase-auth-shim.sql` | **Test-only** stand-in for Supabase's `auth` schema and roles, so the migration can be tested in PGlite. Never apply it to a real project. |
-| `rollback/export_before_rollback.sql` | **Read-only** export of pending deletion requests and the deletion log, to run **before** any rollback (T-18). The rollback refuses to run while either table has rows unless it starts with the export's `ack` (`set atlas.rollback_exported = '<pending>/<logged>';`), which must match the current counts. The output holds user ids: store it privately and encrypted. |
+| `rollback/export_before_rollback.sql` | **Read-only** export of pending deletion requests and the deletion log, to run **before** any rollback (T-18). The rollback refuses to run while either table has rows unless it starts with the export's `ack` (`set atlas.rollback_exported = '<ack>';`). The ack is `v2:<pending>/<logged>:<sha256>`, a hash of every field of every exported row, so it must match the current **content**, not just the counts. The rollback locks both tables and recomputes it before any drop (`db-rollback-guard.test.ts`). The output holds user ids: store it privately and encrypted. |
 
 ## Safety switches (all off)
-- `app_config.adult_sync_permitted` and `app_config.minor_sync_permitted` stay `'false'` until legal sign-off. Only the service role can change them.
+- `app_config.adult_sync_permitted` and `app_config.minor_sync_permitted` stay `'false'` until the owner authorises activation (decision L), each as its own production step. `minor_sync_permitted` also needs a verified parental-consent process, which doesn't exist yet. Only the service role can change them.
 - `app_config.account_deletion_enabled` (the deletion gate) stays `'false'` until the staged verification in `docs/PHASE_2_RELEASE.md` section 9, C.3 and the owner's explicit approval. Only staging's `test:staging:deletion-gate` opens it, on staging only and for that run, and it always closes it again. Opening it never enables sync.
 - Students can't change any of these switches. A signed-in student's attempt to update `app_config` is **deliberately denied**: there is no client policy or grant, and `test:staging:release` checks this every run.
 - `CLOUD_SYNC_ENABLED` in `src/lib/sync/policy.ts` is `false`, so the site never sends study data.
@@ -79,7 +79,7 @@ npx supabase@2.122.1 db push --linked                       # applies supabase/m
 5. **`20261123000000`** depends on `deletion_log` (from the first) and revokes client privileges on its sequence (T-14).
 6. **`20261124000000`** replaces `sync_allowed()` and `enable_sync()` (from the first) to require a verified email address.
 
-The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, the first five are applied (`20261123000000` on 2026-11-23, after a fresh dry run; history matches local); `20261124000000` isn't applied there. Production: none applied.
+The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the third and fourth:** that would create the account tables without the deletion gate and its rate limits. On staging, the first five are applied (`20261123000000` on 2026-11-23, after a fresh dry run; history matches local); `20261124000000` isn't applied there. Production: none applied.
 
 ### 5. Deploy the deletion function (staging)
 ```
@@ -128,7 +128,7 @@ npm run test:staging
 - the other account staying unaffected.
 
 **Safety:**
-- `supabase/staging/guard.mjs` refuses the production project, unconfirmed targets, and swapped or foreign keys.
+- `supabase/staging/guard.mjs` accepts **only** the staging project (an allow-list since #27). It refuses both production projects, any unknown project, unconfirmed targets, and swapped or foreign keys.
 - For the run, the suite sets `adult_sync_permitted='true'` **in staging only**, and restores the previous value at the end.
 - It deletes every account it creates.
 - Evidence goes to `staging-evidence/<run>.json` (git-ignored), with keys and tokens redacted.
