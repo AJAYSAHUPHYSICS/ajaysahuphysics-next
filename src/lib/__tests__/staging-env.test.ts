@@ -7,7 +7,10 @@ import { describe, expect, it } from "vitest";
 // Runs scripts/staging/staging-env.mjs against throwaway git repositories, so
 // the real file, git-ignore and env-file checks are exercised end to end.
 const SCRIPT = path.resolve(__dirname, "..", "..", "..", "scripts", "staging", "staging-env.mjs");
-const REF = "abcdefghijklmnopqrst";
+const REF = "wtuifivaxnhdnfwjsayk"; // staging: the only project the guard allows
+const CURRENT_PROD = "dykhwagloqxawgfkmjmc";
+const NEW_PROD = "fuznyurpfqgjricivopd";
+const UNKNOWN = "abcdefghijklmnopqrst";
 const PUBLIC = "sb_publishable_testPUBLICvalue123";
 const SECRET = "sb_secret_testSECRETvalue456";
 const good = [`STAGING_SUPABASE_URL=https://${REF}.supabase.co`, `STAGING_CONFIRM_REF=${REF}`, `STAGING_SUPABASE_PUBLISHABLE_KEY=${PUBLIC}`, `STAGING_SUPABASE_SECRET_KEY="${SECRET}"`].join("\n");
@@ -19,8 +22,8 @@ function repo(files: Record<string, string>, ignore = ".env*\n") {
   for (const [f, c] of Object.entries(files)) writeFileSync(path.join(dir, f), c);
   return dir;
 }
-const check = (dir: string) => {
-  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("STAGING_") && !k.startsWith("NEXT_PUBLIC_"))) as NodeJS.ProcessEnv;
+const check = (dir: string, extraEnv: Record<string, string> = {}) => {
+  const env = { ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith("STAGING_") && !k.startsWith("NEXT_PUBLIC_"))), ...extraEnv } as NodeJS.ProcessEnv;
   const r = spawnSync(process.execPath, [SCRIPT, "check"], { cwd: dir, env, encoding: "utf8" });
   return { code: r.status, out: r.stdout + r.stderr };
 };
@@ -55,11 +58,53 @@ describe("staging environment checker", () => {
     expect(r.code).toBe(1);
   }, 30_000);
 
-  it("refuses the production project", () => {
-    const prod = "dykhwagloqxawgfkmjmc";
-    const r = check(repo({ ".env.staging.local": good.split(REF).join(prod) }));
-    expect(r.out).toMatch(/PRODUCTION/);
+  it("refuses BOTH production projects, even when confirmed, and runs nothing", () => {
+    for (const prod of [CURRENT_PROD, NEW_PROD]) {
+      const r = check(repo({ ".env.staging.local": good.split(REF).join(prod) }));
+      expect(r.out, prod).toMatch(/PRODUCTION/);
+      expect(r.out, prod).toMatch(/nothing was run/);
+      expect(r.out, prod).not.toMatch(/testPUBLICvalue|testSECRETvalue/);
+      expect(r.code, prod).toBe(1);
+    }
+  }, 60_000);
+
+  it("refuses an unknown project, even when confirmed", () => {
+    const r = check(repo({ ".env.staging.local": good.split(REF).join(UNKNOWN) }));
+    expect(r.out).toMatch(/not the staging project/);
     expect(r.code).toBe(1);
+  }, 30_000);
+
+  it("refuses a missing or wrong confirmation", () => {
+    for (const confirm of ["", UNKNOWN, REF.toUpperCase()]) {
+      const r = check(repo({ ".env.staging.local": good.replace(`STAGING_CONFIRM_REF=${REF}`, `STAGING_CONFIRM_REF=${confirm}`) }));
+      expect(r.out, confirm).toMatch(/CONFIRM/);
+      expect(r.code, confirm).toBe(1);
+    }
+  }, 60_000);
+
+  it("warns when the local site's public URL points anywhere but staging, without printing the value", () => {
+    const site = (url: string) => check(repo({ ".env.staging.local": good, ".env.development.local": `NEXT_PUBLIC_SUPABASE_URL=${url}\n` }));
+    for (const prod of [CURRENT_PROD, NEW_PROD]) {
+      const r = site(`https://${prod}.supabase.co`);
+      expect(r.out, prod).toMatch(/\.env\.development\.local points the local site at a PRODUCTION project/);
+      expect(r.out, prod).not.toContain(prod);
+      expect(r.code, prod).toBe(0); // a warning: the staging test target itself is fine
+    }
+    for (const url of [`https://${UNKNOWN}.supabase.co`, `https://${REF.toUpperCase()}.supabase.co`, "http://localhost:54321"]) {
+      const r = site(url);
+      expect(r.out, url).toMatch(/\.env\.development\.local points the local site at a Supabase URL that is not the staging project/);
+      expect(r.out, url).not.toContain(url);
+      expect(r.code, url).toBe(0);
+    }
+    const ok = site(`https://${REF}.supabase.co`);
+    expect(ok.out).not.toMatch(/points the local site/);
+    expect(ok.out).toContain("staging-env: OK");
+  }, 120_000);
+
+  it("also warns for a shell NEXT_PUBLIC_SUPABASE_URL that isn't staging", () => {
+    const r = check(repo({ ".env.staging.local": good }), { NEXT_PUBLIC_SUPABASE_URL: `https://${NEW_PROD}.supabase.co` });
+    expect(r.out).toMatch(/Shell variable NEXT_PUBLIC_SUPABASE_URL points the local site at a PRODUCTION project/);
+    expect(r.out).not.toContain(NEW_PROD);
   }, 30_000);
 
   it("refuses swapped keys", () => {

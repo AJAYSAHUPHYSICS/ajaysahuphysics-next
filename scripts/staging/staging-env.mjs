@@ -15,7 +15,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { PRODUCTION_REF, classifyKey, stagingTarget } from "../../supabase/staging/guard.mjs";
+import { PRODUCTION_REFS, STAGING_REF, classifyKey, refFromUrl, stagingTarget } from "../../supabase/staging/guard.mjs";
 
 const ROOT = process.cwd();
 const FILE = path.join(ROOT, process.env.STAGING_ENV_FILE ?? ".env.staging.local");
@@ -45,6 +45,16 @@ const git = (...args) => {
 const problems = [];
 const warnings = [];
 const isServerKey = (v) => ["secret", "legacy-service-role"].includes(classifyKey(String(v ?? "").trim()).kind);
+/**
+ * Where the LOCAL SITE points (NEXT_PUBLIC_SUPABASE_URL). Staging checks need it on staging: warn for a
+ * production project, and for anything that isn't exactly the staging project URL. Never prints the value.
+ */
+function siteUrlWarning(source, value) {
+  const v = String(value ?? "");
+  if (PRODUCTION_REFS.some((r) => v.includes(r))) return `${source} points the local site at a PRODUCTION project. For staging checks use the staging URL in .env.development.local.`;
+  if (refFromUrl(v) !== STAGING_REF) return `${source} points the local site at a Supabase URL that is not the staging project (${STAGING_REF}). Browser checks would not test staging.`;
+  return null;
+}
 
 // 1. The staging file: present, ignored, untracked.
 let fileVars = {};
@@ -65,11 +75,18 @@ for (const f of NEXT_ENV_FILES) {
   const vars = parseEnv(fs.readFileSync(p, "utf8"));
   for (const [k, v] of Object.entries(vars)) {
     if (isServerKey(v)) problems.push(`${f} contains a SECRET/service-role key in ${k}. Next.js loads ${f}; remove it and rotate that key.`);
-    if (k === "NEXT_PUBLIC_SUPABASE_URL" && v.includes(PRODUCTION_REF)) warnings.push(`${f} points the local site at the PRODUCTION project. For staging checks use the staging URL in .env.development.local.`);
+    if (k === "NEXT_PUBLIC_SUPABASE_URL") {
+      const w = siteUrlWarning(f, v);
+      if (w) warnings.push(w);
+    }
   }
   if (f === ".env.local" && vars.NEXT_PUBLIC_SUPABASE_URL) warnings.push(".env.local is also loaded by `npm run build`; prefer .env.development.local (dev server only) for staging browser checks.");
 }
 for (const [k, v] of Object.entries(process.env)) if (k.startsWith("NEXT_PUBLIC_") && isServerKey(v)) problems.push(`Shell variable ${k} holds a SECRET/service-role key.`);
+if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  const w = siteUrlWarning("Shell variable NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
+  if (w) warnings.push(w);
+}
 
 // 3. The target and keys.
 const env = { ...fileVars, ...Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith("STAGING_"))) };
