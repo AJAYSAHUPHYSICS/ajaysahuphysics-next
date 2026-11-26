@@ -13,20 +13,21 @@ import { readMeta, syncOnce, type SyncResult } from "@/lib/sync/engine";
 import { supabaseRemote } from "@/lib/sync/supabase-remote";
 import FrameGuard from "@/components/FrameGuard";
 import {
-  AGE_BANDS, EXAM_TARGETS, PROFILE_COLUMNS, SELF_CONSENT_KINDS,
+  EXAM_TARGETS, PROFILE_COLUMNS, SELF_CONSENT_KINDS,
   consentChanges, consentsComplete, currentConsents, profileRow,
   type ConsentRecord, type ConsentState, type ProfileInput, type SelfConsentKind,
 } from "@/lib/account/profile-consent";
 
 const EXAM_LABELS: Record<(typeof EXAM_TARGETS)[number], string> = { boards: "Board exams", neet: "NEET", "jee-main": "JEE Main", "jee-advanced": "JEE Advanced" };
-const AGE_LABELS: Record<(typeof AGE_BANDS)[number], string> = { "18-plus": "18 or older", "under-18": "Under 18" };
+// Owner decisions (2026-11-26): no Terms of Use consent (no such document exists yet), and the
+// privacy acknowledgement says plainly that the notice is a draft pending legal review.
+// This wording is not legal approval; it needs the owner's sign-off before launch (decision J).
 const CONSENT_LABELS: Record<SelfConsentKind, string> = {
-  terms: "I accept the terms of use.",
-  privacy: "I have read the privacy notice.",
+  privacy: "I have read the privacy notice. It is a draft, pending legal review.",
   "cloud-sync": "Store a copy of my study progress with my account (cloud copies). I can withdraw this at any time.",
 };
-const EMPTY_PROFILE: ProfileInput = { displayName: "", classLevel: "", examTargets: [], ageBand: "" };
-const NO_CONSENTS: ConsentState = { terms: null, privacy: null, "cloud-sync": null };
+const EMPTY_PROFILE: ProfileInput = { displayName: "", classLevel: "", examTargets: [] };
+const NO_CONSENTS: ConsentState = { privacy: null, "cloud-sync": null };
 
 const card = "rounded-lg border border-navy/10 bg-white p-6 sm:p-7";
 const h2 = "font-display text-xl text-navy";
@@ -37,11 +38,8 @@ const btnDanger = "inline-flex items-center rounded-md border border-red-700/30 
 const ENABLE_REASONS: Record<string, string> = {
   enabled: "Cloud copies are on for this account.",
   "no-profile": "Save your profile first.",
-  "age-band-required": "Tell us your age band first.",
-  "consent-required": "Please review and accept the privacy notice and cloud-copy consent first.",
+  "consent-required": "Please review the privacy notice and accept the cloud-copy consent first.",
   "not-available-yet": "Cloud copies aren't available yet.",
-  "not-available-for-under-18": "Cloud copies aren't available for students under 18 yet.",
-  "parental-consent-required": "A parent or guardian needs to give verified consent first.",
   "deletion-pending": "Your account is being deleted.",
 };
 
@@ -69,7 +67,7 @@ export default function AccountClient() {
   const [profile, setProfile] = useState<ProfileInput>(EMPTY_PROFILE);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [consents, setConsents] = useState<ConsentState>(NO_CONSENTS);
-  const [wanted, setWanted] = useState<Record<SelfConsentKind, boolean>>({ terms: false, privacy: false, "cloud-sync": false });
+  const [wanted, setWanted] = useState<Record<SelfConsentKind, boolean>>({ privacy: false, "cloud-sync": false });
 
   const userId = session.status === "signed-in" ? session.session.user.id : null;
   // Profile and consents only matter for cloud copies, so they stay dormant with the code switch off.
@@ -94,7 +92,7 @@ export default function AccountClient() {
 
   // The student's own profile and consents (RLS: own rows only).
   type Loaded = { profile: ProfileRowRead | null; consents: ConsentRecord[] } | null;
-  type ProfileRowRead = { display_name: string | null; class_level: number | null; exam_targets: string[] | null; age_band: string | null };
+  type ProfileRowRead = { display_name: string | null; class_level: number | null; exam_targets: string[] | null };
   async function fetchAccountRecords(): Promise<Loaded> {
     if (!supabase || !userId) return null;
     const [p, c] = await Promise.all([
@@ -108,10 +106,10 @@ export default function AccountClient() {
     if (!r) return setNotice("We couldn't load your profile right now. Please try again later.");
     setHasProfile(r.profile !== null);
     const row = r.profile;
-    setProfile(row ? { displayName: row.display_name ?? "", classLevel: row.class_level ? String(row.class_level) : "", examTargets: row.exam_targets ?? [], ageBand: row.age_band ?? "" } : EMPTY_PROFILE);
+    setProfile(row ? { displayName: row.display_name ?? "", classLevel: row.class_level ? String(row.class_level) : "", examTargets: row.exam_targets ?? [] } : EMPTY_PROFILE);
     const state = currentConsents(r.consents);
     setConsents(state);
-    setWanted({ terms: state.terms === true, privacy: state.privacy === true, "cloud-sync": state["cloud-sync"] === true });
+    setWanted({ privacy: state.privacy === true, "cloud-sync": state["cloud-sync"] === true });
   }
   const reloadAccountRecords = () => fetchAccountRecords().then(applyAccountRecords, () => applyAccountRecords(null));
 
@@ -126,13 +124,13 @@ export default function AccountClient() {
     const r = profileRow(profile);
     if (!r.ok) return setNotice(r.errors.join(" "));
     setBusy(true);
-    // Only the four columns students may write; user_id comes from auth.uid().
+    // Only display_name, class_level and exam_targets; user_id comes from auth.uid(). No age is asked for.
     const { error } = hasProfile
       ? await supabase.from("profiles").update(r.row).eq("user_id", userId)
       : await supabase.from("profiles").insert(r.row);
     setBusy(false);
     if (error) return setNotice("We couldn't save your profile. Please try again.");
-    setNotice(r.row.age_band === "under-18" ? "Profile saved. Cloud copies stay off for students under 18." : "Profile saved.");
+    setNotice("Profile saved.");
     await reloadAccountRecords();
   }
 
@@ -259,7 +257,7 @@ export default function AccountClient() {
       {accountRecords ? (
         <section className={card} aria-labelledby="acct-profile">
           <h2 id="acct-profile" className={h2}>Your profile</h2>
-          <p className="mt-2 text-sm text-slate">Cloud copies need your age band. The other fields are optional.</p>
+          <p className="mt-2 text-sm text-slate">Every field is optional. Save once to set up your profile.</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="text-sm text-navy">
               <span className="font-semibold">Name (optional)</span>
@@ -285,18 +283,6 @@ export default function AccountClient() {
               ))}
             </div>
           </fieldset>
-          <fieldset className="mt-4">
-            <legend className="text-sm font-semibold text-navy">Your age</legend>
-            <div className="mt-2 flex flex-wrap gap-4">
-              {AGE_BANDS.map((a) => (
-                <label key={a} className="inline-flex items-center gap-2 text-sm text-navy">
-                  <input type="radio" name="age-band" value={a} checked={profile.ageBand === a} onChange={() => setProfile({ ...profile, ageBand: a })} />
-                  {AGE_LABELS[a]}
-                </label>
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-slate">Cloud copies aren&apos;t available for students under 18 yet. Choosing &ldquo;Under 18&rdquo; turns them off.</p>
-          </fieldset>
           <button type="button" className={`mt-4 ${btn}`} disabled={busy} onClick={saveProfile}>Save profile</button>
         </section>
       ) : null}
@@ -314,7 +300,7 @@ export default function AccountClient() {
             ))}
           </div>
           <button type="button" className={`mt-4 ${btn}`} disabled={busy} onClick={saveConsents}>Save my choices</button>
-          {!consentsComplete(consents) ? <p className="mt-2 text-xs text-slate" role="note">Cloud copies need all three.</p> : null}
+          {!consentsComplete(consents) ? <p className="mt-2 text-xs text-slate" role="note">Cloud copies need both.</p> : null}
         </section>
       ) : null}
 
@@ -322,7 +308,7 @@ export default function AccountClient() {
         <h2 id="acct-sync" className={h2}>Cloud copy of your progress</h2>
         {!CLOUD_SYNC_ENABLED ? (
           <p className="mt-3 text-slate leading-relaxed">
-            Not available yet. We&apos;re completing a privacy and legal review (many of our students are under 18) before any study progress is stored online. Until then, everything stays in this browser only.
+            Not available yet. We&apos;re completing a privacy and legal review before any study progress is stored online. Until then, everything stays in this browser only.
           </p>
         ) : session.status !== "signed-in" ? (
           <p className="mt-3 text-slate">Sign in to manage cloud copies.</p>
