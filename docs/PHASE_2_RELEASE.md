@@ -2,8 +2,11 @@
 
 Technical release notes for the Phase 2 student platform. Legal and privacy review material is kept privately. **Cloud sync of study data stays OFF**, in code (`CLOUD_SYNC_ENABLED = false`) and in the database (`app_config` switches `'false'`), until its release gates pass (tracker T-23) and the owner's launch conditions are met (decision L). **Formal legal review is scheduled after launch** (owner decision I, 2026-11-23): an accepted legal and privacy risk. The privacy notice stays labelled "Draft notice, pending legal review", and no legal approval or compliance is claimed.
 
-**Release status (2026-11-25):**
-- **Deployed:** `main` = production = `b3f7168` (#26, the documentation reconciliation, merged 2026-11-25; deploy run `45570635616`, success). Before it: `b18b62e` (#27, the staging guard allow-list; run `45378204301`). All Phase 2 PRs up to #27, plus #26, are merged and deployed; the account code is live but **dormant**:
+**Release status (2026-11-25; age policy updated 2026-11-26):**
+- **Deployed** (verified 2026-11-25 09:12 UTC): `main` = production = `b9527e2`.
+  - That's #29, the tracker correction, merged 2026-11-25 09:04 UTC. Deploy run `45581909462`: success, with both its `build` and `deploy` jobs.
+  - Before it: `b3f7168` (#26, the documentation reconciliation; run `45570635616`); `b18b62e` (#27, the staging guard allow-list; run `45378204301`).
+  - The Phase 2 PRs through #27, plus #26 and #29, are merged and deployed; #25 isn't. The account code is live but **dormant**:
   - login is hidden (H1);
   - account deletion shows as not set up, with the Contact-page fallback;
   - cloud sync is off;
@@ -11,26 +14,28 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
 - **Supabase projects** (details in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md), Live status):
   - **the Phase 2 database goes to a new production project,** `fuznyurpfqgjricivopd`, as a fresh start (owner decision, 2026-11-24): no old Auth account or data is copied;
   - **the current project,** `dykhwagloqxawgfkmjmc` (the one the live site's build uses), has a legacy schema with no application rows, and existing Auth accounts. It's only read until its approved retirement;
-  - **both owner-run read-only inventories were done on 2026-11-24.** Neither project has any of the six migrations;
+  - **both owner-run read-only inventories were done on 2026-11-24.** Neither project has any of the Phase 2 migrations (seven since 2026-11-26);
   - **staging** has the first five.
-- **What's open:**
+- **Open as of 2026-11-25 09:12 UTC:**
   - #25: cloud sync needs a verified email (the sixth migration), plus the M1 sync fix;
-  - #28: the master audit;
-  - this correction to the tracker and this document's status lines.
+  - #28: the master audit, which also carries this status update.
+- **Open as of 2026-11-26:** #25 at `7847cda` (now also migration 7: no age rules, decision P), #30 at `fe2a2d8` (the profile and consent forms, with no age question and no terms consent) and #28. CI is green on #25 and #30.
 
-  (#26, which reconciled the tracker, this document and `README.md`, was merged on 2026-11-25 as `b3f7168`.)
+  **Merged on 2026-11-25:**
+  - #26 reconciled the tracker, this document and `README.md` (`b3f7168`);
+  - #29 corrected their status lines (`b9527e2`).
 - **Blocked or awaiting the owner,** in procedure order:
-  - the staging rehearsal of migration 6 (ownership check, then the approved apply);
+  - the staging rehearsal of migrations 6 and 7 (ownership check, then the approved apply);
   - the new project's Auth settings with "Confirm email" on (before #25 merges);
   - merging #25;
   - the `delete-account` function and its secret;
-  - each of the six migrations, approved separately;
+  - each of the seven migrations, approved separately;
   - the cutover of the site to the new project;
   - the deletion sweep;
   - the 7 email checks;
   - activation.
 
-  **Under-18 sync is blocked separately**: no verified parental-consent process exists.
+  **No age limit (owner decision P, 2026-11-26):** there's no separate under-18 block. Migration 7 (#25, open) removes the age rules and the parental-consent requirement from the database (it deletes no consent records; new parental consents are refused), and #30 (open) removes the age question. *Superseded:* until then, under-18 sync was blocked separately until a verified parental-consent process existed (decision O).
 - **Decided:** F13. `/privacy` is published as a labelled draft, `noindex`, outside the sitemap.
 - **Not done yet:** the production stages of the deletion verification. **No production verification, production readiness or legal approval is claimed here.**
 
@@ -40,7 +45,7 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
   - `minor_sync_permitted` has never been enabled.
   - `adult_sync_permitted` was set to `'true'` on staging only once: temporarily, during the 2026-11-21 `npm run test:staging` run, which restored it. That suite is no longer used.
   - The deletion gate is opened on staging only by `test:staging:deletion-gate`, for its own run, and it always closes it again.
-- Neither production project has any of the six migrations applied, and no production Supabase or Auth setting has been changed. Staging has the first five; the sixth (#25) isn't applied anywhere.
+- Neither production project has any of the seven migrations applied, and no production Supabase or Auth setting has been changed. Staging has the first five; the sixth and seventh (#25) aren't applied anywhere.
 
 Each finding is tracked in [`PHASE_2_TRACKER.md`](PHASE_2_TRACKER.md).
 
@@ -111,23 +116,24 @@ Each merge into `main` deploys the site. #7, #10 and #15 belong together: #10 ho
 | `20261122000000_account_deletion_gate.sql` (#15) | The deletion gate: `app_config` `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()` is true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` refuses with `deletion-disabled` while it's off |
 | `20261122010000_deletion_rate_limit.sql` (#15) | Per-user rate limits: `deletion_rate` table (RLS on, no client access) and `deletion_rate_wait()` (server role only); `request_account_deletion()` allows 5 calls per hour |
 
-**Deployment order:** six migrations, in filename order:
+**Deployment order:** seven migrations, in filename order:
 - the four above;
 - then `20261123000000_deletion_log_sequence_privilege.sql` (T-14);
-- then `20261124000000_require_verified_email_for_sync.sql` (verified email, arriving with #25).
+- then `20261124000000_require_verified_email_for_sync.sql` (verified email, arriving with #25);
+- then `20261126000000_remove_age_restrictions.sql` (no age rules, decision P, also arriving with #25).
 
 They run **after the `delete-account` function is deployed**, with **each one approved separately** and applied consecutively in one maintenance window (section 9, C.2). **Never leave the first two applied without the next two.** That would create the account tables without the deletion gate, while public sign-ups are on (decision B).
 
 `20261120000000_student_accounts.sql` creates:
 - **Tables:**
   - `app_config` (launch switches);
-  - `profiles` (self-declared age band);
+  - `profiles` (an optional self-declared age band; no longer asked for or used since decision P, 2026-11-26);
   - `consents` (append-only);
   - `bookmarks`, `checklist_items`, `revision_rounds`, `mistakes`, `goals`, `streaks`;
   - `deletion_requests`, `deletion_log` (SHA-256 of the user id, no other personal data).
 - **RLS on every table:** students read and write only their own rows. Logged-out visitors get no access.
 - **Consent gate:** `sync_allowed()` is re-checked on every write, so the launch switches, consent withdrawal, a new notice version and a pending deletion all take effect immediately.
-- **Under-18s** also need the minors switch and server-verified parental consent.
+- **Under-18s** also needed the minors switch and server-verified parental consent. **Migration 7 removes this** (decision P): no age rule remains, and new parental consents are refused from every role.
 - **Column-level grants on `profiles`.**
 - **Row limits** that allow upserts of existing rows.
 - **Export and two-step deletion functions.**
@@ -169,7 +175,7 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - anonymous denial (12 tables, 5 functions);
   - sign-in, generic errors, session refresh, and sign-out revoking the refresh token;
   - profile and consent rules;
-  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
+  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18: "not-available-for-under-18" (that's the check as run on migrations 1–5; #25's version expects migration 7, and the same "not-available-yet" for every student); uploads refused on all 6 study tables; a student can't set `sync_enabled`);
   - the denied student-side UPDATE attempt against `app_config` (above): a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server denies it and the value stays `'false'`. A unit test (`staging-release-check.test.ts`) enforces on the script's source that this is the only `app_config` UPDATE, and that the server key makes none;
   - A-versus-B isolation;
   - export;
@@ -187,7 +193,7 @@ Project `ajaysahuphysics-staging`. Setup and the verification record are in [`su
   - export and account deletion remain available to it;
   - profiles and consents keep ownership-only policies.
   - **Accepted limitation:** existing Supabase Auth accounts are trusted as they stand (decision M). While "Confirm email" is off, Supabase marks new users confirmed at sign-up without checking the address. So **production "Confirm email" must be on before #25 is merged and before the production migrations** (section 9, A).
-  - **Under-18 cloud sync is separately blocked:** no verified parental-consent process exists. That doesn't block adult sync.
+  - **No age rule** (migration 7, #25; owner decision P, 2026-11-26): under-18 students have the same cloud-copy eligibility as everyone, and parental consent is neither required nor recorded. *Superseded:* under-18 cloud sync was separately blocked (decision O).
 - **Content Security Policy** on every page; no `unsafe-inline` or `unsafe-eval` for scripts; verified in a browser with an injection control.
 - **RLS, the consent gate and least-privilege grants**, as in section 3.
 - **Authentication:**
@@ -260,7 +266,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 3. **Merge #25,** so the sixth migration and the M1 sync fix are on `main`.
 4. **C.1a:** re-run the new project's read-only inventory and preflight just before the first migration. Expect an empty project apart from the platform function `rls_auto_enable()`, and an empty migration history.
 5. **C.2.1:** deploy the `delete-account` function and set its secret, **before the migrations**.
-6. **C.2.4:** the **six migrations, each separately approved**, applied consecutively in one window, then the post-migration verification.
+6. **C.2.4:** the **seven migrations, each separately approved**, applied consecutively in one window, then the post-migration verification.
 7. **Cutover:**
    - record the two GitHub secrets' current values privately;
    - point `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` at the new project;
@@ -269,7 +275,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
    Rollback is restoring the two values and redeploying.
 8. **C.2.5 and C.3:** the sweep scheduler, then the staged deletion verification.
 9. **The privacy notice and consent screens,** then the 7 email checks.
-10. **D:** activation. The accounts UI and adult cloud sync go first; **under-18 sync stays independently blocked** until a verified parental-consent process exists.
+10. **D:** activation. The accounts UI, then cloud sync for every student (no age limit, decision P). *Superseded 2026-11-26:* under-18 sync was to stay independently blocked until a verified parental-consent process existed.
 11. **Retirement** of the current project, only with its own approval after an observation period. The C.1b backup becomes an optional safeguard at that point.
 
 **Not gates:**
@@ -373,11 +379,11 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
    1. Deploy `delete-account` with `--use-api` (`verify_jwt` off comes from `supabase/config.toml`; `--no-verify-jwt` is harmless to add) and set `ATLAS_DELETION_SWEEP_SECRET` (no `ATLAS_ALLOWED_ORIGINS`) **before** the migrations. Without the tables, the function can't read the gate, so it refuses requests (503) and changes nothing.
    2. Confirm the production server key (new or legacy) is available to the function.
    3. **Check that the release stack (#7, #10, #15) is merged and deployed**, so the site has the F4 fix and follows the gate. The gate itself is part of the migrations.
-   4. **The six migrations, each separately approved, one at a time:**
-      - `20261120000000`, `20261121000000`, `20261122000000`, `20261122010000`, `20261123000000` (T-14), `20261124000000` (verified email).
+   4. **The seven migrations, each separately approved, one at a time:**
+      - `20261120000000`, `20261121000000`, `20261122000000`, `20261122010000`, `20261123000000` (T-14), `20261124000000` (verified email), `20261126000000` (no age rules, decision P).
       - **Why one at a time needs care:** `db push` applies every pending migration at once. So for approval *k*, run from an isolated directory linked to the verified production ref whose `supabase/migrations/` holds **only migrations 1 to *k***, byte-identical to `main`.
       - `db push --dry-run` must list **exactly migration *k***. Then `db push --linked`, and verify before the next approval.
-      - Run all six in one maintenance window. Never leave the first two applied without the next two.
+      - Run all seven in one maintenance window. Never leave the first two applied without the next two.
    5. Configure the sweep scheduler: set `vars.ATLAS_SWEEP_URL`, `secrets.ATLAS_DELETION_SWEEP_SECRET` (the same value as the function's), then `vars.ATLAS_DELETION_SWEEP_ENABLED = 'true'`. With the gate off and no requests, runs pass quietly. Check that the failure email reaches the owner by running it once with a deliberately wrong secret, which must fail.
    6. Verify, leaving the switches `'false'` and the deletion gate off.
    7. **Follow C.3 to verify deletion and, only with the owner's approval, open the gate.**
@@ -425,14 +431,14 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
    - CAPTCHA, if used: site key in the build **first** (which requires F7), then Supabase bot protection. The other way round, every login and sign-up fails.
 
 **D. Activation.**
-- **Adult cloud sync** stays off until its gates pass:
+- **Cloud sync** (every student, decision P) stays off until its gates pass:
   - "Confirm email" on;
-  - all six migrations applied and verified;
+  - all seven migrations applied and verified;
   - the accounts UI live;
   - the release checks.
 
   Activation then follows decision L.
-- **Under-18 cloud sync is blocked independently:** it needs a verified parental-consent process, which doesn't exist. It doesn't hold back adult sync.
+- *Superseded 2026-11-26 (decision P):* under-18 cloud sync was blocked independently until a verified parental-consent process existed. There's no separate under-18 activation now.
 - Formal legal review is after launch (decision I).
 
  Opening the deletion gate doesn't enable cloud sync. Enabling sync means three steps: set the `app_config` switches, set `CLOUD_SYNC_ENABLED = true` in a reviewed PR, and deploy.
@@ -442,19 +448,20 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
   - **Revert in reverse merge order.** With the recommended collapsed merge, the stack is one squash commit, so revert that. Otherwise, revert #15, then #10, then #7.
   - **Don't revert #16 on its own** while the accounts UI must stay hidden. That brings back `main`'s login button.
   - **Re-merging after a revert needs a revert of the revert.** Git treats the reverted commits as already merged, so merging the same branch again brings nothing back.
-- **Database:** all six migrations are additive. [`supabase/rollback/student_accounts_down.sql`](../supabase/rollback/student_accounts_down.sql) removes exactly what they created, leaving the `auth` schema untouched (tested in `db-rollback.test.ts`). **It is destructive:** use it only with the owner's approval, after an export. For a partly completed release (F11):
+- **Database:** all seven migrations are additive. [`supabase/rollback/student_accounts_down.sql`](../supabase/rollback/student_accounts_down.sql) removes exactly what they created, leaving the `auth` schema untouched (tested in `db-rollback.test.ts`). **It is destructive:** use it only with the owner's approval, after an export. For a partly completed release (F11):
   - **Pending deletions and the deletion record:** the script drops `deletion_requests` (obligations) and `deletion_log` (evidence). It **refuses to run while either has rows**, unless it starts with the ack from `supabase/rollback/export_before_rollback.sql` that matches the current records (T-18). Store that export privately, and complete every pending request from it afterwards.
   - **The sixth migration alone:** its own non-destructive rollback script, which arrives with #25 (`verified_email_down.sql`, in the rollback folder), undoes only `20261124000000`.
+  - **The seventh migration alone:** `remove_age_restrictions_down.sql` (arriving with #25) restores the migration-6 functions and privileges exactly and drops `consents_no_parental`. **Run it before `verified_email_down.sql`**, which refuses to run while migration 7 is applied. Neither touches data.
   - **Partly applied migrations:** the script uses `IF EXISTS` throughout, so it works however far they got. Whether the CLI wraps each migration file in its own transaction has not been verified.
   - It also drops `deletion_rate`, `account_deletion_enabled()` and `deletion_rate_wait()` (tested).
-  - Afterwards, remove the **six** migration rows (whichever are applied) from `supabase_migrations.schema_migrations`, as described in the script.
+  - Afterwards, remove the **seven** migration rows (whichever are applied) from `supabase_migrations.schema_migrations`, as described in the script.
 - **Function:** `supabase functions delete delete-account`, or redeploy the previous version. If it's left deployed after a database rollback, it refuses requests or reports them pending, and changes nothing.
 
 ## 11. Known limitations and open items
 - **Formal legal review (DPDP)** is scheduled **after launch** (owner decision I, 2026-11-23). That's an accepted legal and privacy risk: no legal approval or compliance is claimed, and the notice stays a labelled draft. Also pending:
-  - a verified parental-consent process: **under-18 sync is blocked until it exists**; adult sync isn't;
+  - the legal position of decision P (no age limit, 2026-11-26): whether processing under-18 students' data without verified parental consent is lawful under the DPDP Act 2023 is a question for counsel. *Superseded:* "a verified parental-consent process: under-18 sync is blocked until it exists";
   - a decision on GA4 for under-18 visitors;
-  - the final privacy notice. The owner decided F13 on 2026-11-23: `/privacy` is live as a labelled draft, not indexed; the final wording needs counsel.
+  - the final privacy notice. Its draft still mentions parental consent for under-18s, which conflicts with decision P; a proposal is in [`PRIVACY_NOTICE_AGE_PROPOSAL.md`](PRIVACY_NOTICE_AGE_PROPOSAL.md), not applied. The owner decided F13 on 2026-11-23: `/privacy` is live as a labelled draft, not indexed; the final wording needs counsel.
 - **Built in #15 and deployed with #7 (`9019a1c`), inactive in production** (no account database):
   - the sweep scheduler (inert until configured);
   - the server-side deletion gate;
@@ -469,7 +476,7 @@ The required `ci` check doesn't require branches to be up to date with `main` (F
 - **Build switches:** the analytics and CAPTCHA switches aren't wired into `deploy.yml` (F7).
 - **Manual staging checks, NOT VERIFIED:** the 7 inbox checks (confirmation and reset emails, link reuse, another browser, repeat sign-up, logout, account page) need a real inbox (checklist in `supabase/README.md`). No result has been recorded.
 - **Not tested, on purpose:** cloud sync with sync on (two devices, merging, tombstones, large syncs). The old `npm run test:staging` covered it by enabling sync in staging, and it is no longer run.
-- **Age band:** self-declared, and changeable.
+- **Age band:** no longer asked for (#30) or used (#25, migration 7). The column stays, unused; existing values aren't deleted.
 - **Dependencies:** 1 moderate `npm audit` advisory, in a build-time tool (F13).
 
 ## 12. Pre-release audit (2026-11-21)

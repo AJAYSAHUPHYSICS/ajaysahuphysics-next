@@ -136,7 +136,7 @@ Every migration ships with a matching `down` migration. The client sync can be t
 | D-1 | Approve installing `next@16.4.6` (Phase 1) | Phase 1 |
 | D-2 | Provide or approve the 3 missing PDFs (EMI, Wave Optics, Semiconductors), or ship with the link hidden | Phase 1 |
 | D-3 | Legal entity/contact details for the policies; lawyer review | Phase 3 |
-| D-4 | DPDP minors approach (age gate / parental consent / analytics for minors) | Phase 3, blocks the Phase 4 launch |
+| D-4 | DPDP minors approach (age gate / parental consent / analytics for minors). **Update (2026-11-26):** the owner decided there's no age limit, so no age gate and no parental-consent process (decision P, `docs/PHASE_2_TRACKER.md`). Analytics for minors and the legal position remain for counsel | Phase 3, blocks the Phase 4 launch |
 | D-5 | Live Supabase inspection method (I give you SQL to run, or you link the CLI) plus a staging project | Phase 4 |
 | D-6 | Which stores sync (proposed: 6 high-value; device-only: recently viewed, searches, reading progress) | Phase 4 |
 | D-7 | CAPTCHA vendor (Turnstile recommended: free, privacy-friendly) | Phase 4 |
