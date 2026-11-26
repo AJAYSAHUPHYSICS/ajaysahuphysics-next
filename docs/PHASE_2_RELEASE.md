@@ -35,7 +35,7 @@ Technical release notes for the Phase 2 student platform. Legal and privacy revi
   - the 7 email checks;
   - activation.
 
-  **No age limit (owner decision P, 2026-11-26):** there's no separate under-18 block. Migration 7 (#25, open) removes the age rules and parental consent from the database, and #30 (open) removes the age question. *Superseded:* until then, under-18 sync was blocked separately until a verified parental-consent process existed (decision O).
+  **No age limit (owner decision P, 2026-11-26):** there's no separate under-18 block. Migration 7 (#25, open) removes the age rules and the parental-consent requirement from the database (it deletes no consent records; new parental consents are refused), and #30 (open) removes the age question. *Superseded:* until then, under-18 sync was blocked separately until a verified parental-consent process existed (decision O).
 - **Decided:** F13. `/privacy` is published as a labelled draft, `noindex`, outside the sitemap.
 - **Not done yet:** the production stages of the deletion verification. **No production verification, production readiness or legal approval is claimed here.**
 
