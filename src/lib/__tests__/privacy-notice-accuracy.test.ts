@@ -49,6 +49,13 @@ describe("privacy notice matches the site's behaviour", () => {
     expect(text).toMatch(/To delete your account, ask us through the/);
   });
 
+  it("describes cloud copies as the product builds them: verified email and consent, no parental step (decision P)", () => {
+    expect(text).not.toMatch(/parent or guardian/);
+    expect(text).not.toMatch(/under 18/i);
+    expect(text).toMatch(/it will need a verified email address and your consent, which you can withdraw at any time/);
+    expect(text).toMatch(/These would never be copied: activity history, searches, reading position and recently viewed pages/);
+  });
+
   it("stays a clearly labelled draft and is not indexed (owner decision F13)", () => {
     expect(text).toMatch(/Draft notice, pending legal review/);
     expect(text).toMatch(/title: "Privacy notice \(draft\)"/);
