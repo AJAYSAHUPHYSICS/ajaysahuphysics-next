@@ -20,7 +20,7 @@ const CONFLICT: Record<string, string> = {
 export function supabaseRemote(client: SupabaseClient, userId: string): RemoteStore {
   return {
     // public.sync_allowed() is evaluated in the database for the caller's JWT (verified email, consents,
-    // age band, deletion state). Only an explicit boolean true allows a sync; errors and other values don't.
+    // deletion state; no age rule). Only an explicit boolean true allows a sync; errors and other values don't.
     async syncAllowed() {
       const { data, error } = await client.rpc("sync_allowed");
       return !error && data === true;

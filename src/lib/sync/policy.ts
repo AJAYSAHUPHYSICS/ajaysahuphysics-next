@@ -8,7 +8,7 @@
 //     data and the sync-meta key is never written;
 //   - the account page explains that cloud copies aren't available yet.
 // Even when true, the database decides per student (enable_sync(),
-// consent records, owner launch switches, under-18 rules). The browser
+// consent records, the owner launch switch; no age rule). The browser
 // can't bypass that.
 // ─────────────────────────────────────────────────────────────────
 

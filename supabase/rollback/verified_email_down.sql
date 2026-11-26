@@ -8,8 +8,20 @@
 -- Owner approval only; run in the SQL editor of the intended project after
 -- checking its name and ref. Afterwards remove the 20261124000000 row from
 -- supabase_migrations.schema_migrations. Tested in db-verified-email.test.ts.
+--
+-- If 20261126000000_remove_age_restrictions.sql is applied, roll it back
+-- FIRST (remove_age_restrictions_down.sql). This script restores functions
+-- that call parental_consent_verified(), which that migration drops, so it
+-- refuses to run until then.
 -- ═══════════════════════════════════════════════════════════════════
 begin;
+
+do $$
+begin
+  if to_regprocedure('public.parental_consent_verified()') is null then
+    raise exception 'Roll back 20261126000000 first: run supabase/rollback/remove_age_restrictions_down.sql, then this script.';
+  end if;
+end $$;
 
 do $$
 declare t text;

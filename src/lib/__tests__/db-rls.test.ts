@@ -78,8 +78,7 @@ describe("consent gate (enforced in the database)", () => {
   it("enable_sync explains each missing requirement and stays off until the owner's launch switch", async () => {
     await as("authenticated", A);
     const enable = async () => (await rows<{ enable_sync: string }>("select public.enable_sync()"))[0].enable_sync;
-    expect(await enable()).toBe("age-band-required");
-    await db.query("update public.profiles set age_band = '18-plus'");
+    // No age band is needed (owner decision 2026-11-26: no age limit; migration 20261126000000).
     expect(await enable()).toBe("consent-required");
     await consentAll("an-old-version");
     expect(await enable()).toBe("consent-required");
@@ -93,44 +92,44 @@ describe("consent gate (enforced in the database)", () => {
     expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed).toBe(true);
   });
 
-  it("under-18 students can't enable sync without the minors switch AND verified parental consent", async () => {
+  // Owner decision (2026-11-26): no age limit. Until migration 20261126000000
+  // these two tests proved the opposite (an under-18 block and a parental-consent
+  // requirement); they now prove that neither exists, and that the parental
+  // workflow can't be used to grant anything.
+  it("a student who declares under-18 is treated exactly like everyone else: no minors switch, no parental consent", async () => {
     await as("authenticated", B);
     await db.query("update public.profiles set age_band = 'under-18'");
     await consentAll();
     const enable = async () => (await rows<{ enable_sync: string }>("select public.enable_sync()"))[0].enable_sync;
-    expect(await enable()).toBe("not-available-for-under-18");
-    // A student can't record parental consent themselves, under any method.
+    expect(await enable()).toBe("enabled"); // the launch switch is on (previous test)
+    expect(await fails("insert into public.goals (goal_type, activated_at) values ('any-age', now())")).toBe("");
+    // A student still can't record a parental consent, under any method; and nobody else can either.
     expect(await fails("insert into public.consents (kind, version, granted) values ('parental', '2026-11-draft', true)")).toMatch(/row-level security/);
     expect(await fails("insert into public.consents (kind, version, granted, method) values ('privacy', '2026-11-draft', true, 'parent-verified')")).toMatch(/row-level security/);
     await as("service_role");
-    await db.query("update public.app_config set value = 'true' where key = 'minor_sync_permitted'");
-    await as("authenticated", B);
-    expect(await enable()).toBe("parental-consent-required");
-    await as("service_role");
-    await db.query("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', true, 'parent-verified')", [B]);
-    await as("authenticated", B);
-    expect(await enable()).toBe("enabled");
-    expect(await fails("insert into public.goals (goal_type, activated_at) values ('minor-allowed', now())")).toBe("");
-    // Minors switch back off: B's writes stop at once, although B already enabled sync.
-    await as("service_role");
-    await db.query("update public.app_config set value = 'false' where key = 'minor_sync_permitted'");
-    await as("authenticated", B);
-    expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed).toBe(false);
-    expect(await fails("insert into public.goals (goal_type, activated_at) values ('minor-blocked', now())")).toMatch(/row-level security/);
-    // For the rest of the suite B is an adult (the adult switch is on).
-    await db.query("update public.profiles set age_band = '18-plus'");
+    expect(await fails("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', true, 'parent-verified')", [B])).toMatch(/consents_no_parental/);
+    // The old minors switch is inert: turning it on or off changes nothing.
+    for (const v of ["true", "false"]) {
+      await as("service_role");
+      await db.query("update public.app_config set value = $1 where key = 'minor_sync_permitted'", [v]);
+      await as("authenticated", B);
+      expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed, v).toBe(true);
+    }
     // Tidy up as the owner (students can't delete rows).
     await as("postgres");
     await db.query("delete from public.goals where user_id = $1", [B]);
   });
 
-  it("declaring under-18 switches an adult's sync off immediately", async () => {
+  it("declaring or changing an age band never switches sync off", async () => {
     await as("authenticated", A);
     await db.query("update public.profiles set age_band = 'under-18'");
-    expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed).toBe(false);
-    expect(await fails(insertBookmark, bookmark("blocked"))).toMatch(/row-level security/);
+    expect((await rows<{ sync_allowed: boolean }>("select public.sync_allowed()"))[0].sync_allowed).toBe(true);
+    expect((await rows<{ sync_enabled: boolean }>("select sync_enabled from public.profiles"))[0].sync_enabled).toBe(true);
+    expect(await fails(insertBookmark, bookmark("age-free"))).toBe("");
     await db.query("update public.profiles set age_band = '18-plus'");
     expect((await rows<{ enable_sync: string }>("select public.enable_sync()"))[0].enable_sync).toBe("enabled");
+    await as("postgres");
+    await db.query("delete from public.bookmarks where user_id = $1 and bookmark_id = 'age-free'", [A]);
   });
 
   it("consent history is append-only for students", async () => {

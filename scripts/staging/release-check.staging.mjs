@@ -16,9 +16,11 @@
 // VERIFIED here: anonymous denial (12 tables, 5 RPCs); password sign-in,
 // generic errors, session refresh, sign-out revoking the refresh token;
 // profile and consent rules (own rows only, consents append-only); sync
-// safeguards with every precondition met (adult with full consent:
-// sync_allowed false, enable_sync "not-available-yet"; under-18:
-// "not-available-for-under-18"; uploads refused on all 6 study tables;
+// safeguards with every precondition met (a student with full consent:
+// sync_allowed false, enable_sync "not-available-yet"; a student who
+// declares under-18 gets the same answer, since there is no age limit
+// (migration 20261126000000, which this check expects to be applied);
+// uploads refused on all 6 study tables;
 // students can't flip sync_enabled or app_config); A-versus-B isolation;
 // export (own data only, documented shape); deletion safeguards with the
 // gate off (direct request, function and sweep all refused, nothing recorded).
@@ -114,8 +116,8 @@ try {
   check("auth: after sign-out, the old refresh token is refused", !!reuse.error && !reuse.data.session, reuse.error?.code ?? "accepted!");
 
   // ── Profiles and consents ────────────────────────────────────
-  check("profile: A creates own profile (adult)", !(await A.c.from("profiles").insert({ display_name: "Synthetic A", age_band: "18-plus" })).error);
-  check("profile: B creates own profile (under 18)", !(await B.c.from("profiles").insert({ display_name: "Synthetic B", age_band: "under-18" })).error);
+  check("profile: A creates own profile (no age band)", !(await A.c.from("profiles").insert({ display_name: "Synthetic A" })).error);
+  check("profile: B creates own profile (declares under 18)", !(await B.c.from("profiles").insert({ display_name: "Synthetic B", age_band: "under-18" })).error);
   const version = start.consent_version;
   for (const kind of ["terms", "privacy", "cloud-sync"]) {
     const { error } = await A.c.from("consents").insert({ kind, version, granted: true });
@@ -129,12 +131,12 @@ try {
 
   // ── Sync safeguards (every precondition met, switches off) ───
   const { data: allowedA } = await A.c.rpc("sync_allowed");
-  check("sync: sync_allowed() is false for an adult with full consent (switch off)", allowedA === false, String(allowedA));
+  check("sync: sync_allowed() is false for a student with full consent (switch off)", allowedA === false, String(allowedA));
   const { data: enA } = await A.c.rpc("enable_sync");
-  check('sync: enable_sync() returns "not-available-yet" for that adult', enA === "not-available-yet", String(enA));
-  for (const kind of ["terms", "privacy", "cloud-sync"]) await B.c.from("consents").insert({ kind, version, granted: true });
+  check('sync: enable_sync() returns "not-available-yet" for that student', enA === "not-available-yet", String(enA));
+  for (const kind of ["privacy", "cloud-sync"]) await B.c.from("consents").insert({ kind, version, granted: true });
   const { data: enB } = await B.c.rpc("enable_sync");
-  check('sync: enable_sync() returns "not-available-for-under-18" for an under-18 student with full consent', enB === "not-available-for-under-18", String(enB));
+  check('sync: no age limit: a student who declares under-18 gets the same "not-available-yet" (switch off)', enB === "not-available-yet", String(enB));
   const { data: pb } = await admin.from("profiles").select("sync_enabled").eq("user_id", B.id).single();
   check("sync: neither student has sync_enabled", pb?.sync_enabled === false);
   await A.c.from("profiles").update({ sync_enabled: true }).eq("user_id", A.id);

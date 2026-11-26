@@ -85,11 +85,14 @@ describe("H-1: the gate is re-checked on every write", () => {
     expect(await addGoal("after-withdrawal")).toMatch(/row-level security/);
     await consent("cloud-sync", true);
     expect(await allowed()).toBe(true);
-    for (const kind of ["terms", "privacy"]) {
-      await consent(kind, false);
-      expect(await addGoal(`no-${kind}`), kind).toMatch(/row-level security/);
-      await consent(kind, true);
-    }
+    await consent("privacy", false);
+    expect(await addGoal("no-privacy")).toMatch(/row-level security/);
+    await consent("privacy", true);
+    // The Terms of Use consent is no longer required (owner decision 2026-11-26: no such document yet;
+    // migration 20261126000000), so withdrawing it changes nothing.
+    await consent("terms", false);
+    expect(await addGoal("no-terms")).toBe("");
+    await consent("terms", true);
     expect(await addGoal("consents-restored")).toBe("");
   });
 
@@ -105,26 +108,23 @@ describe("H-1: the gate is re-checked on every write", () => {
     await db.query("update public.app_config set value = '2026-11-draft' where key = 'consent_version'");
   });
 
-  it("an enabled student who declares under-18 stays blocked without the minors switch and verified parental consent", async () => {
+  // Owner decision (2026-11-26): no age limit (migration 20261126000000). This
+  // test used to prove an under-18 block and a parental-consent requirement.
+  it("an enabled student who declares under-18 keeps writing; the minors switch and parental consent play no part", async () => {
     await as("authenticated", T);
     await db.query("update public.profiles set age_band = 'under-18'");
-    expect(await allowed()).toBe(false);
+    expect(await allowed()).toBe(true);
+    expect(await addGoal("t-any-age")).toBe("");
     await setSwitch("minor_sync_permitted", "true");
     await as("authenticated", T);
-    expect(await allowed()).toBe(false); // sync was switched off, and no parental consent
-    expect(await enable()).toBe("parental-consent-required");
-    await as("service_role");
-    await db.query("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', true, 'parent-verified')", [T]);
-    await as("authenticated", T);
-    expect(await enable()).toBe("enabled");
     expect(await allowed()).toBe(true);
-    // A later parental withdrawal (recorded by the verified process) blocks writes.
+    expect(await enable()).toBe("enabled");
+    // No parental consent can be recorded, so none can be required or withdrawn.
     await as("service_role");
-    await db.query("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', false, 'parent-verified')", [T]);
-    await as("authenticated", T);
-    expect(await allowed()).toBe(false);
+    expect(await fails("insert into public.consents (user_id, kind, version, granted, method) values ($1, 'parental', '2026-11-draft', false, 'parent-verified')", [T])).toMatch(/consents_no_parental/);
     await setSwitch("minor_sync_permitted", "false");
     await as("authenticated", T);
+    expect(await allowed()).toBe(true);
     await db.query("update public.profiles set age_band = '18-plus'");
   });
 });

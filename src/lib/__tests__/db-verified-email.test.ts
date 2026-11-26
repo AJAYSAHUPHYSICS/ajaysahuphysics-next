@@ -12,6 +12,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const DIR = path.join(ROOT, "supabase", "migrations");
 const FIX = "20261124000000_require_verified_email_for_sync.sql";
+// Applied after FIX; it replaces sync_allowed() and enable_sync() again, keeping email_verified().
+const AGE = "20261126000000_remove_age_restrictions.sql";
+const FIX_INDEX_AFTER = 6;
 const files = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort();
 const read = (...p: string[]) => readFileSync(path.join(ROOT, ...p), "utf8");
 const STUDY = ["bookmarks", "checklist_items", "revision_rounds", "mistakes", "goals", "streaks"] as const;
@@ -73,9 +76,10 @@ afterAll(async () => db?.close());
 beforeEach(async () => { if (db) await as("postgres"); });
 
 describe("migration order", () => {
-  it("runs after the five Phase 2 migrations", () => {
-    expect(files.indexOf(FIX)).toBe(files.length - 1);
-    expect(files).toHaveLength(6);
+  it("runs after the five Phase 2 migrations; only the age-restriction removal (which keeps this gate) follows it", () => {
+    expect(files.indexOf(FIX)).toBe(5);
+    expect(files.slice(FIX_INDEX_AFTER)).toEqual([AGE]);
+    expect(files).toHaveLength(7);
   });
 });
 
@@ -234,6 +238,61 @@ describe("privileges", () => {
     expect((await readPolicies()).filter((p) => p.tablename === "bookmarks")).toHaveLength(1);
   });
 
+  // Every policy on the six study tables, read and write, pinned exactly:
+  // INSERT and UPDATE were still checked with .find() and /sync_allowed\(\)/,
+  // which would pass an extra permissive write policy or `true OR sync_allowed()`.
+  const norm = (s: string | null) => (s ?? "").replace(/\s/g, "").replace(/(public|auth)\./g, "");
+  const OWN = "(user_id=(SELECTuid()ASuid))";
+  const GATED_READ = `(${OWN}AND(SELECTemail_verified()ASemail_verified))`;
+  const GATED_WRITE = `(${OWN}AND(SELECTsync_allowed()ASsync_allowed))`;
+  const allPolicies = async () => (await db.query<{ tablename: string; policyname: string; cmd: string; permissive: string; roles: string; qual: string | null; with_check: string | null }>(
+    "select tablename, policyname, cmd, permissive, roles::text as roles, qual, with_check from pg_policies where schemaname = 'public' and tablename = any($1) order by tablename, policyname",
+    [STUDY as unknown as string[]])).rows;
+
+  it("every policy on each study table is exactly own_select, own_insert and own_update: permissive, authenticated only, with the exact USING and WITH CHECK", async () => {
+    const pol = await allPolicies();
+    for (const t of STUDY) {
+      const shape = pol.filter((p) => p.tablename === t).map((p) => ({ name: p.policyname, cmd: p.cmd, permissive: p.permissive, roles: p.roles, qual: norm(p.qual), check: norm(p.with_check) }));
+      expect(shape, t).toEqual([
+        { name: `${t}_own_insert`, cmd: "INSERT", permissive: "PERMISSIVE", roles: "{authenticated}", qual: "", check: GATED_WRITE },
+        { name: `${t}_own_select`, cmd: "SELECT", permissive: "PERMISSIVE", roles: "{authenticated}", qual: GATED_READ, check: "" },
+        { name: `${t}_own_update`, cmd: "UPDATE", permissive: "PERMISSIVE", roles: "{authenticated}", qual: GATED_WRITE, check: GATED_WRITE },
+      ]);
+    }
+  });
+
+  it("the full-shape guard catches an extra write policy, a weakened OR, a widened role and a missing WITH CHECK", async () => {
+    const mutations = [
+      "create policy goals_wide_insert on public.goals for insert to authenticated with check (true)",
+      "alter policy goals_own_insert on public.goals with check (true or (select public.sync_allowed()))",
+      "alter policy goals_own_update on public.goals to authenticated, anon",
+      "alter policy goals_own_update on public.goals using (user_id = (select auth.uid()))",
+    ];
+    for (const m of mutations) {
+      await db.exec("begin");
+      try {
+        await db.exec(m);
+        const goals = (await allPolicies()).filter((p) => p.tablename === "goals");
+        const exact = goals.length === 3
+          && goals.every((p) => p.permissive === "PERMISSIVE" && p.roles === "{authenticated}")
+          && norm(goals.find((p) => p.cmd === "INSERT")?.with_check ?? null) === GATED_WRITE
+          && norm(goals.find((p) => p.cmd === "UPDATE")?.qual ?? null) === GATED_WRITE
+          && norm(goals.find((p) => p.cmd === "UPDATE")?.with_check ?? null) === GATED_WRITE;
+        expect(exact, m).toBe(false);
+      } finally {
+        await db.exec("rollback");
+      }
+    }
+    expect((await allPolicies()).filter((p) => p.tablename === "goals")).toHaveLength(3);
+  });
+
+  it("the eligibility functions keep security definer and an empty search_path", async () => {
+    for (const fn of ["public.sync_allowed()", "public.enable_sync()"]) {
+      const f = await one<string>("select prosecdef::text as d, array_to_string(proconfig, ',') as c from pg_proc where oid = $1::regprocedure", [fn]);
+      expect(f, fn).toEqual({ d: "true", c: 'search_path=""' });
+    }
+  });
+
   it("email_verified() is security definer with search_path pinned to empty", async () => {
     const f = await one<string>("select prosecdef::text as d, array_to_string(proconfig, ',') as c from pg_proc where oid = 'public.email_verified()'::regprocedure");
     expect(f.d).toBe("true");
@@ -245,17 +304,20 @@ describe("rollback", () => {
   it("restores the previous functions and SELECT policies exactly, drops email_verified(), and re-applies", async () => {
     const fnq = "select string_agg(pg_get_functiondef(p.oid), E'\\n' order by p.proname) as d from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname in ('sync_allowed', 'enable_sync')";
     const polq = "select string_agg(tablename || ':' || policyname || ':' || cmd || ':' || coalesce(qual, '') || ':' || coalesce(with_check, ''), E'\\n' order by tablename, policyname) as d from pg_policies where schemaname = 'public'";
+    // The later migration must be rolled back first (verified_email_down.sql refuses otherwise).
+    await db.exec(read("supabase", "rollback", "remove_age_restrictions_down.sql"));
     await db.exec(read("supabase", "rollback", "verified_email_down.sql"));
     expect((await db.query("select 1 from pg_proc where proname = 'email_verified'")).rows).toHaveLength(0);
     const fresh = new PGlite();
     try {
       await fresh.exec(read("supabase", "tests", "supabase-auth-shim.sql"));
-      for (const f of files.filter((f) => f !== FIX)) await fresh.exec(read("supabase", "migrations", f));
+      for (const f of files.filter((f) => f !== FIX && f !== AGE)) await fresh.exec(read("supabase", "migrations", f));
       // Compared without carriage returns: a Windows checkout stores CRLF in function bodies.
       const norm = (d: string) => d.replace(/\r/g, "");
       for (const q of [fnq, polq]) expect(norm((await one<string>(q)).d)).toBe(norm((await fresh.query<{ d: string }>(q)).rows[0].d));
     } finally { await fresh.close(); }
     await db.exec(read("supabase", "migrations", FIX));
     expect((await db.query("select 1 from pg_proc where proname = 'email_verified'")).rows).toHaveLength(1);
+    await db.exec(read("supabase", "migrations", AGE));
   });
 });
