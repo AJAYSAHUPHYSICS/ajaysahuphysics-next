@@ -6,7 +6,7 @@
 
 - The whole-project view, with evidence for every claim, is the master audit in #28 (a dated snapshot of 2026-11-25; it adds `docs/ATLAS_MASTER_PROJECT_AUDIT.md` once merged).
 
-Last updated 2026-11-25. No legal approval, production database change or production readiness is claimed anywhere in this file.
+Last updated 2026-11-26. No legal approval, production database change or production readiness is claimed anywhere in this file.
 
 ## Live status (2026-11-25)
 **Overall: RELEASE-INCOMPLETE.** Phase 2 is the complete scope: student accounts, verified email, account management, cloud sync, security, privacy and deletion (owner decision H, reaffirmed 2026-11-25).
@@ -21,12 +21,18 @@ Last updated 2026-11-25. No legal approval, production database change or produc
 
   | Project | Ref | Role | Phase 2 schema |
   |---|---|---|---|
-  | Staging | `wtuifivaxnhdnfwjsayk` | Rehearsal, synthetic data only | Migrations 1–5 applied; migration 6 not applied (its dry run on 2026-11-24 listed only it) |
+  | Staging | `wtuifivaxnhdnfwjsayk` | Rehearsal, synthetic data only | Migrations 1–5 applied; migration 6 not applied (its dry run on 2026-11-24 listed only it); migration 7 (#25, 2026-11-26) not applied |
   | Current production | `dykhwagloqxawgfkmjmc` | The project the live site's build points at | **None.** The owner's read-only inventory (2026-11-24) found an older legacy schema that isn't in git, with no application rows and no Storage objects. It has existing Auth accounts from before 2026-11-22; public sign-ups stay on (decision B) |
   | **New production** | `fuznyurpfqgjricivopd` | Destination for the Phase 2 database | **None.** The owner's read-only inventory (2026-11-24) found only the platform function `public.rls_auto_enable()` |
 
   **Fresh start (owner decision, 2026-11-24):** the Phase 2 schema is created in the new project from the repository migrations. **No old Auth account and no data is copied** (there's no application data to copy), so existing account holders register again. The site then switches projects by changing its two Supabase GitHub secrets (the cutover, T-30). The current project is only read until its retirement, which needs its own approval; it must never be deleted otherwise.
 - **Privacy notice:** `/privacy` is a labelled draft, `noindex`, outside the sitemap.
+- **Age policy (owner decision P, 2026-11-26): there is no age limit** for website access, accounts or cloud-copy eligibility. It supersedes decision O and T-23b.
+  - **Implemented only in open PRs, not on `main`:** #25 at `7847cda` adds migration 7 (`20261126000000_remove_age_restrictions.sql`), which removes the age rules and parental consent from the database; #30 at `fe2a2d8` removes the age question and the terms consent from the account page. CI is green on both heads.
+  - **On `main` and on staging (migrations 1–5) the old age rules still exist.** They have no effect while cloud sync is off.
+  - **The `/privacy` draft still mentions parental consent for under-18s.** A proposed replacement, for owner and counsel review, is in [`PRIVACY_NOTICE_AGE_PROPOSAL.md`](PRIVACY_NOTICE_AGE_PROPOSAL.md).
+  - **Decision P is a product decision.** Its legal position (DPDP Act 2023) hasn't been reviewed by counsel (T-06), and no compliance is claimed.
+- **Open PRs (2026-11-26):** #25 (`7847cda`), #30 (`fe2a2d8`) and #28 (the master audit and these documentation updates).
 
 Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST-LAUNCH · NOT STARTED. COMPLETED means done and verified with the evidence shown. Work that is only prepared, documented or merged is not COMPLETED.
 
@@ -45,7 +51,7 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 | T-10 | F3: the **new production project's** Auth settings ("Confirm email" on; redirect URLs, Site URL, password minimum 10) | AWAITING OWNER APPROVAL | Owner | — | Decision K makes verification mandatory. **"Confirm email" must be on before #25 is merged and before any production migration**: while it's off, Supabase confirms new users automatically at sign-up, so "verified" wouldn't prove the address for new accounts. Changing the setting needs explicit authorisation | Authorise the F3 checklist (runbook 9, A.1); then read the setting back to verify it |
 | T-11 | Public sign-ups | COMPLETED (kept on, current project) | — | — | Owner decision B: keep public sign-ups enabled on the current project; no change made. The new project's sign-up setting is part of T-10 | — |
 | T-12 | `delete-account` function in the new project, with the gate off | AWAITING OWNER APPROVAL | Owner | T-10 | Not in the approval register: the Edge Function deployment, and the `ATLAS_DELETION_SWEEP_SECRET` secret. Neither production project has any Edge Function today. It must come **before** the migrations | Approve the deployment and the secret |
-| T-13 | Migrations in the new project: six, each separately approved (below) | AWAITING OWNER APPROVAL (each) | Owner | T-10, T-12; #25 merged for the sixth | 0 of 6 in either production project. Staging: 5 of 6 (the sixth isn't merged). A private approval package exists | Approve each, then run them consecutively in one window |
+| T-13 | Migrations in the new project: seven, each separately approved (below) | AWAITING OWNER APPROVAL (each) | Owner | T-10, T-12; #25 merged for the sixth and seventh | 0 of 7 in either production project. Staging: 5 of 7 (the sixth and seventh aren't merged). A private approval package exists; it predates migration 7, which isn't in it yet | Approve each, then run them consecutively in one window |
 | T-14 | Least privilege on `deletion_log_id_seq` | COMPLETED on staging · production in T-13 | — | — | #22 merged (`561cb22`). **Applied to staging 2026-11-23** (decision F): fresh dry run listed only it; only that grant changed; `nextval` as a student denied (42501); the deletion log is still written; consent inserts work; `test:staging:release` 63/63; staging left with 0 users and every switch `'false'` | Production with T-13 |
 | T-15 | Deletion sweep workflow configured | NOT STARTED | Owner (variables, secret) | T-13 | `deletion-sweep.yml` inert; 0 repository variables | Runbook 9, C.2.5 |
 | T-16 | Deletion verification: staging, gate open (stage 1) | COMPLETED | — | — | `test:staging:deletion-gate` 38/38 on 2026-11-22 | — |
@@ -55,17 +61,17 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 | T-20 | F8: frame protection and security headers | AWAITING OWNER APPROVAL | Owner (hosting) | — | GitHub Pages sends only HSTS | Hosting decision, or the interim in-page guard |
 | T-21 | Accounts UI activation | BLOCKED | Engineering, then launch | T-10, T-13, T-22, T-24 | Decision H keeps it in scope; decision L authorises launch once the technical gates pass. `ACCOUNTS_UI_ENABLED = false` | Activate after the gates |
 | T-22 | E1: the 7 email checks | BLOCKED | Engineering (inbox) | T-10 | None recorded | Run on staging, then on production |
-| T-23 | Cloud sync for adults | BLOCKED | Engineering, then launch | T-10 ("Confirm email" on), T-13 (all six migrations, including #25's), T-21 | Decision H. `CLOUD_SYNC_ENABLED = false`; switches `'false'`. Activation needs the `adult_sync_permitted` switch, a production database write. **Not blocked by T-23b** | Activate after these gates |
-| T-23b | **Cloud sync for under-18s** | **BLOCKED** (separately) | Owner (decision), engineering | A verified parental-consent process | `minor_sync_permitted` also requires `parental_consent_verified()`, which only a verified server process can satisfy, and **no such process exists**. Under-18 students aren't silently excluded: they keep their account, device progress, export and deletion, and `enable_sync()` tells them cloud copies aren't available for under-18s yet. **It doesn't block adult sync** (owner decision O) | A parental-consent proposal for owner decision |
-| T-24 | Privacy notice and consent screens for accounts and sync | IN PROGRESS | Engineering | — | Decision J: approved before launch. The live notice is an accurate draft for the dormant platform; it doesn't yet describe live accounts and sync | Update the notice; check the consent flow on staging |
+| T-23 | Cloud sync for every student (no age limit, decision P) | BLOCKED | Engineering, then launch | T-10 ("Confirm email" on), T-13 (all seven migrations, including #25's two), T-21 | Decision H. `CLOUD_SYNC_ENABLED = false`; switches `'false'`. Activation needs the `adult_sync_permitted` switch, a production database write. With migration 7 that switch, despite its historical name, is the launch switch for everyone. **Updated 2026-11-26:** this item was "Cloud sync for adults", with under-18s in T-23b | Activate after these gates |
+| T-23b | Cloud sync for under-18s | **SUPERSEDED** (2026-11-26, decision P) | — | — (was: a verified parental-consent process) | **Superseded by decision P: there's no age limit, so there's no separate under-18 path.** Migration 7 (#25) removes the age rules and `parental_consent_verified()`, and refuses new parental consents. *Historical (2026-11-23):* `minor_sync_permitted` also requires `parental_consent_verified()`, which only a verified server process can satisfy, and **no such process exists**. Under-18 students aren't silently excluded: they keep their account, device progress, export and deletion, and `enable_sync()` tells them cloud copies aren't available for under-18s yet. **It doesn't block adult sync** (owner decision O, now superseded) | None (closed by decision P) |
+| T-24 | Privacy notice and consent screens for accounts and sync | IN PROGRESS | Engineering | — | Decision J: approved before launch. The live notice is an accurate draft for the dormant platform; it doesn't yet describe live accounts and sync. **Since 2026-11-26** its sentence on parental consent for under-18s conflicts with decision P (proposal: `PRIVACY_NOTICE_AGE_PROPOSAL.md`, not applied). #30 (open) builds the consent screens: a privacy acknowledgement and the cloud-copy consent, with no terms consent | Owner decides the notice wording; update the notice; check the consent flow on staging |
 | T-25 | Production target and access | COMPLETED (target decided) · access NOT VERIFIED | Owner | — | 2026-11-23: the owner confirmed the project the live site uses. **Superseded 2026-11-24:** the Phase 2 database goes to the new project `fuznyurpfqgjricivopd` (fresh start; Live status). The CLI's access to the new project hasn't been checked. Nothing has been run against either production project except the owner's read-only inventories | Verify CLI access to the new project, read-only, when its first approved step comes |
-| T-26 | Verified email required for cloud sync (decision K), and the M1 sync fix | AWAITING OWNER APPROVAL | Owner (merge #25, after T-10) | T-10 | #25 (open), migration `20261124000000`. **Unverified accounts can neither read nor write** cloud-sync rows: the SELECT policies require `email_verified()`; the INSERT and UPDATE policies call `sync_allowed()`, which requires it. Export and deletion stay available. `db-verified-email.test.ts`: 15 tests. **M1** (`2f2a9d9`): hidden or missing cloud rows never delete device data. The engine proceeds only on an explicit `sync_allowed() = true`, and stops with `cloud-incomplete` when an agreed record is missing; 9 regression tests, 8 of which fail without the fix. **The M1 fix isn't on `main`, so sync must not be enabled from `main` as it stands.** Staging: not applied. **Known limitation (owner decision M):** existing Auth accounts are trusted as they stand | Turn "Confirm email" on in the target project (T-10), then merge #25; then the sixth migration in T-13 |
+| T-26 | Verified email required for cloud sync (decision K), and the M1 sync fix | AWAITING OWNER APPROVAL | Owner (merge #25, after T-10) | T-10 | #25 (open, head `7847cda`), migration `20261124000000`. **Since 2026-11-26 #25 also carries migration 7** (`20261126000000`, decision P: no age rules, parental consent removed; rollback order 7 then 6, enforced and tested; every study-table policy pinned exactly). **Unverified accounts can neither read nor write** cloud-sync rows: the SELECT policies require `email_verified()`; the INSERT and UPDATE policies call `sync_allowed()`, which requires it. Export and deletion stay available. `db-verified-email.test.ts`: 21 tests; `db-no-age-restrictions.test.ts`: 18. **M1** (`2f2a9d9`): hidden or missing cloud rows never delete device data. The engine proceeds only on an explicit `sync_allowed() = true`, and stops with `cloud-incomplete` when an agreed record is missing; 9 regression tests, 8 of which fail without the fix. **The M1 fix isn't on `main`, so sync must not be enabled from `main` as it stands.** Staging: not applied. **Known limitation (owner decision M):** existing Auth accounts are trusted as they stand | Turn "Confirm email" on in the target project (T-10), then merge #25; then the sixth and seventh migrations in T-13 |
 | T-27 | Staging guard: allow only the staging project | COMPLETED | — | — | #27 merged (`b18b62e`): `guard.mjs` is an allow-list; both production refs are refused by name, even when "confirmed". `staging-guard.test.ts`, `staging-env.test.ts` | — (the CLI path is outside the guard: check the linked ref by hand) |
 | T-28 | Staging: function ownership and rollback prerequisites | **NOT VERIFIED** | Owner (runs a read-only query) | — | The one attempt (2026-11-24) returned no usable result. A read-only query (revision 4) is prepared, not run. It checks the owners, `search_path`, EXECUTE grants, the six `_own_select` policies and the rollback's needs | Owner runs it in the **staging** SQL editor and shares the result |
-| T-29 | Migration 6 on staging, and a `test:staging:verified-email` check | NOT STARTED | Owner (approvals), engineering | T-28; staging "Confirm email" read back | The staging dry run (2026-11-24) listed only migration 6. The check doesn't exist yet; it must never enable sync | Approve the check's PR, then the staging apply |
+| T-29 | Migrations 6 and 7 on staging, and a `test:staging:verified-email` check | NOT STARTED | Owner (approvals), engineering | T-28; staging "Confirm email" read back | The staging dry run (2026-11-24) listed only migration 6; migration 7 was added on 2026-11-26. #25's `release-check.staging.mjs` expects both, so it mustn't run before they're applied. The check doesn't exist yet; it must never enable sync | Approve the check's PR, then the staging apply |
 | T-30 | Cutover: point the site at the new project | NOT STARTED | Owner (approval) | T-13 verified | Change `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (record the current values privately first), redeploy, check the live site | Approve the cutover |
 
-### Production migrations (T-13): six, in filename order
+### Production migrations (T-13): seven, in filename order
 | # | Migration | Purpose | `main` | Staging | Production |
 |---|---|---|---|---|---|
 | 1 | `20261120000000_student_accounts.sql` | Tables, RLS, consent gate, export, two-step deletion; schema-wide client revokes | Yes | Applied | Not applied |
@@ -74,8 +80,9 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 | 4 | `20261122010000_deletion_rate_limit.sql` | Deletion rate limits | Yes | Applied | Not applied |
 | 5 | `20261123000000_deletion_log_sequence_privilege.sql` | T-14 | Yes | **Applied 2026-11-23** | Not applied |
 | 6 | `20261124000000_require_verified_email_for_sync.sql` | Decision K | No (#25 open) | Not applied | Not applied |
+| 7 | `20261126000000_remove_age_restrictions.sql` | Decision P: no age rules; parental consent removed (2026-11-26) | No (#25 open) | Not applied | Not applied |
 
-"Production" means the **new** project `fuznyurpfqgjricivopd`. None of the six is applied in either production project.
+"Production" means the **new** project `fuznyurpfqgjricivopd`. None of the seven is applied in either production project.
 
 **Each needs its own approval.**
 - **Run them consecutively in one maintenance window.** Migration 1 alone would leave `request_account_deletion()` without its gate until migration 3, while public sign-ups are on.
@@ -83,33 +90,33 @@ Statuses: COMPLETED · IN PROGRESS · BLOCKED · AWAITING OWNER APPROVAL · POST
 
 ### Current release procedure (authoritative)
 This is the only current procedure. `PHASE_2_RELEASE.md` section 9 gives the same order with each step's details. Where any older text disagrees, this one applies. Every step targets the **new** project `fuznyurpfqgjricivopd` unless it says otherwise; confirm the ref in the dashboard address bar each time.
-1. **Staging rehearsal of migration 6** (T-28, T-29): the read-only ownership check, staging "Confirm email" read back, then the approved staging apply and the `test:staging:verified-email` check.
+1. **Staging rehearsal of migrations 6 and 7** (T-28, T-29): the read-only ownership check, staging "Confirm email" read back, then the approved staging apply and the `test:staging:verified-email` check.
 2. **The new project's Auth settings, with "Confirm email" on** (T-10, separate approval), then read back. This **must precede steps 3 and 6**: #25's check is only meaningful for new accounts once Supabase stops auto-confirming.
-3. **Merge #25** (owner approval), so the sixth migration and the M1 sync fix are on `main`.
+3. **Merge #25** (owner approval), so the sixth and seventh migrations and the M1 sync fix are on `main`. #30 merges after or with #25: its age-free forms need migration 7.
 4. **Re-run the new project's read-only inventory and the preflight** (T-08): still empty apart from `rls_auto_enable()`, with an empty migration history.
 5. **`delete-account` function and its secret** (T-12, separate approvals).
-6. **The six migrations** (T-13), **each separately approved**, applied consecutively in one window. Then verify: the inventory, `schema_inventory.sql`, RLS on every table, no `anon` or PUBLIC grants, and the function owners.
+6. **The seven migrations** (T-13), **each separately approved**, applied consecutively in one window. Then verify: the inventory, `schema_inventory.sql`, RLS on every table, no `anon` or PUBLIC grants, and the function owners.
 7. **Cutover** (T-30, approval): record the two current GitHub secret values privately, switch them to the new project, redeploy, check the live site.
 8. **Deletion sweep workflow** (T-15) and the production deletion stages (T-17), each approved.
 9. **Privacy notice and consent screens** (T-24), then the 7 email checks (T-22).
 10. **Activation** (decision L, once every technical gate passes):
     - accounts UI (T-21);
-    - adult cloud sync (T-23).
+    - cloud sync for every student (T-23).
 11. **Retirement of the current project** `dykhwagloqxawgfkmjmc`, only with its own approval after an observation period. Decide then on a backup or erasure (T-09).
 
-    Under-18 sync is separate. It's offered only after a verified parental-consent process exists (T-23b), and it doesn't hold back the adult activation.
+    **Superseded 2026-11-26 (decision P, no age limit):** there's no separate under-18 activation. Until then this procedure said under-18 sync would be offered only after a verified parental-consent process existed (T-23b).
 
 **Legal review isn't a gate for these steps.** Owner decision I moved formal counsel review to after launch. The privacy notice stays labelled a draft, and no legal approval is claimed (T-06).
 
 **Superseded instructions, kept as historical:**
-- **`PHASE_2_RELEASE.md`:** reconciled in #26. The legal-sign-off gate is removed (decision I), the order matches this procedure, there are six migrations in the new project, and the earlier merge-and-audit material is labelled historical.
+- **`PHASE_2_RELEASE.md`:** reconciled in #26. The legal-sign-off gate is removed (decision I), the order matches this procedure, there are six migrations in the new project (seven since #25 added migration 7 on 2026-11-26), and the earlier merge-and-audit material is labelled historical.
 - **The 2026-11-23 version of this procedure** (CLI access to the current project, then its inventory and backup) is superseded by the fresh start of 2026-11-24.
 - **This file's "Release dependencies" and "Merge readiness" sections below** are the 2026-11-22 plan: legal sign-off first, four migrations.
 
-### Phase 2 completion criteria (2026-11-25)
+### Phase 2 completion criteria (2026-11-26)
 | # | Criterion | Status |
 |---|---|---|
-| 1 | All agreed functionality implemented | IN PROGRESS: code built; T-26 open (#25); under-18 verification not built (T-23b) |
+| 1 | All agreed functionality implemented | IN PROGRESS: code built; T-26 open (#25, which also removes the age rules); the profile and consent forms open (#30). Under-18 verification is no longer in scope (T-23b superseded by decision P, 2026-11-26) |
 | 2 | Seven tools verified | COMPLETED at engine level; real Safari devices not tested |
 | 3 | Tests pass on the release SHA | COMPLETED for `b9527e2`: `ci` (runs `45579906589`, `45579959757`), `e2e-firefox` and `e2e-webkit` (run `45579959639`) passed on #29's head `08ee50d`, whose tree is identical to `b9527e2`. Before it: `b3f7168`, via #26's head `3e0c93b`; `b18b62e`, via #27's head `7a47353` |
 | 4 | Production deployment verified | PARTIAL: COMPLETED for the public site and local tools; the accounts and sync in scope aren't active |
@@ -119,10 +126,10 @@ This is the only current procedure. `PHASE_2_RELEASE.md` section 9 gives the sam
 | 8 | Deletion safely tested | Staging COMPLETED; production BLOCKED |
 | 9 | Security and RLS verified | Staging and PGlite COMPLETED; production BLOCKED |
 | 10 | Accounts UI live and verified | BLOCKED (T-21) |
-| 11 | Cloud sync live and verified | BLOCKED (T-23, T-23b) |
+| 11 | Cloud sync live and verified | BLOCKED (T-23). T-23b no longer applies (decision P) |
 | 12 | Documentation matches the release | IN PROGRESS: this tracker, `PHASE_2_RELEASE.md` and `README.md` were reconciled in #26 (`b3f7168`) and corrected in #29 (`b9527e2`), both merged 2026-11-25. Unmerged as of 09:12 UTC: `supabase/README.md` (#25) and the master audit (#28). `PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot |
 | 13 | Tracker reflects the actual state | IN PROGRESS: #29 fixed D-13 (merged 2026-11-25 as `b9527e2`). This status update is in #28, unmerged as of 09:12 UTC; once merged, re-check this table against GitHub before marking the criterion met |
-| 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in either production project; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (#25, unmerged: the verified-email gate, and the M1 fix that stops hidden cloud rows deleting device data; it relies on "Confirm email" being on, T-10); production RLS and permissions can't be verified until the schema is deployed (T-13); function ownership on staging NOT VERIFIED (T-28). **Accepted limitation:** existing Auth accounts are trusted as they stand (decision M). Under-18 sync stays separately blocked (T-23b); that isn't an adult-sync blocker |
+| 14 | No critical or high unresolved technical security issue | **NOT MET for activation.** It holds only for the current dormant deployment: login hidden; `CLOUD_SYNC_ENABLED = false`; no Phase 2 schema in either production project; no known critical or high issue in what is live. **Open, and blocking activation:** T-26 (#25, unmerged: the verified-email gate, and the M1 fix that stops hidden cloud rows deleting device data; it relies on "Confirm email" being on, T-10); production RLS and permissions can't be verified until the schema is deployed (T-13); function ownership on staging NOT VERIFIED (T-28). **Accepted limitation:** existing Auth accounts are trusted as they stand (decision M). **Since 2026-11-26** there's no age rule (decision P): every student meets the same gates, and #25 now pins every study-table policy exactly (review item M-2) |
 
 **Met: 2 of 14** (criteria 2 and 3). Criterion 4 is partial: met for the public site only, which is how the 2026-11-23 version of this table reached 3 of 14. Criteria 13 and 14 were counted as met in `main`'s 2026-11-23 version (4 of 14) and no longer hold. The **6 of 14** in #26's first commit (`8deef97`: criteria 2, 3, 4, 12, 13 and 14) was withdrawn by the owner's review corrections (`df57534`): 12 and 13 can't be met while the documentation is unmerged, and 14 holds only while the platform is dormant. The #26 and #29 merges don't change the count: 12 and 13 still wait for #25 and #28. Staging-only results (criteria 8 and 9) don't count, because staging doesn't prove production readiness.
 
@@ -165,7 +172,7 @@ Each was squash-merged pinned with `--match-head-commit`, and each merged tree e
 
 **Open as of 2026-11-25 09:12 UTC:** #25 (T-26) and #28 (the master audit).
 
-### Owner approval register (2026-11-25)
+### Owner approval register (2026-11-26)
 | ID | Decision | Effect here |
 |---|---|---|
 | A | The six PR merges | Done (table above) |
@@ -183,7 +190,8 @@ Each was squash-merged pinned with `--match-head-commit`, and each merged tree e
 | — | Production project identity confirmed by the owner (2026-11-23): the project the live site uses | T-25 (CLI access still pending) |
 | M | Existing Supabase Auth accounts are trusted as they stand; no re-verification migration (2026-11-23) | T-26 (accepted limitation) |
 | N | Unverified accounts blocked from both reading and writing cloud-sync records; export and deletion preserved (2026-11-23) | T-26 (#25) |
-| O | Under-18 sync stays separately blocked until a verified parental-consent process exists; it doesn't silently exclude minors or block adult sync (2026-11-23) | T-23b, T-23 |
+| O | **Superseded by P (2026-11-26).** *Was:* under-18 sync stays separately blocked until a verified parental-consent process exists; it doesn't silently exclude minors or block adult sync (2026-11-23) | T-23b (superseded), T-23 |
+| P | **No age limit** for website access, accounts or cloud-sync eligibility; supersedes O (2026-11-26). Implemented in #25 (migration 7) and #30, both open. A product decision; its legal position isn't reviewed (T-06) | T-23, T-23b (superseded), T-24, T-26 |
 | — | Fresh start: the Phase 2 database goes to the new project `fuznyurpfqgjricivopd`; no old Auth account or data is migrated (2026-11-24) | T-08, T-09, T-25, T-30 |
 | — | Merge #27, the staging guard allow-list (2026-11-24) | T-27 (done) |
 | — | Merge #26, the documentation reconciliation (2026-11-25) | T-04 (done: `b3f7168`) |
@@ -191,13 +199,15 @@ Each was squash-merged pinned with `--match-head-commit`, and each merged tree e
 | — | Phase 2 is the complete scope; keep a GitHub master audit (#28) and a separate management dashboard (2026-11-25) | Decision H; T-04 |
 
 **Not covered by any approval yet:**
-- the staging ownership check's run, the staging apply of migration 6, and the `test:staging:verified-email` check (T-28, T-29);
+- the staging ownership check's run, the staging apply of migrations 6 and 7, and the `test:staging:verified-email` check (T-28, T-29);
 - the new project's Auth settings (T-10);
-- merging #25 (after "Confirm email" is on) and #28;
+- merging #25 (after "Confirm email" is on), #30 and #28;
 - the Edge Function deployment and its secret (T-12);
-- each of the six migrations in the new project (T-13);
+- each of the seven migrations in the new project (T-13);
 - the cutover (T-30), and later the current project's retirement;
-- a decision on under-18 sync (T-23b).
+- the `/privacy` wording for decision P (T-24; proposal in `PRIVACY_NOTICE_AGE_PROPOSAL.md`).
+
+*(Until 2026-11-26 this list also had "a decision on under-18 sync (T-23b)". Decision P settled it.)*
 
 ## Audit record (2026-11-21 to 2026-11-23)
 
@@ -507,6 +517,7 @@ The audit was **read-only**: no merges, deploys, Supabase changes or production 
   - Production database steps no longer wait for counsel sign-off; they wait for their own individual approvals (T-13).
   - The notice stays labelled "Draft notice, pending legal review", and no legal approval or compliance is claimed.
   - Tracked as T-06 (POST-LAUNCH). This is an owner-accepted legal and privacy risk.
+- **Update (2026-11-26):** decision P removes the product's age limit and its parental-consent process. That doesn't settle the legal questions above. Whether processing under-18 students' data without verified parental consent is lawful under the DPDP Act 2023 is now itself a question for counsel (T-06). Nothing here claims it is.
 
 ### F13 · Draft privacy notice and a dependency advisory
 - **Severity:** Low. **Priority:** P2. **Status:** OWNER DECISION (checklist below).

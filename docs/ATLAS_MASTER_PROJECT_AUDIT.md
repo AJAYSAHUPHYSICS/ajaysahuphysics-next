@@ -50,6 +50,20 @@ Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run 
 
 **The required `ci` check doesn't require branches to be up to date,** so update a branch with `main` and wait for green `ci` on the new head before merging it.
 
+### Update (2026-11-26): owner decision P, no age limit
+**Decision P (2026-11-26):** "There will be NO AGE LIMIT on this website." No age rule applies to website access, accounts or cloud-copy eligibility. **It supersedes decision O and tracker item T-23b.** Sections 1–23 keep the 2026-11-25 findings; where they describe under-18 or parental-consent rules, an inline **Update (2026-11-26)** marks them superseded.
+
+| Item | State on 2026-11-26 | Evidence |
+|---|---|---|
+| `main` | Unchanged: `b9527e28d31d774c3ff243a08e2daa3688c45aaf`. It and staging (migrations 1–5) still contain the old age rules, which have no effect while sync is off | `git fetch origin` |
+| #25 | OPEN at `7847cda5278b92aa9df78a136ab16ff5a20d0a5b`: adds migration 7 `20261126000000_remove_age_restrictions.sql` (no age rules; `parental_consent_verified()` dropped; new parental consents refused from every role; `terms` no longer required) and its rollback, which must run before `verified_email_down.sql` (enforced). Every study-table policy is now pinned exactly (review item M-2) | `ci` pass (runs `45752467348`, `45752474527`); `e2e-firefox`, `e2e-webkit` pass (run `45752474561`) |
+| #30 | OPEN at `fe2a2d8bda829d9f88423af000412bdbec542492`: the profile and consent forms, with no age question and no terms consent (no Terms of Use exists); privacy acknowledgement marked draft; cloud-copy consent and withdrawal kept | `ci` pass (runs `45752473086`, `45752480374`); `e2e-firefox`, `e2e-webkit` pass (run `45752480411`) |
+| #28 | OPEN: this audit, plus the tracker and release-doc updates for decision P | — |
+| `/privacy` | The live draft still says cloud copies would need "for students under 18, verified consent from a parent or guardian". **Not changed:** it's legal wording. Proposal: [`PRIVACY_NOTICE_AGE_PROPOSAL.md`](PRIVACY_NOTICE_AGE_PROPOSAL.md) | `src/app/privacy/page.tsx:42` |
+| Legal position | **Not reviewed.** Decision P is a product decision; whether it's lawful to process under-18 students' data without verified parental consent (DPDP Act 2023) is a question for counsel (T-06). Risk R-8 is reopened below | Decision I |
+
+**Nothing was merged, deployed or applied for decision P.** No Supabase access; `CLOUD_SYNC_ENABLED` stays `false`.
+
 ### D-13 (the tracker on `main` was stale): FIXED by #29
 - **The problem:** `docs/PHASE_2_TRACKER.md` at `b3f7168` said `main` = `b18b62e`, "#26 … All unmerged" (T-04, criterion 12), and "Open: #25, #26, #28". So did `PHASE_2_RELEASE.md`'s status lines.
 - **The fix:** #29 corrected all of these. Merged 2026-11-25 09:04:16 UTC as `b9527e2` (approved head `08ee50d`, tree `7c31439` on both); deploy run `45581909462` succeeded.
@@ -97,7 +111,7 @@ Read-only checks with `git fetch`, `gh` and HTTP requests to the site. **Re-run 
 | A trustworthy public site | Every page valid, fast and accessible; no unreviewed content shown | PRODUCTION VERIFIED for the shell and the withholding; the rebuilt library hasn't started publishing |
 | Local-first study tools | Seven tools work offline-first, with stable data formats, on all major engines | PRODUCTION VERIFIED (Chromium, live); engine-level E2E VERIFIED on Firefox and WebKit; real Safari devices NOT VERIFIED |
 | Optional accounts | Verified-email accounts; generic errors; PKCE; password minimum 10 | CODE COMPLETE; UI hidden; production Auth settings NOT VERIFIED |
-| Safe cloud copies | The database decides; never syncs unverified or under-18 accounts without the required consent; never loses device data | CODE COMPLETE on `main` without the M1 fix; the M1 fix and verified email are in PR #25; STAGING VERIFIED for migrations 1–5 only |
+| Safe cloud copies | The database decides; never syncs unverified or under-18 accounts without the required consent; never loses device data | CODE COMPLETE on `main` without the M1 fix; the M1 fix and verified email are in PR #25; STAGING VERIFIED for migrations 1–5 only. **Update (2026-11-26):** no age rule any more (decision P; migration 7 in #25), so the goal is no sync for unverified accounts or without consent |
 | Data rights | Export and deletion always available, gated and verified | CODE COMPLETE; deletion STAGING VERIFIED (38/38); production BLOCKED |
 | Least privilege and RLS | No `anon` access; per-student isolation; no client write to switches | STAGING VERIFIED and PGlite VERIFIED; production not started |
 | Honest documentation | One tracker that matches reality | NOT MET (section 16, discrepancies) |
@@ -212,7 +226,7 @@ The formal measure is the 14 Phase 2 completion criteria (section 14).
 6. **Account deletion (dormant, gated):** section 11.
 7. **Retention:** the `deletion_log` keeps only a SHA-256 hash of the user id plus counts. It has no foreign key, so the record outlives the account.
 
-Under-18 students keep their device progress, export and deletion, but get **no cloud copies** until a verified parental-consent process exists (decision O, T-23b).
+*Superseded 2026-11-26 (decision P, no age limit):* under-18 students keep their device progress, export and deletion, but get **no cloud copies** until a verified parental-consent process exists (decision O, T-23b). With migration 7 (#25), every student meets the same gates.
 
 ---
 
@@ -241,8 +255,8 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 **Safety rules (all mandatory):**
 1. **Code switch off.** `CLOUD_SYNC_ENABLED = false` in `src/lib/sync/policy.ts`. While it's false, the engine refuses to run and no study data is sent. VERIFIED on `main`.
 2. **Database switches off.** `app_config.adult_sync_permitted` and `minor_sync_permitted` are `'false'`, and only the service role can change them. A student's attempt to update `app_config` is denied; `test:staging:release` checks this every run. STAGING VERIFIED (63/63, 2026-11-22).
-3. **The database decides.** `enable_sync()` and `sync_allowed()` check consent (terms, privacy, cloud-sync), the switches, pending deletion, the under-18 rules, and (with PR #25) a verified email.
-4. **Under-18s** also need `parental_consent_verified()`. Only a verified server process can satisfy it, and **none exists** (T-23b).
+3. **The database decides.** `enable_sync()` and `sync_allowed()` check consent (terms, privacy, cloud-sync), the switches, pending deletion, the under-18 rules, and (with PR #25) a verified email. **Update (2026-11-26):** with migration 7 (#25) there are no age rules and `terms` isn't required: the privacy and cloud-sync consents, the switch, no pending deletion and a verified email.
+4. *Superseded 2026-11-26 (decision P):* under-18s also needed `parental_consent_verified()`, which no process could satisfy (T-23b). Migration 7 (#25) drops the function and refuses new parental consents.
 5. **Data minimisation.** The 5 local-only stores are never read by sync code (`sync-engine.test.ts`).
 6. **Tombstones are the only deletion mechanism.** The only server-side hard delete is the account-deletion purge.
 7. **Device data is never lost to a hidden or incomplete cloud (M1).**
@@ -326,7 +340,7 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 | Privacy notice `/privacy` | PRODUCTION VERIFIED as an accurate **labelled draft**, `noindex`, outside the sitemap (#20) | `privacy-notice-accuracy.test.ts` |
 | Notice and consent screens for live accounts and sync (T-24) | PENDING (decision J: before launch) | — |
 | Legal review (F12) | POST-LAUNCH (decision I). **No legal approval is claimed** | — |
-| Parental consent for under-18 sync | BLOCKED: no verified process exists (T-23b, decision O) | `parental_consent_verified()` in migration 1 |
+| Parental consent for under-18 sync | **SUPERSEDED 2026-11-26 (decision P):** no age limit, so no parental-consent process; migration 7 (#25) drops the function and refuses new parental consents. Its legal position is for counsel (T-06). *Was:* BLOCKED, no verified process exists (T-23b, decision O) | `parental_consent_verified()` in migration 1; `20261126000000_remove_age_restrictions.sql` (#25) |
 
 ---
 
@@ -358,7 +372,7 @@ Under-18 students keep their device progress, export and deletion, but get **no 
 
 | # | Criterion | `main` tracker (11-23) | PR #26 (11-23) | **This audit (11-25)** | Evidence |
 |---|---|---|---|---|---|
-| 1 | All agreed functionality implemented | Code complete | IN PROGRESS | **PENDING.** Migration 6 and the M1 fix are in open #25; under-18 parental verification isn't built | PR #25; T-23b |
+| 1 | All agreed functionality implemented | Code complete | IN PROGRESS | **PENDING.** Migration 6 and the M1 fix are in open #25; under-18 parental verification isn't built. **Update (2026-11-26):** no longer in scope (decision P); #25 also carries migration 7, and #30 adds the profile and consent forms | PR #25; T-23b (superseded) |
 | 2 | Seven tools verified | Met | Met | **VERIFIED** (engine level). Real Safari devices NOT VERIFIED | #23 (`86e3d59`): E2E 90/90 on Chrome, Edge, Firefox and WebKit |
 | 3 | Tests pass on the release SHA | Met (`9019a1c`) | Met (`0244587`) | **VERIFIED for `b18b62e`**: `ci`, `e2e-firefox` and `e2e-webkit` green on `7a47353`, whose tree is identical to `b18b62e` | `gh pr view 27`; tree `527b8c2` |
 | 4 | Production deployment verified | Partial | Met (public site) | **PARTIAL.** PRODUCTION VERIFIED for the public site and local tools only. Accounts and sync (in scope) aren't active | Run `45378204301`; live checks 2026-11-23 |
@@ -407,7 +421,7 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | B-4 | No production schema in the new project | Criteria 6–9 | Per-migration approvals (section 17) |
 | B-5 | `delete-account` function and its secret not deployed to the new project | Migrations (must come first) | Separate approvals |
 | B-6 | Deletion sweep not configured | Criterion 8 in production | Repository variables and secret, after migrations |
-| B-7 | No verified parental-consent process | Under-18 sync (not adult sync) | Owner decision on a proposal |
+| B-7 | No verified parental-consent process. **Cleared 2026-11-26 by decision P** (no age limit) | *Was:* under-18 sync (not adult sync) | — |
 | B-8 | Tracker and docs out of date | Criteria 12 and 13 | A documentation PR, approved and merged |
 
 ### Owner decisions on record
@@ -428,7 +442,8 @@ Closed without merging: #12, which a rebased PR #13 replaced.
 | L | Launch once the technical gates pass; individual migration approvals still required | 2026-11-23 | PR #26 tracker |
 | M | Existing Auth accounts trusted as they stand | 2026-11-23 | PR #26 tracker |
 | N | Unverified accounts blocked from reading and writing cloud rows; export and deletion kept | 2026-11-23 | PR #26 tracker; PR #25 |
-| O | Under-18 sync separately blocked; doesn't block adult sync | 2026-11-23 | PR #26 tracker |
+| O | Under-18 sync separately blocked; doesn't block adult sync. **Superseded by P** | 2026-11-23 | PR #26 tracker |
+| P | No age limit for website access, accounts or cloud-sync eligibility; supersedes O | 2026-11-26 | #25 (migration 7), #30, #28 tracker |
 | — | Fresh start in `fuznyurpfqgjricivopd`; no old Auth migration | 2026-11-24 | Private migration plan v2 only |
 | — | Staging guard allow-list (#27) merged | 2026-11-24 | GitHub |
 | — | Phase 2 is complete scope; keep a GitHub master audit and a management dashboard; this task authorises no merge, deployment or Supabase change | 2026-11-25 | This audit |
@@ -491,7 +506,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
    - all tables with RLS, and no `anon` or PUBLIC grants;
    - function ownership (the revision 4 query, adapted to the target).
 
-   *From the private verification checklist (not a separate tracker step):* synthetic journeys in the new project (sign-up, confirmation email, the verified-email and under-18 gates, export, deletion), each approved.
+   *From the private verification checklist (not a separate tracker step):* synthetic journeys in the new project (sign-up, confirmation email, the verified-email and under-18 gates, export, deletion; **since decision P**, the same eligibility at any age instead of the under-18 gates), each approved.
 7. **Cut over** (T-30):
    - privately record the current values of the two GitHub secrets for rollback;
    - change `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`;
@@ -499,7 +514,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
    - run the live checks.
 8. **Configure the deletion sweep** (T-15), then the production deletion stages 2–5 (T-17), each approved.
 9. **Notice and consent screens** (T-24), then the 7 email checks (T-22, E1).
-10. **Activate** (decision L): the accounts UI (T-21), then adult sync (T-23). Each is a code change plus a production switch, each approved. Under-18 sync stays off (T-23b).
+10. **Activate** (decision L): the accounts UI (T-21), then adult sync (T-23). Each is a code change plus a production switch, each approved. *Superseded 2026-11-26:* "Under-18 sync stays off (T-23b)". With decision P, sync activates for every student at once.
 11. **Observe, then retire the old project** only with explicit authorisation. Never delete `dykhwagloqxawgfkmjmc` otherwise. Decide then on a backup or erasure of its existing accounts (T-09).
 
 *(Before 2026-11-25 this list put "merge #25" first and had no staging-rehearsal step. The steps are the same; only the order and the step references changed, to match the tracker.)*
@@ -520,8 +535,8 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 | 5 | New-project Auth, function, migrations, verification (section 17) | 6, 7, 9 | Approvals per step |
 | 6 | Deletion sweep and production stages | 8 | Approvals per stage |
 | 7 | Notice and consent screens; E1 | 12, 10 | Engineering; owner |
-| 8 | Cutover; activate the accounts UI and adult sync | 4, 10, 11 | Owner decisions |
-| 9 | Under-18: a verified parental-consent proposal | 11 (under-18 part) | Owner decision |
+| 8 | Cutover; activate the accounts UI and cloud sync ("adult sync" until decision P, 2026-11-26: now every student) | 4, 10, 11 | Owner decisions |
+| 9 | Under-18: a verified parental-consent proposal. **Superseded 2026-11-26 by decision P** | — | — |
 | 10 | F7 and F8 hardening | 14 | Workflow PR; hosting decision |
 
 ---
@@ -546,7 +561,7 @@ Not a discrepancy: `docs/PHASE_2_COMPLETION_AUDIT.md` is a dated snapshot (2026-
 
 **Preconditions:**
 1. **Published, reviewed content:** the tutor answers only from published packages, never from withheld legacy content.
-2. **Privacy and legal for minors:** verifiable parental consent under India's DPDP Act 2023, to be confirmed with counsel.
+2. **Privacy and legal for minors:** verifiable parental consent under India's DPDP Act 2023, to be confirmed with counsel. **Update (2026-11-26):** decision P removed the product's age limit and parental-consent process; the legal question for counsel remains.
 3. **A server component:** a static site can't hold an API key. A planned Edge Function or worker would verify the JWT, consent and quotas.
 4. **An evaluation set** of real doubts with checked answers, so models are chosen by measurement.
 
@@ -575,7 +590,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | R-5 | Wrong function owner on staging or production; `email_verified()` can't read `auth.users`, or the rollback can't run | Unknown | Medium | Revision 4 read-only check; atomic migration apply | OPEN (NOT VERIFIED) |
 | R-6 | API sign-ups while the UI is hidden | Medium | Medium | Decision B accepted on the current project; set deliberately in the new project | ACCEPTED (B) |
 | R-7 | No frame protection or headers (clickjacking) | Medium | Medium | F8 hosting decision or interim guard | OPEN |
-| R-8 | Under-18 data processed without verifiable parental consent | Low (blocked in the database) | Critical | `parental_consent_verified()`; T-23b | MITIGATED (blocked) |
+| R-8 | Under-18 data processed without verifiable parental consent | **High once sync launches** (decision P, 2026-11-26: no age limit and no parental-consent process). *Until then:* Low (blocked in the database) | Critical | Owner's product decision P; counsel review (T-06); the notice stays a labelled draft | **OPEN** (reopened 2026-11-26; legal position unreviewed). *Was:* MITIGATED (blocked) |
 | R-9 | Documentation drift misleads approvals | High | Medium | This audit; documentation PR | OPEN |
 | R-10 | Old production project deleted or changed by mistake | Low | High | Never delete without retirement approval; read-only only | DOCUMENTED |
 | R-11 | Free-plan staging pauses, or rehearsal capacity is limited | Medium | Low | Restore from the dashboard; OD-7 | OPEN |
@@ -600,7 +615,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | OA-10 | Approve the cutover (two GitHub secrets, redeploy) | Production | Cutover | OA-9 and verification |
 | OA-11 | Configure the deletion sweep (variables, secret) | Repository settings | Sweep | OA-9 |
 | OA-12 | Decide F7 (analytics and CAPTCHA switches) and F8 (hosting and headers) | Decisions | Follow-up PRs | — |
-| OA-13 | Decide on a parental-consent process (T-23b) | Decision | Design work | — |
+| OA-13 | Decide on a parental-consent process (T-23b). **Done 2026-11-26:** decision P (no age limit). Still open: the `/privacy` wording (proposal in `PRIVACY_NOTICE_AGE_PROPOSAL.md`) | Decision | The notice change | — |
 | OA-14 | Later: retire the old production project (backup or erasure) | Production | Retirement | Observation period |
 
 ---
@@ -623,6 +638,7 @@ Costs in the blueprint are estimates, not quotes. The tutor's T0 gate requires l
 | 2026-11-25 | #28 brought up to date | `e2a39d4` (merge of `main` `b3f7168`) | Normal merge, no rebase. "Current status" re-verified at 08:03 UTC, with a separate open item for the stale tracker (D-13) and a table of what's not verified |
 | 2026-11-25 | #29 merged; D-13 fixed | `b9527e2` (main); deploy run `45581909462` | Owner-authorised squash merge at 09:04 UTC; build and deploy succeeded |
 | 2026-11-25 | Post-#29 reconciliation | `abd6f49` (merge of `main` `b9527e2` into #28) | #28 now also updates the tracker and `PHASE_2_RELEASE.md`: `main` = `b9527e2`, #29 in the merged history and approval register, the seven self-references replaced by dated wording, open PRs #25 and #28. "Current status" re-verified at 09:12 UTC; D-13 marked FIXED. No count, gate, decision or safeguard changed |
+| 2026-11-26 | Owner decision P (no age limit) | #25 (`7847cda`), #30 (`fe2a2d8`), #28 | "Current status" gains an update block; under-18 and parental-consent items marked superseded (O, T-23b, B-7, OA-13, roadmap 9); R-8 reopened; the `/privacy` proposal added. Nothing merged, applied or deployed |
 
 ---
 
