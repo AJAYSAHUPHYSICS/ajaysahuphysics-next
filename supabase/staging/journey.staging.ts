@@ -351,7 +351,7 @@ describe("sync with real Supabase (two devices, existing local formats)", () => 
     deviceA1.setItem("atlas:goals", JSON.stringify({ ...deviceA1.json("atlas:goals"), "weekly-revision": T0 }));
     const before = new Map(deviceA1.data);
     const real = supabaseRemote(A.client, A.id);
-    const flaky: RemoteStore = { pull: real.pull, push: async () => { throw new Error("network interrupted"); } };
+    const flaky: RemoteStore = { syncAllowed: real.syncAllowed, pull: real.pull, push: async () => { throw new Error("network interrupted"); } };
     const r = await sync(A, deviceA1, flaky);
     expect(r.status).toBe("error");
     expect(deviceA1.data).toEqual(before);

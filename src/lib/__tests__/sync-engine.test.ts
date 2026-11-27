@@ -5,6 +5,7 @@ import { ADAPTERS, fromQuestionRef, mistakesAdapter, toQuestionRef, type Row, ty
 import { readMeta, syncOnce, unlinkDevice, type RemoteStore } from "@/lib/sync/engine";
 import { fingerprint, stableStringify, threeWayMerge } from "@/lib/sync/merge";
 import { CLOUD_SYNC_ENABLED, LOCAL_ONLY_KEYS, SYNCED_KEYS, SYNC_META_KEY } from "@/lib/sync/policy";
+import { supabaseRemote } from "@/lib/sync/supabase-remote";
 
 // ─────────────────────────────────────────────────────────────────
 // Sync engine tests: two simulated devices and an in-memory cloud that
@@ -46,14 +47,25 @@ class MemCloud implements RemoteStore {
   failPushAfter = Infinity;
   failPull = false;
   pushes = 0;
+  pulls = 0;
+  /** What public.sync_allowed() answers (a function, to simulate errors or non-boolean values). */
+  allowed: () => Promise<unknown> = async () => true;
+  /** Simulates the verified-email SELECT policy: RLS hides every row and refuses every write. */
+  hidden = false;
   private keyOf(table: string, r: Row) {
     return ADAPTERS.find((a) => a.table === table)!.rowKey(r);
   }
+  async syncAllowed() {
+    return (await this.allowed()) as boolean;
+  }
   async pull(table: string) {
+    this.pulls++;
     if (this.failPull) throw new Error("network down");
+    if (this.hidden) return [];
     return [...(this.tables.get(table)?.values() ?? [])].map((r) => ({ ...r }));
   }
   async push(table: string, rows: Row[]) {
+    if (this.hidden) throw new Error("new row violates row-level security policy");
     if (this.pushes >= this.failPushAfter) throw new Error("connection reset");
     this.pushes++;
     const t = this.tables.get(table) ?? new Map<string, Row>();
@@ -343,6 +355,128 @@ describe("merge core", () => {
     expect([...out.deleteRemote]).toEqual(["localDel"]);
     expect([...out.changedLocal].sort()).toEqual(["firstBoth", "newRemote", "remoteDel", "remoteEdit"].sort());
     expect(out.conflicts).toEqual(["firstBoth"]);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
+// M1 (PR #25 review): an account that synced while verified, and then reads
+// as unverified. The verified-email SELECT policy hides its cloud rows, and
+// that absence must never be read as "deleted in the cloud".
+// ─────────────────────────────────────────────────────────────────
+describe("M1: an account that becomes unverified after syncing keeps its device progress", () => {
+  const STUDY_KEYS = ["atlas:bookmarks", "atlas:checklist", "atlas:revision", "atlas:mistakes", "atlas:goals", "atlas:study-streak"];
+  const snapshot = (s: MemStorage) => new Map(s.data);
+  /** A device that has synced once while the account was verified (base recorded), and a cloud holding its rows. */
+  async function syncedWhileVerified() {
+    const s = device();
+    const cloud = new MemCloud();
+    expect((await run(s, cloud)).status).toBe("ok");
+    expect(Object.keys(readMeta(s)!.base["atlas:bookmarks"] ?? {})).toHaveLength(1); // the base remembers the synced bookmark
+    return { s, cloud };
+  }
+  const expectStudyDataIntact = (s: MemStorage) => {
+    expect(s.json("atlas:bookmarks")).toHaveLength(1);
+    expect(s.json("atlas:bookmarks")[0].id).toBe("11:kinematics:chapter");
+    expect(s.json("atlas:mistakes").map((m: { id: string }) => m.id)).toEqual([M1, "1763000000000-k3j2h"]);
+    expect(s.json("atlas:goals")).toEqual({ "daily-dpp": T0 });
+    expect(s.json("atlas:checklist")).toEqual({ "11:kinematics": { notes: true, dpp: false }, "12:atoms": { formulaSheet: true } });
+    expect(s.json("atlas:revision")["11:kinematics"]).toHaveLength(2);
+    expect(s.json("atlas:study-streak")).toEqual({ current: 3, longest: 7, lastActiveDate: "2026-11-03" });
+  };
+
+  it("the exact M1 scenario: sync_allowed() is false and the rows are hidden → refused before any read; nothing changes", async () => {
+    const { s, cloud } = await syncedWhileVerified();
+    const before = snapshot(s);
+    const pullsBefore = cloud.pulls;
+    cloud.allowed = async () => false; // email no longer verified: sync_allowed() answers false
+    cloud.hidden = true; //               and the SELECT policy hides the rows
+    expect(await run(s, cloud)).toEqual({ status: "not-allowed" });
+    expect(cloud.pulls).toBe(pullsBefore); // nothing was even read
+    expect(s.data).toEqual(before); //       every key byte-identical, sync meta included
+    expectStudyDataIntact(s);
+  });
+
+  it("defence in depth: even if the gate wrongly said yes, hidden rows are never read as deletions (bookmarks, mistakes, goals, checklist ticks kept)", async () => {
+    const { s, cloud } = await syncedWhileVerified();
+    const before = snapshot(s);
+    cloud.hidden = true; // allowed() still answers true
+    const r = await run(s, cloud);
+    expect(r.status).toBe("cloud-incomplete");
+    expect(s.data).toEqual(before);
+    expectStudyDataIntact(s);
+    // Before the fix this pass returned "ok" and deleted 8 local records (the bookmark, the synced
+    // mistake, the goal, both checklist ticks and more). Assert the absence of every deletion explicitly:
+    for (const k of STUDY_KEYS) expect(s.data.get(k), k).toBe(before.get(k));
+  });
+
+  it("a partial answer (one previously synced row missing, e.g. a truncated response) is refused too; nothing is pushed or changed", async () => {
+    const { s, cloud } = await syncedWhileVerified();
+    cloud.tables.get("mistakes")!.clear(); // a synced mistake vanished from the answer without a tombstone
+    const before = snapshot(s);
+    const pushes = cloud.pushes;
+    expect(await run(s, cloud)).toMatchObject({ status: "cloud-incomplete", table: "mistakes", missing: 1 });
+    expect(cloud.pushes).toBe(pushes);
+    expect(s.data).toEqual(before);
+    expectStudyDataIntact(s);
+  });
+
+  it("only an explicit true lets a sync run: errors, null, undefined, 'true' and 1 all refuse before any read", async () => {
+    for (const answer of [async () => { throw new Error("rpc failed"); }, async () => null, async () => undefined, async () => "true", async () => 1, async () => ({ ok: true })]) {
+      const s = device();
+      const cloud = new MemCloud();
+      cloud.allowed = answer;
+      const before = snapshot(s);
+      expect(await run(s, cloud)).toEqual({ status: "not-allowed" });
+      expect(cloud.pulls).toBe(0);
+      expect(cloud.tables.size).toBe(0);
+      expect(s.data).toEqual(before);
+    }
+  });
+
+  it("an unverified account that never synced: refused, and no link confirmation is asked for", async () => {
+    const s = device();
+    const cloud = new MemCloud();
+    cloud.allowed = async () => false;
+    expect(await syncOnce({ storage: s, remote: cloud, userId: U1, enabled: true })).toEqual({ status: "not-allowed" });
+    expect(s.data.has(SYNC_META_KEY)).toBe(false);
+  });
+
+  it("once the address is verified again, sync resumes with nothing lost on either side", async () => {
+    const { s, cloud } = await syncedWhileVerified();
+    cloud.allowed = async () => false;
+    cloud.hidden = true;
+    expect((await run(s, cloud)).status).toBe("not-allowed");
+    cloud.allowed = async () => true;
+    cloud.hidden = false;
+    expect(await run(s, cloud)).toMatchObject({ status: "ok", pushed: 0, deletedRemote: 0, changedLocal: 0 });
+    expectStudyDataIntact(s);
+    expect(cloud.live("bookmarks")).toHaveLength(1);
+  });
+
+  it("real deletions still propagate: a tombstone (not an absence) removes the record on the other device", async () => {
+    const { s: d1, cloud } = await syncedWhileVerified();
+    const d2 = new MemStorage();
+    expect((await run(d2, cloud)).status).toBe("ok");
+    d1.setItem("atlas:bookmarks", "[]");
+    expect((await run(d1, cloud)).status).toBe("ok"); // pushes a tombstone
+    expect((await run(d2, cloud)).status).toBe("ok");
+    expect(d2.json("atlas:bookmarks")).toEqual([]);
+  });
+});
+
+describe("supabaseRemote.syncAllowed", () => {
+  const fake = (result: { data?: unknown; error?: unknown } | Error) =>
+    ({ rpc: async (fn: string) => { expect(fn).toBe("sync_allowed"); if (result instanceof Error) throw result; return result; } }) as unknown as Parameters<typeof supabaseRemote>[0];
+  it("is true only for an explicit boolean true without an error", async () => {
+    expect(await supabaseRemote(fake({ data: true, error: null }), U1).syncAllowed()).toBe(true);
+    for (const r of [{ data: false, error: null }, { data: null, error: null }, { data: "true", error: null }, { data: true, error: { message: "denied" } }, { data: 1, error: null }])
+      expect(await supabaseRemote(fake(r), U1).syncAllowed(), JSON.stringify(r)).toBe(false);
+  });
+  it("a thrown network error rejects, and the engine treats that as not allowed", async () => {
+    const remote = supabaseRemote(fake(new Error("offline")), U1);
+    await expect(remote.syncAllowed()).rejects.toThrow("offline");
+    const s = device();
+    expect(await syncOnce({ storage: s, remote, userId: U1, enabled: true, confirmLink: true })).toEqual({ status: "not-allowed" });
   });
 });
 

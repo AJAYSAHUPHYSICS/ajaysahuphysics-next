@@ -190,6 +190,16 @@ All six were merged in the authorised order:
 - the cutover (T-30), and later the current project's retirement;
 - a decision on under-18 sync (T-23b).
 
+### Staging verification (2026-11-27)
+**For staging only, this supersedes the older staging entries above** (the Live status table, T-13, T-26, T-29 and the migration table still say staging has migrations 1–5). Evidence: `supabase/README.md`, "Staging verification record".
+- **Migrations 1–7 applied to staging** (`wtuifivaxnhdnfwjsayk`). The dry run from #25 (`7847cda`) on 2026-11-26 listed exactly `20261124000000` and `20261126000000`; they were applied on 2026-11-27 with the owner's approval, and the history was read back. **Production: none applied.**
+- **`npm run test:staging:release`: 63/63** on `7847cda`, with migration 7.
+- **`npm run test:staging:verified-email`: 38/38** (the T-29 check, added in #25). An unconfirmed account can't sign in; a confirmed account is trusted as recorded and still gets "not-available-yet"; every bypass attempt is refused.
+- **Local validation** on the same tree: `npm test` 734 passed, 1 skipped; `tsc` and lint exit 0; the new check's source rules caught 21/21 mutations.
+- **After both runs, read back independently:** all three launch switches `'false'`; synthetic accounts removed (0 Auth users); 0 rows in the 10 application tables; `deletion_log` gained 3 and then 2 PII-free rows, as expected.
+- **Not verified:** an authenticated unverified account's study-table reads on staging (no such session exists while "Confirm email" is on; `db-verified-email.test.ts` covers the policy). Staging "Confirm email" relies on the owner's confirmation; the refused sign-in is consistent with it. T-28 was reviewed by the owner; its result isn't recorded here.
+- **Still incomplete:** T-10, T-12, T-13 and T-30 in production, merging #25, #30 and #28, and activation. **Phase 2 stays RELEASE-INCOMPLETE; no production deployment, release or readiness is claimed.**
+
 ## Audit record (2026-11-21 to 2026-11-23)
 
 **Historical record.** It's kept as evidence of what was found and done. Where it conflicts with the live status or the current release procedure above, those apply.
