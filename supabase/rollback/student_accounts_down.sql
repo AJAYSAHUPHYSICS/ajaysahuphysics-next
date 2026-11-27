@@ -4,9 +4,13 @@
 -- 20261122000000_account_deletion_gate.sql,
 -- 20261122010000_deletion_rate_limit.sql,
 -- 20261123000000_deletion_log_sequence_privilege.sql (its revoke goes
--- with the sequence when deletion_log is dropped) and
+-- with the sequence when deletion_log is dropped),
 -- 20261124000000_require_verified_email_for_sync.sql (email_verified() is
--- dropped below; to undo only that migration, use verified_email_down.sql).
+-- dropped below; to undo only that migration, use verified_email_down.sql) and
+-- 20261126000000_remove_age_restrictions.sql (its consents_no_parental
+-- constraint goes with the consents table, and the functions it replaced or
+-- dropped are dropped below with `if exists`; to undo only that migration,
+-- use remove_age_restrictions_down.sql, BEFORE verified_email_down.sql).
 --
 -- NOT a migration: it lives outside supabase/migrations/ so the CLI can
 -- never apply it by accident. It is DESTRUCTIVE: it deletes every
@@ -41,10 +45,11 @@
 -- cleanly.
 --
 -- Afterwards, remove the rows for 20261120000000, 20261121000000,
--- 20261122000000, 20261122010000, 20261123000000 and 20261124000000
--- (whichever are applied) from supabase_migrations.schema_migrations, so
--- the CLI's history matches (the CLI tracks applied migrations there):
---   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000', '20261123000000', '20261124000000');
+-- 20261122000000, 20261122010000, 20261123000000, 20261124000000 and
+-- 20261126000000 (whichever are applied) from
+-- supabase_migrations.schema_migrations, so the CLI's history matches (the
+-- CLI tracks applied migrations there):
+--   delete from supabase_migrations.schema_migrations where version in ('20261120000000', '20261121000000', '20261122000000', '20261122010000', '20261123000000', '20261124000000', '20261126000000');
 -- ═══════════════════════════════════════════════════════════════════
 begin;
 
