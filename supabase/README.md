@@ -82,7 +82,7 @@ npx supabase@2.122.1 db push --linked                       # applies supabase/m
 6. **`20261124000000`** replaces `sync_allowed()` and `enable_sync()` (from the first) to require a verified email address.
 7. **`20261126000000`** depends on the sixth (`email_verified()`) and replaces `sync_allowed()`, `enable_sync()` and `atlas_protect_profile()` again, without any age rule; it drops `parental_consent_verified()`.
 
-The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the third and fourth:** that would create the account tables without the deletion gate and its rate limits. On staging, the first five are applied (`20261123000000` on 2026-11-23, after a fresh dry run; history matches local); `20261124000000` and `20261126000000` aren't applied there. Production: none applied.
+The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the third and fourth:** that would create the account tables without the deletion gate and its rate limits. On staging, all seven are applied: the first five by 2026-11-23 (`20261123000000` after a fresh dry run), then `20261124000000` and `20261126000000` on 2026-11-27 after a dry run listing exactly those two; history matches local. Production: none applied.
 
 ### 5. Deploy the deletion function (staging)
 ```
@@ -189,6 +189,15 @@ npm run test:staging:release
   - deletion end to end (step 9);
   - browser login (F9, step 8). The browser journey logs in through the login button, which is hidden while `ACCOUNTS_UI_ENABLED` is `false` (H1), so it runs only against a release-candidate build with the switch on.
 
+### 11. Verified-email check (decision K)
+```
+npm run test:staging:verified-email
+```
+`scripts/staging/verified-email.staging.mjs` needs `20261124000000` and `20261126000000` applied. It has the same rules as step 10 (enforced on its source by `staging-verified-email-check.test.ts`): it never writes `app_config`, stops unless all three switches are `'false'`, stores no study data, and uses synthetic accounts only.
+- **What it verifies:** an unconfirmed account can't sign in, so it never gets a session; a confirmed account is trusted as Supabase records it (`email_verified()` true) and still gets "not-available-yet" while the switch is off; that account can't set `sync_enabled`, upload to the six study tables, change a launch switch or record a parental consent; `anon` can't call `email_verified()`.
+- **Clean-up:** `purge_user_data` and `deleteUser` are attempted and checked separately for each account; removal must be confirmed (not found), and a list of Auth users must show no account from the run. That list only detects; it never deletes. Each purge adds one PII-free row to `deletion_log` (2 per run).
+- **Not verified here:** an authenticated **unverified** account's reads of the study tables. No unverified session exists while "Confirm email" is on, and planting rows would break the no-study-data rule. That read policy is covered by `db-verified-email.test.ts`.
+
 ### Staging verification record
 | Date | Item | Result |
 |---|---|---|
@@ -209,6 +218,10 @@ npm run test:staging:release
 | 2026-11-22 | `db advisors --type security` | 0 errors. 6 WARN security-definer entry points (the 5 existing plus `account_deletion_enabled`, intended); 4 INFO RLS with no policy (tables with no client access, intended) |
 | 2026-11-22 | End state | 0 users; 0 rows in student tables, `deletion_requests` and `deletion_rate`; gate and sync switches `'false'`. `deletion_log` keeps its PII-free hash rows from the synthetic deletions (by design) |
 | 2026-11-22 | `npm run test:staging:release` (safe release check) | 63/63. Started and ended with both sync switches and the deletion gate `'false'`; 3 synthetic accounts removed; 0 rows in all student tables, `deletion_requests` and `deletion_rate` |
+| 2026-11-26 | `db push --dry-run` from #25 (`7847cda`), CLI 2.122.1 | Would push exactly `20261124000000` and `20261126000000`; nothing applied |
+| 2026-11-27 | Migrations `20261124000000` and `20261126000000` applied (`db push --linked`, exit 0) | History read back: all seven applied. `email_verified()` exists (`anon` can't run it); `parental_consent_verified()` dropped; `consents_no_parental` present. Switches `'false'` before and after |
+| 2026-11-27 | `npm run test:staging:release` on `7847cda` | 63/63, with migration 7 (a student who declares under-18 gets "not-available-yet" like everyone). Switches `'false'` at start and end; 3 synthetic accounts removed (0 Auth users after); 0 rows in the 10 application tables; 3 `deletion_log` rows (`rows_deleted` 4, 3, 0) |
+| 2026-11-27 | `npm run test:staging:verified-email` (step 11; run on `7847cda` with this script, before it was committed) | 38/38. Unconfirmed account refused at sign-in (no session); confirmed account `email_verified()` true, "not-available-yet", every bypass refused. Clean-up: purge and delete OK for both accounts, removal confirmed, no account from the run left. Read back independently: 0 Auth users, 0 rows in the 10 application tables, switches `'false'`, 2 `deletion_log` rows (`rows_deleted` 0 and 3). Not verified: an unverified session's study-table reads (no such session exists; PGlite covers the policy) |
 
 ### Manual staging checks (needs a real inbox)
 **Status: NOT VERIFIED.** No result has been recorded for any of the 7 checks below. They are required before the accounts UI is turned on (tracker E1).
