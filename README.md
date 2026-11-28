@@ -36,6 +36,8 @@ npm run build                    # static export + CSP injection, then:
 node scripts/verify-build.mjs    # URLs, sitemap, robots, titles, canonicals, links, OG images
 npm run test:build-output        # post-build checks (withheld content, CSP)
 npm run test:e2e                 # headless-Chrome E2E, accessibility audit, phone overflow, keyboard
+# Optional: real two-session tests on a DISPOSABLE local PostgreSQL (superuser, fresh cluster); skipped otherwise
+ATLAS_TEST_PG_URL=postgres://postgres@127.0.0.1:<port>/postgres npx vitest run src/lib/__tests__/db-withdraw-concurrency.test.ts
 ```
 
 Staging only (never production; see `supabase/README.md`). `supabase/staging/guard.mjs` refuses every project except staging:
@@ -51,13 +53,15 @@ npm run test:staging:browser         # real UI journey against staging (needs `n
 
 ## Student accounts (Phase 2)
 
-Accounts are optional and study progress stays in the browser. Cloud copies of study data are built but switched **off** (`CLOUD_SYNC_ENABLED = false`) until their release gates pass and the owner authorises activation. Formal legal review is scheduled after launch (owner decision I); no legal approval is claimed. Live status: [`docs/PHASE_2_TRACKER.md`](docs/PHASE_2_TRACKER.md). Architecture, database, environment variables, security, export and deletion, the production runbook and rollback are in [`docs/PHASE_2_RELEASE.md`](docs/PHASE_2_RELEASE.md). Database and staging setup: [`supabase/README.md`](supabase/README.md).
+Accounts are optional and study progress stays in the browser. Cloud copies of study data are built but switched **off** (`CLOUD_SYNC_ENABLED = false`) until their release gates pass and the owner authorises activation. Withdrawing cloud-copy consent deletes the account's cloud copy and leaves the browser's progress in place (decision J; migrations `20261126100000` and `20261127000000`, not applied to any database). Formal legal review is scheduled after launch (owner decision I); no legal approval is claimed. Live status: [`docs/PHASE_2_TRACKER.md`](docs/PHASE_2_TRACKER.md). Architecture, database, environment variables, security, export and deletion, the production runbook and rollback are in [`docs/PHASE_2_RELEASE.md`](docs/PHASE_2_RELEASE.md). Database and staging setup: [`supabase/README.md`](supabase/README.md).
 
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to any branch except `main`: type-check, lint, unit tests, production build, `scripts/verify-build.mjs`, the build-output checks (`test:build-output`) and the headless-Chrome E2E and keyboard checks (`test:e2e`). It has read-only permissions, uses no secrets and never deploys. The job is named `ci`, and `main` requires it to pass before merging. It doesn't require the branch to be up to date with `main`, so update a branch before merging it.
 
 `.github/workflows/e2e-browsers.yml` runs the same E2E and keyboard checks in Firefox and WebKit on every pull request (`e2e-firefox`, `e2e-webkit`; not required).
+
+`.github/workflows/db-concurrency.yml` runs the real two-session PostgreSQL tests (`db-withdraw-concurrency.test.ts`) against a disposable PostgreSQL 17 service container that exists only for that job (`db-concurrency`; not required). Read-only permissions, no secrets; the test refuses any database that isn't on `localhost` or `127.0.0.1`.
 
 `.github/workflows/deletion-sweep.yml` is the hourly account-deletion sweep. It's inert until the repository variable `ATLAS_DELETION_SWEEP_ENABLED` is `true` (not set).
 

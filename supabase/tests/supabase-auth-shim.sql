@@ -6,7 +6,11 @@ create role authenticated nologin noinherit;
 create role service_role nologin noinherit bypassrls;
 
 create schema auth;
-create table auth.users (id uuid primary key, email text);
+-- email_confirmed_at is set by Supabase Auth when the address is verified.
+-- Real Supabase leaves it null until then; the shim defaults it to now() so
+-- test users are verified unless a test inserts null explicitly
+-- (db-verified-email.test.ts does).
+create table auth.users (id uuid primary key, email text, email_confirmed_at timestamptz default now());
 
 -- Same contract as Supabase's auth.uid(): the "sub" claim of the request JWT.
 create function auth.uid() returns uuid language sql stable as $$

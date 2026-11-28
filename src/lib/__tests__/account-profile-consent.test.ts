@@ -199,9 +199,47 @@ describe("account page wiring", () => {
     expect(src.match(/from\("(profiles|consents)"\)\.(insert|update|upsert)/g)).toHaveLength(3);
   });
 
-  it("students can turn cloud copies off, and withdrawing the cloud-copy consent turns them off too", () => {
-    expect(src.match(/rpc\("disable_sync"\)/g)?.length).toBe(2);
+  it("students can turn cloud copies off; withdrawing the cloud-copy consent turns them off AND deletes the cloud copy (decision J)", () => {
+    expect(src.match(/rpc\("disable_sync"\)/g)?.length).toBe(1); // "Turn off cloud copies" keeps the copy
     expect(src).toMatch(/onClick=\{disableSync\}>Turn off cloud copies</);
+    // A withdrawal is detected only when a granted cloud-copy consent is withdrawn. withdrawCloudCopy() then runs
+    // begin_cloud_withdrawal() BEFORE it records the rows (it is handed the insert), then deletes the copy.
+    // Without a withdrawal, the rows are inserted directly.
+    expect(src).toMatch(/const withdrawing = consents\["cloud-sync"\] === true && rows\.some\(\(r\) => r\.kind === "cloud-sync" && !r\.granted\);/);
+    expect(src).toMatch(/const insert = \(\) => client\.from\("consents"\)\.insert\(rows\);\s*const withdrawal = withdrawing \? await withdrawCloudCopy\(supabase, window\.localStorage, insert\) : null;\s*const error = withdrawal \? withdrawal\.recordError : \(await insert\(\)\)\.error;/);
+    expect(src.slice(src.indexOf("async function saveConsents"), src.indexOf("async function deleteCloudCopy")).match(/insert\(\)/g)).toHaveLength(1); // never twice
+    // The notice comes only from withdrawalNotice(), which claims deletion only on the server's confirmation.
+    expect(src).toMatch(/setNotice\(withdrawalNotice\(withdrawal\)/);
+    expect(src).toMatch(/setNotice\(withdrawalNotice\(r\)\)/);
+    // A retry is always offered after an unconfirmed deletion, and whenever the latest decision is a withdrawal.
+    expect(src).toMatch(/setRetryWithdrawal\(withdrawalOutcome\(withdrawal\) === "deletion-failed-retry"\)/);
+    expect(src).toMatch(/setRetryWithdrawal\(withdrawalOutcome\(r\) === "deletion-failed-retry"\)/);
+    expect(src).toMatch(/\{consents\["cloud-sync"\] === false \|\| retryWithdrawal \? \(\s*<button[^>]*onClick=\{deleteCloudCopy\}>Delete my cloud copy<\/button>/);
+    // Never the browser's progress: no device-data removal anywhere in the withdrawal path.
+    const withdrawalCode = src.slice(src.indexOf("async function saveConsents"), src.indexOf("async function disableSync"));
+    expect(withdrawalCode).not.toMatch(/removeDeviceData|localStorage\.(removeItem|clear|setItem)/);
+  });
+
+  it("distinguishes the error states, and claims success only after the server confirmed it (owner review, task 4)", () => {
+    // Turning cloud copies back on after a withdrawal: "fresh consent required", from the server's own answer.
+    expect(src).toMatch(/const \{ data, error \} = await supabase\.rpc\("enable_sync"\);\s*setBusy\(false\);[\s\S]*?const fresh = reactivationNotice\(\{ data, error \}, consents\["cloud-sync"\]\);\s*setNotice\(fresh \?\? /);
+    // A consent change refused by the daily allowance gets its own message.
+    expect(src).toMatch(/isConsentLimitError\(error\) \? CONSENT_LIMIT_NOTICE : "We couldn't record your choices\. Please try again\."/);
+    // "Your choices are recorded." only on the branch where the insert returned no error.
+    expect(src).toMatch(/\} else if \(error\) \{[\s\S]*?\} else \{\s*setNotice\("Your choices are recorded\."\);/);
+    // Every notice in the withdrawal and enable paths is set after its server call returned.
+    const paths: [string, string][] = [["async function saveConsents", "async function deleteCloudCopy"], ["async function deleteCloudCopy", "async function disableSync"], ["async function enableSync", "async function deleteAccount"]];
+    for (const [from, to] of paths) {
+      const code = src.slice(src.indexOf(from), src.indexOf(to));
+      const firstAwait = code.search(/await (supabase|withdrawCloudCopy)/);
+      expect(firstAwait, from).toBeGreaterThan(0);
+      const early = [...code.matchAll(/setNotice\(/g)].filter((m) => (m.index ?? 0) < firstAwait && !code.startsWith('setNotice("Nothing changed.")', m.index ?? 0));
+      expect(early, `${from}: a notice before the server answered`).toEqual([]);
+    }
+  });
+
+  it("the cloud-copy label says what is copied and what a withdrawal does (decision J, option B)", () => {
+    expect(src).toContain('"cloud-sync": "Keep a copy of my bookmarks, chapter checklist, revision rounds, mistakes, goals and study streak with my account (cloud copies). I can withdraw this at any time: uploads stop, the copy stored with my account is deleted, and the progress saved in this browser stays here.",');
   });
 
   it("no age question, no age-based message, no terms consent, and the privacy notice is called a draft", () => {

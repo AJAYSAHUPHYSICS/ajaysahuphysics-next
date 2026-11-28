@@ -42,10 +42,11 @@ atlas_tables(name) as (
          ('mistakes'), ('goals'), ('streaks'), ('deletion_requests'), ('deletion_log'), ('deletion_rate')
 ),
 atlas_functions(name) as (
-  values ('atlas_touch'), ('atlas_row_cap'), ('atlas_protect_profile'), ('atlas_consents_append_only'),
+  values ('withdraw_cloud_copies'), ('begin_cloud_withdrawal'), ('atlas_upload_lock'), ('atlas_upload_guard'), ('atlas_withdrawal_guard'), ('atlas_consent_cap'),
+         ('atlas_touch'), ('atlas_row_cap'), ('atlas_protect_profile'), ('atlas_consents_append_only'),
          ('latest_consent'), ('parental_consent_verified'), ('sync_allowed'), ('enable_sync'), ('disable_sync'),
          ('export_my_data'), ('request_account_deletion'), ('purge_user_data'), ('account_deletion_enabled'),
-         ('deletion_rate_wait')
+         ('deletion_rate_wait'), ('email_verified')
 ),
 atlas_indexes(name) as (
   values ('consents_user_kind_idx'), ('mistakes_user_question_idx'), ('bookmarks_user_updated_idx'),

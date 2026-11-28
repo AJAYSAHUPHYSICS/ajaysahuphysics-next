@@ -28,8 +28,8 @@ const privileges = async (db: PGlite, role: string, seq: string) =>
 
 describe("deletion_log_id_seq privileges (T-14)", () => {
   it("the fix runs after the four Phase 2B migrations", () => {
-    expect(files.indexOf(FIX)).toBe(files.length - 1);
-    expect(files.slice(0, -1)).toEqual([
+    expect(files.indexOf(FIX)).toBe(4); // later migrations may follow it
+    expect(files.slice(0, 4)).toEqual([
       "20261120000000_student_accounts.sql", "20261121000000_service_role_grants.sql",
       "20261122000000_account_deletion_gate.sql", "20261122010000_deletion_rate_limit.sql",
     ]);

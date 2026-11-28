@@ -52,8 +52,15 @@ describe("privacy notice matches the site's behaviour", () => {
   it("describes cloud copies as the product builds them: verified email and consent, no parental step (decision P)", () => {
     expect(text).not.toMatch(/parent or guardian/);
     expect(text).not.toMatch(/under 18/i);
-    expect(text).toMatch(/it will need a verified email address and your consent, which you can withdraw at any time/);
+    expect(text).toMatch(/it will need a verified email address and your consent\./);
     expect(text).toMatch(/These would never be copied: activity history, searches, reading position and recently viewed pages/);
+  });
+
+  it("says what a withdrawal does, as the product builds it: uploads stop, the cloud copy is deleted, the browser keeps its progress (decision J)", () => {
+    // The same six categories withdraw_cloud_copies() deletes (lib/account/cloud-withdrawal.ts).
+    expect(text).toMatch(/It would hold your bookmarks, chapter checklist, revision rounds, mistakes, goals and study streak\./);
+    expect(text).toMatch(/You could withdraw your consent at any time: uploads would stop and the copy stored with your account would be deleted, while the progress saved in your browser stays there\./);
+    expect(text).toMatch(/A dated record of your consent choices is kept\./);
   });
 
   it("stays a clearly labelled draft and is not indexed (owner decision F13)", () => {

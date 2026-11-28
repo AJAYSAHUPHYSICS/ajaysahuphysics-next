@@ -1,6 +1,6 @@
 # Supabase: student accounts (Phase 2B)
 
-**Staging first. Never apply anything here to production** without the owner's written approval and the legal sign-off tracked privately. The production site keeps working with none of this applied: progress stays in the browser.
+**Staging first. Never apply anything here to production** without the owner's explicit approval of that exact step. Formal legal review comes after launch (owner decision I), so no legal approval is claimed. The production site keeps working with none of this applied: progress stays in the browser.
 
 ## Contents
 | Path | What |
@@ -9,27 +9,36 @@
 | `migrations/20261121000000_service_role_grants.sql` | Least privilege for the server role: SELECT on the Atlas tables, UPDATE of `app_config.value`, INSERT into `consents` (the verified parental-consent process). No table is created. |
 | `migrations/20261122000000_account_deletion_gate.sql` | The server-side deletion gate: `app_config` key `account_deletion_enabled`, created `'false'`; `account_deletion_enabled()`, true only for exactly `'true'` (a missing row or any other value is off); `request_account_deletion()` replaced so it refuses with `deletion-disabled` while the gate is off. |
 | `migrations/20261122010000_deletion_rate_limit.sql` | Per-user deletion rate limits: the `deletion_rate` table (RLS on, no client access, server role read-only) and `deletion_rate_wait()` (server role only); `request_account_deletion()` replaced again, adding 5 calls per hour after the sign-in and gate checks. |
-| `migrations/20261123000000_deletion_log_sequence_privilege.sql` | Least privilege (T-14): removes every client privilege on `deletion_log_id_seq`. The blanket sequence grant in the first migration had given `authenticated` `USAGE` on it. **Not applied anywhere yet**; staging and production need the owner's approval |
+| `migrations/20261123000000_deletion_log_sequence_privilege.sql` | Least privilege (T-14): removes every client privilege on `deletion_log_id_seq`. The blanket sequence grant in the first migration had given `authenticated` `USAGE` on it. **Applied to staging on 2026-11-23** (owner decision F); not applied in production |
 | `config.toml` | Only the `delete-account` function's `verify_jwt = false` pin. Never run `supabase config push` with it. |
-| `rollback/student_accounts_down.sql` | **Destructive** rollback of all five migrations (owner approval only; tested in PGlite). |
+| `migrations/20261124000000_require_verified_email_for_sync.sql` | Cloud copies need a verified email address (owner decisions, 2026-11-23). An unverified account can neither **read** nor **write** its cloud-sync rows: the six study tables' SELECT policies require `email_verified()`, and their INSERT and UPDATE policies call `sync_allowed()`, which requires it. `enable_sync()` returns `email-not-verified`. Export and account deletion stay available. **Limitation:** existing Auth accounts are trusted as Supabase records them, and while "Confirm email" is off Supabase confirms new users automatically. So production "Confirm email" must be on before this is relied on. **Applied to staging on 2026-11-27**; not applied in production |
+| `migrations/20261126000000_remove_age_restrictions.sql` | **No age limit** (owner decision, 2026-11-26). `sync_allowed()` and `enable_sync()` lose every age rule: a profile, no pending deletion, a verified email, the current `privacy` and `cloud-sync` consents and the launch switch are all a student needs, at any age. The `terms` consent is no longer required (no Terms of Use document exists yet). `atlas_protect_profile()` no longer switches sync off for an age band; `parental_consent_verified()` is dropped; constraint `consents_no_parental` refuses any new `parental` consent or `parent-verified` method, from any role. `age_band` and `minor_sync_permitted` stay but nothing reads them. A product decision, not a statement of legal compliance. **Applied to staging on 2026-11-27**; not applied in production |
+| `migrations/20261126100000_consent_recorded_at_server_only.sql` | Students can no longer set `consents.recorded_at` (or `id`): they insert only `user_id, kind, version, granted, method`, the server role's columns. A narrowing only; existing rows are untouched. **Not applied anywhere** |
+| `migrations/20261127000000_withdraw_cloud_copies.sql` | Decision J: withdrawing cloud-copy consent deletes the six cloud tables' rows. The fail-closed withdrawal marker; the upload guard (profile row locked FOR SHARE); the consent cap (a current-version first refusal and a genuine withdrawal are always recorded; repeats are skipped; past 200 rows, fresh grants are limited to 20 genuine changes per rolling 24 hours); profile-first lock order for account deletion; `profiles.cloud_generation`. **Not applied anywhere** |
+| `rollback/withdraw_cloud_copies_down.sql` | Rollback of `20261127000000` only (step 1 of the full procedure): restores the flat 200-row cap and the earlier `purge_user_data()` and `request_account_deletion()`; changes no consent row; doesn't touch `20261126100000` |
+| `rollback/consent_recorded_at_server_only_down.sql` | Rollback of `20261126100000` only (step 2): gives students back INSERT on every consents column. Refuses while `20261127000000` is applied |
+| `rollback/verified_email_down.sql` | Non-destructive rollback of `20261124000000` only (restores both functions, drops `email_verified()`; tested in PGlite). Refuses to run while `20261126000000` is applied |
+| `rollback/remove_age_restrictions_down.sql` | Non-destructive rollback of `20261126000000` only: restores the four functions exactly as `20261124000000` left them and drops `consents_no_parental` (tested in PGlite). Run it **before** `verified_email_down.sql` |
+| `rollback/student_accounts_down.sql` | **Destructive** rollback of all nine migrations (owner approval only; tested in PGlite). Its header gives the full procedure, newest first: steps 1–4 are the four individual rollbacks above (each refuses while a newer migration is applied), step 5 is this file. It is also safe on its own, and its history cleanup covers all nine. `db-rollback.test.ts` checks that every migration file is covered and runs both paths. |
 | `functions/delete-account/` | Edge Function that deletes a student's account after they request it (service-role key stays in Supabase secrets). `handler.ts` is the tested core. |
 | `tests/supabase-auth-shim.sql` | **Test-only** stand-in for Supabase's `auth` schema and roles, so the migration can be tested in PGlite. Never apply it to a real project. |
-| `rollback/export_before_rollback.sql` | **Read-only** export of pending deletion requests and the deletion log, to run **before** any rollback (T-18). The rollback refuses to run while either table has rows unless it starts with the export's `ack` (`set atlas.rollback_exported = '<pending>/<logged>';`), which must match the current counts. The output holds user ids: store it privately and encrypted. |
+| `rollback/export_before_rollback.sql` | **Read-only** export of pending deletion requests and the deletion log, to run **before** any rollback (T-18). The rollback refuses to run while either table has rows unless it starts with the export's `ack` (`set atlas.rollback_exported = '<ack>';`). The ack is `v2:<pending>/<logged>:<sha256>`, a hash of every field of every exported row, so it must match the current **content**, not just the counts. The rollback locks both tables and recomputes it before any drop (`db-rollback-guard.test.ts`). The output holds user ids: store it privately and encrypted. |
 
 ## Safety switches (all off)
-- `app_config.adult_sync_permitted` and `app_config.minor_sync_permitted` stay `'false'` until legal sign-off. Only the service role can change them.
+- `app_config.adult_sync_permitted` is **the cloud-sync launch switch for every student** (its name is historical; there is no age limit since `20261126000000`). It stays `'false'` until the owner authorises activation (decision L), as its own production step. `app_config.minor_sync_permitted` is inert (nothing reads it) and stays `'false'`. Only the service role can change them.
 - `app_config.account_deletion_enabled` (the deletion gate) stays `'false'` until the staged verification in `docs/PHASE_2_RELEASE.md` section 9, C.3 and the owner's explicit approval. Only staging's `test:staging:deletion-gate` opens it, on staging only and for that run, and it always closes it again. Opening it never enables sync.
 - Students can't change any of these switches. A signed-in student's attempt to update `app_config` is **deliberately denied**: there is no client policy or grant, and `test:staging:release` checks this every run.
 - `CLOUD_SYNC_ENABLED` in `src/lib/sync/policy.ts` is `false`, so the site never sends study data.
-- Students under 18 can't enable cloud copies without the minors switch **and** a `parental` consent recorded with method `parent-verified`, which only a verified server process can insert.
+- There is no age-based rule and no parental-consent requirement (since `20261126000000`). No role can record a `parental` consent or use the `parent-verified` method.
 
 ## Tests (no Docker needed)
-`npx vitest run src/lib/__tests__/db-rls.test.ts` applies all five migrations, in order, to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
+`npx vitest run src/lib/__tests__/db-rls.test.ts` applies all nine migrations, in order, to an in-process Postgres (PGlite) and runs as `anon`, `authenticated` (with a JWT `sub`) and `service_role`. It checks:
 - anonymous visitors get no access;
 - students are isolated from each other;
 - the consent gate can't be bypassed through direct API calls;
-- the under-18 rules hold;
-- limits, constraints, export, an idempotent deletion request, and a retry-safe purge.
+- no age rule applies, and no parental consent can be recorded (also `db-no-age-restrictions.test.ts`);
+- limits, constraints, export, an idempotent deletion request, and a retry-safe purge;
+- withdrawal, the consent cap, lock order and the cloud generation (`db-withdraw-cloud-copies.test.ts`, `db-consent-recorded-at.test.ts`); real two-session races (`db-withdraw-concurrency.test.ts`, against a disposable local PostgreSQL only, and in the `db-concurrency` CI job).
 
 ## Staging setup (owner actions, in order)
 The staging project is **`ajaysahuphysics-staging`** (Tokyo, `ap-northeast-1`, Free plan).
@@ -75,8 +84,12 @@ npx supabase@2.122.1 db push --linked                       # applies supabase/m
 3. **`20261122000000`** depends on `app_config` and replaces `request_account_deletion()`.
 4. **`20261122010000`** depends on the gate function and replaces `request_account_deletion()` again.
 5. **`20261123000000`** depends on `deletion_log` (from the first) and revokes client privileges on its sequence (T-14).
+6. **`20261124000000`** replaces `sync_allowed()` and `enable_sync()` (from the first) to require a verified email address.
+7. **`20261126000000`** depends on the sixth (`email_verified()`) and replaces `sync_allowed()`, `enable_sync()` and `atlas_protect_profile()` again, without any age rule; it drops `parental_consent_verified()`.
+8. **`20261126100000`** depends on `consents` (from the first).
+9. **`20261127000000`** depends on the first five; it replaces `purge_user_data()` and `request_account_deletion()` (from the fourth) and the `consents_cap` trigger. **Apply it before any app version that enables cloud sync:** the sync engine reads `profiles.cloud_generation`.
 
-The CLI applies them in filename order. Apply all five together in production. In production, deploy the gated `delete-account` function (step 5) **before** applying them. Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the last two:** that would create the account tables without the deletion gate. On staging, the first four are applied (history matches local, 2026-11-22); `20261123000000` is **not** applied there yet (owner approval). Production: none applied.
+The CLI applies them in filename order. In production, apply them **one at a time, each separately approved**, consecutively in one maintenance window (`docs/PHASE_2_RELEASE.md` section 9, C.2.4), after deploying the gated `delete-account` function (step 5). Until the tables exist, it refuses every request and changes nothing. **Never apply the first two without the third and fourth:** that would create the account tables without the deletion gate and its rate limits. On staging, all seven are applied: the first five by 2026-11-23 (`20261123000000` after a fresh dry run), then `20261124000000` and `20261126000000` on 2026-11-27 after a dry run listing exactly those two; history matches local. Production: none applied. The eighth and ninth (`20261126100000`, `20261127000000`) aren't applied anywhere.
 
 ### 5. Deploy the deletion function (staging)
 ```
@@ -125,7 +138,7 @@ npm run test:staging
 - the other account staying unaffected.
 
 **Safety:**
-- `supabase/staging/guard.mjs` refuses the production project, unconfirmed targets, and swapped or foreign keys.
+- `supabase/staging/guard.mjs` accepts **only** the staging project (an allow-list since #27). It refuses both production projects, any unknown project, unconfirmed targets, and swapped or foreign keys.
 - For the run, the suite sets `adult_sync_permitted='true'` **in staging only**, and restores the previous value at the end.
 - It deletes every account it creates.
 - Evidence goes to `staging-evidence/<run>.json` (git-ignored), with keys and tokens redacted.
@@ -171,7 +184,7 @@ npm run test:staging:release
   - anonymous denial (12 tables, 5 functions);
   - sign-in with generic errors, session refresh, and sign-out revoking the refresh token;
   - own-profile and append-only consent rules;
-  - the sync safeguards with every precondition met (adult with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; under-18 with full consent: "not-available-for-under-18"; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
+  - the sync safeguards with every precondition met (a student with full consent: `sync_allowed()` false and `enable_sync()` "not-available-yet"; a student who declares under-18 gets the same answer, with `20261126000000` applied; uploads refused on all 6 study tables; a student can't set `sync_enabled`);
   - the denied student-side UPDATE attempt against `app_config` (above): a signed-in student tries to set `adult_sync_permitted` to `'true'`. The check passes only if the server denies it and the value stays `'false'`. No successful `app_config` modification occurs, so neither sync permission nor the deletion gate changes;
   - A-versus-B isolation;
   - export (own data only, documented shape);
@@ -182,6 +195,15 @@ npm run test:staging:release
   - CAPTCHA;
   - deletion end to end (step 9);
   - browser login (F9, step 8). The browser journey logs in through the login button, which is hidden while `ACCOUNTS_UI_ENABLED` is `false` (H1), so it runs only against a release-candidate build with the switch on.
+
+### 11. Verified-email check (decision K)
+```
+npm run test:staging:verified-email
+```
+`scripts/staging/verified-email.staging.mjs` needs `20261124000000` and `20261126000000` applied. It has the same rules as step 10 (enforced on its source by `staging-verified-email-check.test.ts`): it never writes `app_config`, stops unless all three switches are `'false'`, stores no study data, and uses synthetic accounts only.
+- **What it verifies:** an unconfirmed account can't sign in, so it never gets a session; a confirmed account is trusted as Supabase records it (`email_verified()` true) and still gets "not-available-yet" while the switch is off; that account can't set `sync_enabled`, upload to the six study tables, change a launch switch or record a parental consent; `anon` can't call `email_verified()`.
+- **Clean-up:** `purge_user_data` and `deleteUser` are attempted and checked separately for each account; removal must be confirmed (not found), and a list of Auth users must show no account from the run. That list only detects; it never deletes. Each purge adds one PII-free row to `deletion_log` (2 per run).
+- **Not verified here:** an authenticated **unverified** account's reads of the study tables. No unverified session exists while "Confirm email" is on, and planting rows would break the no-study-data rule. That read policy is covered by `db-verified-email.test.ts`.
 
 ### Staging verification record
 | Date | Item | Result |
@@ -203,6 +225,10 @@ npm run test:staging:release
 | 2026-11-22 | `db advisors --type security` | 0 errors. 6 WARN security-definer entry points (the 5 existing plus `account_deletion_enabled`, intended); 4 INFO RLS with no policy (tables with no client access, intended) |
 | 2026-11-22 | End state | 0 users; 0 rows in student tables, `deletion_requests` and `deletion_rate`; gate and sync switches `'false'`. `deletion_log` keeps its PII-free hash rows from the synthetic deletions (by design) |
 | 2026-11-22 | `npm run test:staging:release` (safe release check) | 63/63. Started and ended with both sync switches and the deletion gate `'false'`; 3 synthetic accounts removed; 0 rows in all student tables, `deletion_requests` and `deletion_rate` |
+| 2026-11-26 | `db push --dry-run` from #25 (`7847cda`), CLI 2.122.1 | Would push exactly `20261124000000` and `20261126000000`; nothing applied |
+| 2026-11-27 | Migrations `20261124000000` and `20261126000000` applied (`db push --linked`, exit 0) | History read back: all seven applied. `email_verified()` exists (`anon` can't run it); `parental_consent_verified()` dropped; `consents_no_parental` present. Switches `'false'` before and after |
+| 2026-11-27 | `npm run test:staging:release` on `7847cda` | 63/63, with migration 7 (a student who declares under-18 gets "not-available-yet" like everyone). Switches `'false'` at start and end; 3 synthetic accounts removed (0 Auth users after); 0 rows in the 10 application tables; 3 `deletion_log` rows (`rows_deleted` 4, 3, 0) |
+| 2026-11-27 | `npm run test:staging:verified-email` (step 11; run on `7847cda` with this script, before it was committed) | 38/38. Unconfirmed account refused at sign-in (no session); confirmed account `email_verified()` true, "not-available-yet", every bypass refused. Clean-up: purge and delete OK for both accounts, removal confirmed, no account from the run left. Read back independently: 0 Auth users, 0 rows in the 10 application tables, switches `'false'`, 2 `deletion_log` rows (`rows_deleted` 0 and 3). Not verified: an unverified session's study-table reads (no such session exists; PGlite covers the policy) |
 
 ### Manual staging checks (needs a real inbox)
 **Status: NOT VERIFIED.** No result has been recorded for any of the 7 checks below. They are required before the accounts UI is turned on (tracker E1).

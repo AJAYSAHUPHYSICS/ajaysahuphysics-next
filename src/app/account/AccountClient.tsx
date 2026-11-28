@@ -12,6 +12,7 @@ import { CLOUD_SYNC_ENABLED } from "@/lib/sync/policy";
 import { readMeta, syncOnce, type SyncResult } from "@/lib/sync/engine";
 import { supabaseRemote } from "@/lib/sync/supabase-remote";
 import FrameGuard from "@/components/FrameGuard";
+import { CONSENT_LIMIT_NOTICE, isConsentLimitError, reactivationNotice, withdrawCloudCopy, withdrawalNotice, withdrawalOutcome } from "@/lib/account/cloud-withdrawal";
 import {
   EXAM_TARGETS, PROFILE_COLUMNS, SELF_CONSENT_KINDS,
   consentChanges, consentsComplete, currentConsents, profileRow,
@@ -22,9 +23,11 @@ const EXAM_LABELS: Record<(typeof EXAM_TARGETS)[number], string> = { boards: "Bo
 // Owner decisions (2026-11-26): no Terms of Use consent (no such document exists yet), and the
 // privacy acknowledgement says plainly that the notice is a draft pending legal review.
 // This wording is not legal approval; it needs the owner's sign-off before launch (decision J).
+// Decision J, option B (2026-11-27): withdrawing the cloud-copy consent deletes the cloud copy
+// (lib/account/cloud-withdrawal.ts, migration 20261127000000); this browser's progress stays.
 const CONSENT_LABELS: Record<SelfConsentKind, string> = {
   privacy: "I have read the privacy notice. It is a draft, pending legal review.",
-  "cloud-sync": "Store a copy of my study progress with my account (cloud copies). I can withdraw this at any time.",
+  "cloud-sync": "Keep a copy of my bookmarks, chapter checklist, revision rounds, mistakes, goals and study streak with my account (cloud copies). I can withdraw this at any time: uploads stop, the copy stored with my account is deleted, and the progress saved in this browser stays here.",
 };
 const EMPTY_PROFILE: ProfileInput = { displayName: "", classLevel: "", examTargets: [] };
 const NO_CONSENTS: ConsentState = { privacy: null, "cloud-sync": null };
@@ -41,13 +44,18 @@ const ENABLE_REASONS: Record<string, string> = {
   "consent-required": "Please review the privacy notice and accept the cloud-copy consent first.",
   "not-available-yet": "Cloud copies aren't available yet.",
   "deletion-pending": "Your account is being deleted.",
+  "email-not-verified": "Verify your email address first: open the link we sent you, then try again.",
 };
 
 function syncMessage(r: SyncResult): string {
   switch (r.status) {
     case "disabled": return "Cloud copies aren't available yet.";
-    case "needs-link-confirmation": return `This device has ${r.localRecords} saved items. Confirm below to add them to your account.`;
+    case "needs-link-confirmation": return r.reason === "cloud-copy-replaced"
+      ? `The copy stored with your account was deleted since this device last synced. This device still has ${r.localRecords} saved items, and nothing on it was removed. Confirm below to add them to your account again.`
+      : `This device has ${r.localRecords} saved items. Confirm below to add them to your account.`;
     case "linked-to-another-account": return "This device's progress is linked to a different account. Nothing was synced.";
+    case "not-allowed": return "Cloud copies aren't on for this account yet (they need a verified email address and your consent). Nothing was synced, and nothing on this device was changed.";
+    case "cloud-incomplete": return "We couldn't read your full cloud copy, so nothing was synced and nothing on this device was changed. Try again later.";
     case "error": return "We couldn't sync right now. Nothing on this device was changed; try again later.";
     case "ok": return r.changedLocal || r.pushed ? `Synced: ${r.pushed} uploaded, ${r.changedLocal} updated on this device.` : "Everything is up to date.";
   }
@@ -68,6 +76,7 @@ export default function AccountClient() {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [consents, setConsents] = useState<ConsentState>(NO_CONSENTS);
   const [wanted, setWanted] = useState<Record<SelfConsentKind, boolean>>({ privacy: false, "cloud-sync": false });
+  const [retryWithdrawal, setRetryWithdrawal] = useState(false);
 
   const userId = session.status === "signed-in" ? session.session.user.id : null;
   // Profile and consents only matter for cloud copies, so they stay dormant with the code switch off.
@@ -138,14 +147,35 @@ export default function AccountClient() {
     if (!supabase || !userId) return;
     const rows = consentChanges(consents, wanted);
     if (!rows.length) return setNotice("Nothing changed.");
+    // Withdrawing a granted cloud-copy consent also deletes the cloud copy (decision J).
+    const withdrawing = consents["cloud-sync"] === true && rows.some((r) => r.kind === "cloud-sync" && !r.granted);
     setBusy(true);
-    const { error } = await supabase.from("consents").insert(rows);
-    // Withdrawing the cloud-copy consent also switches cloud copies off.
-    const withdrew = rows.some((r) => r.kind === "cloud-sync" && !r.granted);
-    const off = !error && withdrew ? await supabase.rpc("disable_sync") : { error: null };
+    // A withdrawal turns uploads off FIRST (begin_cloud_withdrawal), then records these rows, then deletes
+    // the copy; the deletion goes ahead even if recording failed, because withdraw_cloud_copies() records it too.
+    const client = supabase;
+    const insert = () => client.from("consents").insert(rows);
+    const withdrawal = withdrawing ? await withdrawCloudCopy(supabase, window.localStorage, insert) : null;
+    const error = withdrawal ? withdrawal.recordError : (await insert()).error;
     setBusy(false);
-    if (error) return setNotice("We couldn't record your choices. Please try again.");
-    setNotice(off.error ? "Your choices are recorded, but we couldn't switch cloud copies off. Use “Turn off cloud copies” below." : withdrew ? "Your choices are recorded, and cloud copies are off." : "Your choices are recorded.");
+    if (withdrawal) {
+      setRetryWithdrawal(withdrawalOutcome(withdrawal) === "deletion-failed-retry");
+      setNotice(withdrawalNotice(withdrawal) + (error ? " Some of your other choices weren't recorded; please save them again." : ""));
+    } else if (error) {
+      setNotice(isConsentLimitError(error) ? CONSENT_LIMIT_NOTICE : "We couldn't record your choices. Please try again.");
+    } else {
+      setNotice("Your choices are recorded."); // only after the server accepted the rows
+    }
+    await reloadAccountRecords();
+  }
+
+  /** Retry, or delete a copy left behind: same steps as a withdrawal; never touches this browser's progress. */
+  async function deleteCloudCopy() {
+    if (!supabase || !userId) return;
+    setBusy(true);
+    const r = await withdrawCloudCopy(supabase, window.localStorage);
+    setBusy(false);
+    setRetryWithdrawal(withdrawalOutcome(r) === "deletion-failed-retry");
+    setNotice(withdrawalNotice(r));
     await reloadAccountRecords();
   }
 
@@ -195,7 +225,9 @@ export default function AccountClient() {
     setBusy(true);
     const { data, error } = await supabase.rpc("enable_sync");
     setBusy(false);
-    setNotice(error ? "We couldn't change this setting right now." : ENABLE_REASONS[String(data)] ?? "We couldn't change this setting right now.");
+    // After a withdrawal, only a fresh cloud-copy consent can turn cloud copies back on (decision J).
+    const fresh = reactivationNotice({ data, error }, consents["cloud-sync"]);
+    setNotice(fresh ?? (error ? "We couldn't change this setting right now." : ENABLE_REASONS[String(data)] ?? "We couldn't change this setting right now."));
   }
 
   async function deleteAccount() {
@@ -300,6 +332,9 @@ export default function AccountClient() {
             ))}
           </div>
           <button type="button" className={`mt-4 ${btn}`} disabled={busy} onClick={saveConsents}>Save my choices</button>
+          {consents["cloud-sync"] === false || retryWithdrawal ? (
+            <button type="button" className={`mt-4 ml-2 ${btnOutline}`} disabled={busy} onClick={deleteCloudCopy}>Delete my cloud copy</button>
+          ) : null}
           {!consentsComplete(consents) ? <p className="mt-2 text-xs text-slate" role="note">Cloud copies need both.</p> : null}
         </section>
       ) : null}
