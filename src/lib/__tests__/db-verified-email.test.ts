@@ -15,6 +15,9 @@ const FIX = "20261124000000_require_verified_email_for_sync.sql";
 // Applied after FIX; it replaces sync_allowed() and enable_sync() again, keeping email_verified().
 const AGE = "20261126000000_remove_age_restrictions.sql";
 const FIX_INDEX_AFTER = 6;
+// Added after AGE; independent of this gate (owner decision J, 2026-11-27).
+const CONSENT_TS = "20261126100000_consent_recorded_at_server_only.sql";
+const WITHDRAW = "20261127000000_withdraw_cloud_copies.sql";
 const files = readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort();
 const read = (...p: string[]) => readFileSync(path.join(ROOT, ...p), "utf8");
 const STUDY = ["bookmarks", "checklist_items", "revision_rounds", "mistakes", "goals", "streaks"] as const;
@@ -76,10 +79,10 @@ afterAll(async () => db?.close());
 beforeEach(async () => { if (db) await as("postgres"); });
 
 describe("migration order", () => {
-  it("runs after the five Phase 2 migrations; only the age-restriction removal (which keeps this gate) follows it", () => {
+  it("runs after the five Phase 2 migrations; only the age-restriction removal (which keeps this gate) and the two decision J migrations follow it", () => {
     expect(files.indexOf(FIX)).toBe(5);
-    expect(files.slice(FIX_INDEX_AFTER)).toEqual([AGE]);
-    expect(files).toHaveLength(7);
+    expect(files.slice(FIX_INDEX_AFTER)).toEqual([AGE, CONSENT_TS, WITHDRAW]);
+    expect(files).toHaveLength(9);
   });
 });
 
@@ -304,20 +307,23 @@ describe("rollback", () => {
   it("restores the previous functions and SELECT policies exactly, drops email_verified(), and re-applies", async () => {
     const fnq = "select string_agg(pg_get_functiondef(p.oid), E'\\n' order by p.proname) as d from pg_proc p where p.pronamespace = 'public'::regnamespace and p.proname in ('sync_allowed', 'enable_sync')";
     const polq = "select string_agg(tablename || ':' || policyname || ':' || cmd || ':' || coalesce(qual, '') || ':' || coalesce(with_check, ''), E'\\n' order by tablename, policyname) as d from pg_policies where schemaname = 'public'";
-    // The later migration must be rolled back first (verified_email_down.sql refuses otherwise).
+    // The later migrations are rolled back first, newest first (student_accounts_down.sql, steps 1-4;
+    // each older rollback refuses otherwise).
+    await db.exec(read("supabase", "rollback", "withdraw_cloud_copies_down.sql"));
+    await db.exec(read("supabase", "rollback", "consent_recorded_at_server_only_down.sql"));
     await db.exec(read("supabase", "rollback", "remove_age_restrictions_down.sql"));
     await db.exec(read("supabase", "rollback", "verified_email_down.sql"));
     expect((await db.query("select 1 from pg_proc where proname = 'email_verified'")).rows).toHaveLength(0);
     const fresh = new PGlite();
     try {
       await fresh.exec(read("supabase", "tests", "supabase-auth-shim.sql"));
-      for (const f of files.filter((f) => f !== FIX && f !== AGE)) await fresh.exec(read("supabase", "migrations", f));
+      for (const f of files.filter((f) => f !== FIX && f !== AGE && f !== CONSENT_TS && f !== WITHDRAW)) await fresh.exec(read("supabase", "migrations", f));
       // Compared without carriage returns: a Windows checkout stores CRLF in function bodies.
       const norm = (d: string) => d.replace(/\r/g, "");
       for (const q of [fnq, polq]) expect(norm((await one<string>(q)).d)).toBe(norm((await fresh.query<{ d: string }>(q)).rows[0].d));
     } finally { await fresh.close(); }
     await db.exec(read("supabase", "migrations", FIX));
     expect((await db.query("select 1 from pg_proc where proname = 'email_verified'")).rows).toHaveLength(1);
-    await db.exec(read("supabase", "migrations", AGE));
+    for (const f of [AGE, CONSENT_TS, WITHDRAW]) await db.exec(read("supabase", "migrations", f)); // re-applied in order
   });
 });

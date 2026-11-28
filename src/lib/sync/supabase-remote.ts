@@ -25,6 +25,13 @@ export function supabaseRemote(client: SupabaseClient, userId: string): RemoteSt
       const { data, error } = await client.rpc("sync_allowed");
       return !error && data === true;
     },
+    // Replaced by the database whenever it deletes the cloud copy outright (migration 20261127000000).
+    async cloudGeneration() {
+      const { data, error } = await client.from("profiles").select("cloud_generation").eq("user_id", userId).maybeSingle();
+      if (error) throw new Error(`cloud generation: ${error.message}`);
+      const g = (data as { cloud_generation?: unknown } | null)?.cloud_generation;
+      return typeof g === "string" ? g : null;
+    },
     async pull(table) {
       const { data, error } = await client.from(table).select("*").eq("user_id", userId);
       if (error) throw new Error(`pull ${table}: ${error.message}`);

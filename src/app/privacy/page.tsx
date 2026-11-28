@@ -39,7 +39,7 @@ export default function PrivacyPage() {
             Accounts are provided by Supabase, our authentication provider. It stores your email address, a securely hashed password and sign-in records so you can log in. Creating an account doesn&apos;t copy your study progress anywhere: it stays in your browser.
           </p>
           <p className={p}>
-            A cloud copy of study progress isn&apos;t available yet. If it is offered in future, it will be off until you turn it on, it will need your consent (and, for students under 18, verified consent from a parent or guardian), and these would never be copied: activity history, searches, reading position and recently viewed pages.
+            A cloud copy of study progress isn&apos;t available yet. If it is offered in future, it will be off until you turn it on, and it will need a verified email address and your consent. It would hold your bookmarks, chapter checklist, revision rounds, mistakes, goals and study streak. These would never be copied: activity history, searches, reading position and recently viewed pages. You could withdraw your consent at any time: uploads would stop and the copy stored with your account would be deleted, while the progress saved in your browser stays there. A dated record of your consent choices is kept.
           </p>
         </section>
 

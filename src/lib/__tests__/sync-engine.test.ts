@@ -52,6 +52,18 @@ class MemCloud implements RemoteStore {
   allowed: () => Promise<unknown> = async () => true;
   /** Simulates the verified-email SELECT policy: RLS hides every row and refuses every write. */
   hidden = false;
+  /** profiles.cloud_generation: replaced whenever the database deletes the copy outright. */
+  generation: string | null = "gen-1";
+  /** Test hook: runs after each pull (e.g. a withdrawal committing mid-sync). */
+  afterPull: (table: string) => void = () => {};
+  async cloudGeneration() {
+    return this.generation;
+  }
+  /** What withdraw_cloud_copies() does: every row hard-deleted (no tombstones), a new generation. */
+  withdrawAll(nextGeneration: string) {
+    this.tables.clear();
+    this.generation = nextGeneration;
+  }
   private keyOf(table: string, r: Row) {
     return ADAPTERS.find((a) => a.table === table)!.rowKey(r);
   }
@@ -62,7 +74,9 @@ class MemCloud implements RemoteStore {
     this.pulls++;
     if (this.failPull) throw new Error("network down");
     if (this.hidden) return [];
-    return [...(this.tables.get(table)?.values() ?? [])].map((r) => ({ ...r }));
+    const rows = [...(this.tables.get(table)?.values() ?? [])].map((r) => ({ ...r }));
+    this.afterPull(table);
+    return rows;
   }
   async push(table: string, rows: Row[]) {
     if (this.hidden) throw new Error("new row violates row-level security policy");
@@ -281,6 +295,101 @@ describe("two devices, one account", () => {
     await run(d1, cloud);
     await run(d2, cloud);
     expect(d2.json("atlas:study-streak")).toEqual({ current: 1, longest: 9, lastActiveDate: "2026-11-12" });
+  });
+});
+
+describe("a cloud copy deleted outright (withdrawal, then re-consent): owner review B1", () => {
+  const SYNCED = ["atlas:bookmarks", "atlas:checklist", "atlas:revision", "atlas:mistakes", "atlas:goals", "atlas:study-streak"];
+  /** Device B synced earlier, so its base lists every record; then the student withdrew on device A. */
+  async function staleDeviceB() {
+    const cloud = new MemCloud();
+    const b = device();
+    expect((await run(b, cloud)).status).toBe("ok");
+    expect(Object.keys(readMeta(b)!.base["atlas:bookmarks"])).toHaveLength(1);
+    const before = new Map(b.data);
+    cloud.withdrawAll("gen-2"); // withdraw_cloud_copies(): rows gone, no tombstones, new generation
+    return { cloud, b, before };
+  }
+
+  it("device B with an old base asks before linking again, and changes nothing until confirmed", async () => {
+    const { cloud, b, before } = await staleDeviceB();
+    const r = await syncOnce({ storage: b, remote: cloud, userId: U1, enabled: true, now: () => T0 });
+    expect(r).toEqual({ status: "needs-link-confirmation", localRecords: expect.any(Number), reason: "cloud-copy-replaced" });
+    expect(b.data).toEqual(before);
+    expect(cloud.tables.size).toBe(0);
+  });
+
+  it("confirmed: keeps EVERY local record (byte-identical) and re-uploads it", async () => {
+    const { cloud, b, before } = await staleDeviceB();
+    const r = await run(b, cloud);
+    expect(r).toMatchObject({ status: "ok", deletedRemote: 0, changedLocal: 0 });
+    for (const k of SYNCED) expect(b.data.get(k), k).toBe(before.get(k));
+    expect(cloud.live("bookmarks")).toHaveLength(1);
+    expect(cloud.live("checklist_items")).toHaveLength(2);
+    expect(cloud.live("revision_rounds")).toHaveLength(2);
+    expect(cloud.live("mistakes")).toHaveLength(1);
+    expect(cloud.live("goals")).toHaveLength(1);
+    expect(cloud.live("streaks")).toHaveLength(1);
+    expect(readMeta(b)?.cloudGeneration).toBe("gen-2");
+  });
+
+  it("when another device re-uploaded first, B keeps its own records and combines with the new copy", async () => {
+    const { cloud, b, before } = await staleDeviceB();
+    const a = new MemStorage({ "atlas:goals": { "weekly-pyq": T0 + day } }); // device A, after re-consent
+    expect((await run(a, cloud)).status).toBe("ok");
+    expect((await run(b, cloud)).status).toBe("ok");
+    expect(b.json("atlas:bookmarks")).toEqual(JSON.parse(before.get("atlas:bookmarks")!));
+    expect(b.json("atlas:mistakes")).toEqual(JSON.parse(before.get("atlas:mistakes")!));
+    expect(b.json("atlas:goals")).toEqual({ "daily-dpp": T0, "weekly-pyq": T0 + day });
+    expect(cloud.live("goals")).toHaveLength(2);
+  });
+
+  it("a sync record written before generations existed is treated as another generation", async () => {
+    const { cloud, b, before } = await staleDeviceB();
+    const meta = readMeta(b)!;
+    delete meta.cloudGeneration;
+    b.setItem(SYNC_META_KEY, JSON.stringify(meta));
+    expect((await syncOnce({ storage: b, remote: cloud, userId: U1, enabled: true })).status).toBe("needs-link-confirmation");
+    expect((await run(b, cloud)).status).toBe("ok");
+    for (const k of SYNCED) expect(b.data.get(k), k).toBe(before.get(k));
+  });
+
+  it("a withdrawal committing DURING the pull: the pass stops and writes nothing anywhere", async () => {
+    const cloud = new MemCloud();
+    const b = device();
+    await run(b, cloud);
+    const before = new Map(b.data);
+    const pushes = cloud.pushes;
+    cloud.afterPull = (t) => { if (t === "checklist_items") cloud.withdrawAll("gen-3"); };
+    const r = await run(b, cloud);
+    // Stopped either by the generation re-check or, where present, by the missing-records check (M1).
+    expect(["error", "cloud-incomplete"]).toContain(r.status);
+    expect(b.data).toEqual(before);
+    expect(cloud.pushes).toBe(pushes);
+  });
+
+  it("a withdrawal committing right AFTER the last pull: the generation re-check stops the pass", async () => {
+    const cloud = new MemCloud();
+    const b = device();
+    await run(b, cloud);
+    b.setItem("atlas:goals", JSON.stringify({ "daily-dpp": T0, "weekly-pyq": T0 })); // something to push
+    const before = new Map(b.data);
+    const pushes = cloud.pushes;
+    cloud.afterPull = (t) => { if (t === "streaks") cloud.withdrawAll("gen-4"); }; // every pull saw the old copy
+    const r = await run(b, cloud);
+    expect(r).toEqual({ status: "error", stage: "pull", message: "the cloud copy changed during this sync" });
+    expect(b.data).toEqual(before);
+    expect(cloud.pushes).toBe(pushes);
+  });
+
+  it("no profile (no generation): an error, nothing read into the device or written", async () => {
+    const cloud = new MemCloud();
+    cloud.generation = null;
+    const b = device();
+    const before = new Map(b.data);
+    expect((await run(b, cloud)).status).toBe("error");
+    expect(b.data).toEqual(before);
+    expect(cloud.tables.size).toBe(0);
   });
 });
 

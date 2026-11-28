@@ -8,12 +8,28 @@
 --
 -- Run it BEFORE verified_email_down.sql if both are rolled back (that
 -- script refuses to run while this migration is still applied).
+-- Step 3 of the full rollback procedure (student_accounts_down.sql). It
+-- refuses to run while 20261126100000 or 20261127000000 is still applied
+-- (newest first): roll those back first.
 -- Owner approval only; run in the SQL editor of the intended project after
 -- checking its name and ref. Afterwards remove the 20261126000000 row from
--- supabase_migrations.schema_migrations.
+-- supabase_migrations.schema_migrations:
+--   delete from supabase_migrations.schema_migrations where version = '20261126000000';
 -- Tested in src/lib/__tests__/db-no-age-restrictions.test.ts.
 -- ═══════════════════════════════════════════════════════════════════
 begin;
+
+do $$
+begin
+  if to_regprocedure('public.withdraw_cloud_copies()') is not null then
+    raise exception 'Roll back 20261127000000 first: run supabase/rollback/withdraw_cloud_copies_down.sql, then consent_recorded_at_server_only_down.sql, then this script.';
+  end if;
+  -- 20261126100000 applied <=> students can't insert consents.recorded_at.
+  if to_regclass('public.consents') is not null
+     and not has_column_privilege('authenticated', 'public.consents', 'recorded_at', 'INSERT') then
+    raise exception 'Roll back 20261126100000 first: run supabase/rollback/consent_recorded_at_server_only_down.sql, then this script.';
+  end if;
+end $$;
 
 alter table public.consents drop constraint if exists consents_no_parental;
 

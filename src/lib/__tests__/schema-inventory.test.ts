@@ -106,10 +106,12 @@ describe("schema inventory script: runs and reports", () => {
     for (const m of migrations) await db.exec(m);
     const inv = await run();
     expect(inv.atlas_conflicts.tables).toHaveLength(12);
-    // 15 names are checked; parental_consent_verified is created by the first migration and
-    // dropped by 20261126000000 (no age limit), so 14 exist after all migrations.
-    expect(inv.atlas_conflicts.functions).toHaveLength(14);
+    // 21 names are checked; parental_consent_verified is created by the first migration and
+    // dropped by 20261126000000 (no age limit), so 20 exist after all migrations (20261127000000
+    // adds withdraw_cloud_copies, begin_cloud_withdrawal and four atlas_* trigger/lock functions).
+    expect(inv.atlas_conflicts.functions).toHaveLength(20);
     expect(inv.atlas_conflicts.functions).not.toContain("parental_consent_verified");
+    expect(inv.atlas_conflicts.functions).toContain("withdraw_cloud_copies");
     expect(inv.atlas_conflicts.indexes).toHaveLength(8);
     expect(inv.public_tables.filter((t) => !UNRELATED.includes(t.name)).every((t) => t.rls)).toBe(true);
     expect(inv.policies.length).toBeGreaterThan(10);

@@ -21,6 +21,17 @@
 //      the new base fingerprints.
 // A failure or refusal at 3–7 leaves the device untouched; the next run converges
 // because uploads are idempotent (same keys, same values).
+//
+// Cloud generation (owner review B1): the database deletes a cloud copy
+// outright (no tombstones) when the student withdraws cloud-copy consent, and
+// when an account is purged. A device whose merge base predates that would
+// read every missing record as "deleted in the cloud" and delete its own
+// copy. So the base is tied to profiles.cloud_generation, a random id the
+// database replaces on every such deletion. If it differs from the one the
+// base was saved with, the base is discarded and the pass is a first sync:
+// it asks before linking again, then combines and never deletes local data.
+// The generation is read again after the pull; if it changed meanwhile the
+// pass stops and writes nothing.
 // ─────────────────────────────────────────────────────────────────
 import { ADAPTERS, type Adapter, type Row, type Storage } from "./adapters";
 import { threeWayMerge } from "./merge";
@@ -32,6 +43,8 @@ export interface RemoteStore {
    * Must resolve to exactly `true` to proceed; anything else, or a rejection, refuses the sync.
    */
   syncAllowed(): Promise<boolean>;
+  /** profiles.cloud_generation for the signed-in student; null when there is no profile. */
+  cloudGeneration(): Promise<string | null>;
   /** All rows the signed-in student owns in a table (RLS-limited), tombstones included. */
   pull(table: string): Promise<Row[]>;
   /** Idempotent upsert of the student's rows (including tombstones). */
@@ -43,13 +56,16 @@ export type SyncMeta = {
   /** Account this device's progress is linked to. */
   accountId: string;
   lastSyncedAt: number | null;
+  /** The cloud generation the base below belongs to (absent in metas written before it existed: treated as different). */
+  cloudGeneration?: string;
   /** Per store: record key → fingerprint both sides agreed on. */
   base: Record<string, Record<string, string>>;
 };
 
 export type SyncResult =
   | { status: "disabled" }
-  | { status: "needs-link-confirmation"; localRecords: number }
+  /** reason "cloud-copy-replaced": the cloud copy was deleted since this device last synced (e.g. consent withdrawn). */
+  | { status: "needs-link-confirmation"; localRecords: number; reason: "first-sync" | "cloud-copy-replaced" }
   | { status: "linked-to-another-account" }
   /** The database didn't explicitly allow sync (e.g. an unverified email address). Nothing read or written. */
   | { status: "not-allowed" }
@@ -95,9 +111,23 @@ export async function syncOnce(opts: {
     allowed = false;
   }
   if (allowed !== true) return { status: "not-allowed" };
-  if (!meta && !opts.confirmLink) {
+  const readGeneration = async () => {
+    const g = await remote.cloudGeneration();
+    if (typeof g !== "string" || g.length === 0) throw new Error("no cloud generation (no profile)");
+    return g;
+  };
+  let generation: string;
+  try {
+    generation = await readGeneration();
+  } catch (e) {
+    return { status: "error", stage: "pull", message: (e as Error).message };
+  }
+  // The base counts only for the generation it was saved with; otherwise this is a first sync.
+  const replaced = meta !== null && meta.cloudGeneration !== generation;
+  const agreedBase: SyncMeta["base"] = replaced ? {} : (meta?.base ?? {});
+  if ((!meta || replaced) && !opts.confirmLink) {
     const n = countLocal(storage);
-    if (n > 0) return { status: "needs-link-confirmation", localRecords: n };
+    if (n > 0) return { status: "needs-link-confirmation", localRecords: n, reason: replaced ? "cloud-copy-replaced" : "first-sync" };
   }
 
   type Plan = { adapter: Adapter<unknown>; rawBefore: string | null; outcome: ReturnType<typeof threeWayMerge<unknown>>; remoteRows: Map<string, Row> };
@@ -122,18 +152,25 @@ export async function syncOnce(opts: {
     // A record both sides last agreed on always comes back, live or as a tombstone (the only server-side hard
     // delete is the account-deletion purge). If it's absent, the cloud copy is hidden or incomplete: stop before
     // the merge could read the absence as a deletion, and before anything is written anywhere.
-    const agreed = Object.keys(meta?.base?.[a.key] ?? {});
+    const agreed = Object.keys(agreedBase[a.key] ?? {}); // the generation-checked base (B1)
     const missing = agreed.filter((k) => !remoteRows.has(k)).length;
     if (missing > 0) return { status: "cloud-incomplete", table: a.table, missing };
     const rawBefore = storage.getItem(a.key);
     const outcome = threeWayMerge({
-      base: new Map(Object.entries(meta?.base?.[a.key] ?? {})),
+      base: new Map(Object.entries(agreedBase[a.key] ?? {})),
       local: a.read(rawBefore),
       remote: remoteMap,
       remoteDeleted,
       combine: a.combine,
     });
     plans.push({ adapter: a, rawBefore, outcome, remoteRows });
+  }
+
+  // The cloud copy must still be the one the merges were computed against.
+  try {
+    if ((await readGeneration()) !== generation) return { status: "error", stage: "pull", message: "the cloud copy changed during this sync" };
+  } catch (e) {
+    return { status: "error", stage: "pull", message: (e as Error).message };
   }
 
   let pushed = 0;
@@ -157,7 +194,7 @@ export async function syncOnce(opts: {
   }
 
   const skippedStores: string[] = [];
-  const base: SyncMeta["base"] = { ...(meta?.base ?? {}) };
+  const base: SyncMeta["base"] = { ...agreedBase };
   let changedLocal = 0;
   for (const p of plans) {
     const current = storage.getItem(p.adapter.key);
@@ -174,7 +211,7 @@ export async function syncOnce(opts: {
     base[p.adapter.key] = Object.fromEntries(p.outcome.nextBase);
   }
 
-  const nextMeta: SyncMeta = { version: 1, accountId: userId, lastSyncedAt: (opts.now ?? Date.now)(), base };
+  const nextMeta: SyncMeta = { version: 1, accountId: userId, lastSyncedAt: (opts.now ?? Date.now)(), cloudGeneration: generation, base };
   storage.setItem(SYNC_META_KEY, JSON.stringify(nextMeta));
   return { status: "ok", pushed, deletedRemote, changedLocal, conflicts: plans.reduce((n, p) => n + p.outcome.conflicts.length, 0), skippedStores };
 }

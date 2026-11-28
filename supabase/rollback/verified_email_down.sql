@@ -8,6 +8,8 @@
 -- Owner approval only; run in the SQL editor of the intended project after
 -- checking its name and ref. Afterwards remove the 20261124000000 row from
 -- supabase_migrations.schema_migrations. Tested in db-verified-email.test.ts.
+--   delete from supabase_migrations.schema_migrations where version = '20261124000000';
+-- Step 4 of the full rollback procedure (student_accounts_down.sql).
 --
 -- If 20261126000000_remove_age_restrictions.sql is applied, roll it back
 -- FIRST (remove_age_restrictions_down.sql). This script restores functions

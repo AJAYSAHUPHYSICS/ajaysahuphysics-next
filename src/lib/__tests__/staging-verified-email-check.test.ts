@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 // ignores a clean-up error, treats an unconfirmed removal as done, drops the
 // leftover-account sweep, or weakens the assertions that make it meaningful.
 const ROOT = path.resolve(__dirname, "..", "..", "..");
-const src = readFileSync(path.join(ROOT, "scripts", "staging", "verified-email.staging.mjs"), "utf8");
+// Line endings normalised: a Windows checkout (core.autocrlf=true) has CRLF; git and CI have LF.
+const src = readFileSync(path.join(ROOT, "scripts", "staging", "verified-email.staging.mjs"), "utf8").replace(/\r\n/g, "\n");
 const code = src.replace(/^\s*\/\/.*$/gm, "");
 const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
 const STUDY = "bookmarks|checklist_items|revision_rounds|mistakes|goals|streaks";

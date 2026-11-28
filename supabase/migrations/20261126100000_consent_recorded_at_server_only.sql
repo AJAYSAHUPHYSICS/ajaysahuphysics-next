@@ -1,0 +1,27 @@
+-- ═══════════════════════════════════════════════════════════════════
+-- Students can't choose when their consent decisions were recorded
+-- (owner review of decision J, 2026-11-27).
+--
+-- Every consent check takes the student's LATEST decision, ordered by
+-- consents.recorded_at (public.latest_consent, sync_allowed, enable_sync,
+-- the withdrawal guard of 20261127000000). Students had INSERT on the whole
+-- consents table, so they could write their own recorded_at: a grant dated in
+-- the future would outrank every later withdrawal, and back-dated rows would
+-- make the history inaccurate.
+--
+-- From now on students insert only the columns the server role may insert
+-- (20261121000000): user_id, kind, version, granted, method. recorded_at and
+-- id always come from their defaults (now(); generated identity). The insert
+-- policy (own rows, method 'self', no 'parental') is unchanged, and the app
+-- sends only kind, version and granted (lib/account/profile-consent.ts).
+--
+-- This is a narrowing only: nothing is granted that wasn't before. Existing
+-- rows are untouched. It is its own migration, ordered before
+-- 20261127000000, so rolling that one back can't reopen it.
+-- Rollback (owner approval only): supabase/rollback/consent_recorded_at_server_only_down.sql
+-- (step 2 of the full rollback procedure in student_accounts_down.sql; it
+-- refuses while 20261127000000 is still applied).
+-- Tested in src/lib/__tests__/db-consent-recorded-at.test.ts.
+-- ═══════════════════════════════════════════════════════════════════
+revoke insert on public.consents from authenticated;
+grant insert (user_id, kind, version, granted, method) on public.consents to authenticated;

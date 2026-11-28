@@ -39,6 +39,13 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Owner-controlled build switches (audit F7), set as repository variables.
+          # Unset, they build exactly what deploys today: analytics on, CAPTCHA off.
+          # NEXT_PUBLIC_ANALYTICS=off removes GA and its CSP origins (src/lib/analytics-config.ts).
+          # NEXT_PUBLIC_TURNSTILE_SITE_KEY must be set BEFORE Supabase bot protection is
+          # turned on, or every sign-in fails (src/lib/auth/captcha.ts).
+          NEXT_PUBLIC_ANALYTICS: ${{ vars.NEXT_PUBLIC_ANALYTICS }}
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
